@@ -53,7 +53,7 @@ func (b *Bar) Run() {
 	}
 
 	// Launch a goroutine to build and print the master string.
-	go buildBar(ch)
+	go setBar(ch)
 
 	// Wait for all routines to finish (shouldn't happen though).
 	<-finished
@@ -82,7 +82,7 @@ func runRoutine(r Routine, i int, ch chan []string) {
 }
 
 // Build the master output and print in to the statusbar. Runs a loop every second.
-func buildBar(ch chan []string) {
+func setBar(ch chan []string) {
 	dpy  := C.XOpenDisplay(nil)
 	root := C.XRootWindow(dpy, C.XDefaultScreen(dpy));
 
@@ -100,7 +100,9 @@ func buildBar(ch chan []string) {
 		ch <- outputs
 
 		// Send the master output to the statusbar.
-		C.XStoreName(dpy, root, C.CString(b.String()));
+		s := b.String()
+		s  = s[:b.Len()-1] // remove last space
+		C.XStoreName(dpy, root, C.CString(s));
 		b.Reset()
 
 		// Stop the clock and put the routine to sleep for the rest of the second.
