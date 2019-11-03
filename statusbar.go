@@ -1,11 +1,9 @@
 // Package statusbar displays various resources on the DWM statusbar.
 package statusbar
 
-/*
-#cgo pkg-config: x11
-#include<X11/X.h>
-#include<X11/Xlib.h>
-*/
+// #cgo pkg-config: x11
+// #cgo LDFLAGS: -lX11
+// #include <X11/Xlib.h>
 import "C"
 
 import (
@@ -38,7 +36,7 @@ func (b *Bar) Append(r Routine) {
 // Spin up every routine and display them on the statusbar.
 func (b *Bar) Run() {
 	// Shared channel used to pass the slice of outputs
-	ch := make(chan []string)
+	ch := make(chan []string, 1)
 
 	// A slice of strings to hold the output from each routine
 	outputs := make([]string, len(*b))
@@ -83,10 +81,10 @@ func runRoutine(r Routine, i int, ch chan []string) {
 
 // Build the master output and print in to the statusbar. Runs a loop every second.
 func setBar(ch chan []string) {
-	dpy  := C.XOpenDisplay(nil)
-	root := C.XRootWindow(dpy, C.XDefaultScreen(dpy));
-
 	var b strings.Builder
+
+	dpy  := C.XOpenDisplay(nil)
+	root := C.XDefaultRootWindow(dpy)
 
 	for {
 		// Start the clock.
@@ -103,6 +101,7 @@ func setBar(ch chan []string) {
 		s := b.String()
 		s  = s[:b.Len()-1] // remove last space
 		C.XStoreName(dpy, root, C.CString(s));
+		C.XSync(dpy, 1)
 		b.Reset()
 
 		// Stop the clock and put the routine to sleep for the rest of the second.
