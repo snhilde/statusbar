@@ -75,6 +75,12 @@ func runRoutine(r Routine, i int, ch chan []string) {
 
 // Build the master output and print in to the statusbar. Runs a loop every second.
 func printOutputs(ch chan []string) {
-	fpr {
+	for {
+		// Start the clock.
+		start := time.Now()
+
+		// Stop the clock and put the routine to sleep for the rest of the second.
+		end := time.Now()
+		time.Sleep(time.Second - end.Sub(start))
 	}
 }
