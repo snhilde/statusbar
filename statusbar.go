@@ -43,6 +43,9 @@ func (b *Bar) Run() {
 		go runRoutine(r, i, ch)
 	}
 
+	// Launch a goroutine to build and print the master string.
+	go printOutputs(ch)
+
 	// Wait for all routines to finish (shouldn't happen though).
 	<-finished
 }
@@ -62,5 +65,11 @@ func runRoutine(r Routine, i int, ch chan []string) {
 
 		// Put the routine to sleep.
 		r.Sleep()
+	}
+}
+
+// Build the master output and print in to the statusbar. Runs a loop every second.
+func printOutputs(ch chan []string) {
+	fpr {
 	}
 }
