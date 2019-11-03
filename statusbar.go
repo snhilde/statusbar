@@ -91,6 +91,8 @@ func setBar(ch chan []string) {
 		start := time.Now()
 
 		// Receive the outputs slice and build the individual outputs into a master output.
+		// TODO: handle empty strings (if b is empty, b.String() will fail too)
+		// TODO: handle error strings
 		outputs := <-ch
 		for _, s := range outputs {
 			fmt.Fprintf(&b, "[%s] ", s)
