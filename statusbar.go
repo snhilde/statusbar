@@ -11,3 +11,8 @@ type Routine interface {
 }
 
 type Bar []Routine
+
+func New() Bar {
+	var b Bar
+	return b
+}
