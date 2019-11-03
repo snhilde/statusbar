@@ -43,5 +43,23 @@ func (b *Bar) Run() {
 	}
 
 	// Wait for all routines to finish (shouldn't happen though).
-	<- finished
+	<-finished
+}
+
+// Run the routine in a non-terminating loop.
+// TODO: handle errors
+func runRoutine(r Routine, i int, ch chan []string) {
+	for {
+		// Update the contents of the routine.
+		r.Update()
+
+		// Get the routine's output and set it in the master output slice.
+		output  := r.String()
+		outputs := <-ch
+		outputs[i] = output
+		ch <- outputs
+
+		// Put the routine to sleep.
+		r.Sleep()
+	}
 }
