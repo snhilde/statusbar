@@ -2,17 +2,18 @@
 package statusbar
 
 import (
-	_ "fmt"
+	"fmt"
+	"time"
 )
 
 // Routine interface allows resource monitors to be linked in.
 type Routine interface {
 	Update() error
 	String() string
-	Sleep()
+	Sleep(time.Duration)
 }
 
-// Bar type is the main object for the package.
+// A Bar holds all the routines, in the order specified.
 type Bar []Routine
 
 // Create a new Bar.
@@ -54,6 +55,9 @@ func (b *Bar) Run() {
 // TODO: handle errors
 func runRoutine(r Routine, i int, ch chan []string) {
 	for {
+		// Start the clock.
+		start := time.Now()
+
 		// Update the contents of the routine.
 		r.Update()
 
@@ -63,8 +67,9 @@ func runRoutine(r Routine, i int, ch chan []string) {
 		outputs[i] = output
 		ch <- outputs
 
-		// Put the routine to sleep.
-		r.Sleep()
+		// Stop the clock and put the routine to sleep.
+		end := time.Now()
+		r.Sleep(end.Sub(start))
 	}
 }
 
