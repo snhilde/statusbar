@@ -20,3 +20,8 @@ func New() Bar {
 	var b Bar
 	return b
 }
+
+// Appends a routine to the statusbar's list.
+func (b *Bar) Append(r Routine) {
+	*b = append(*b, r)
+}
