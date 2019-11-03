@@ -1,0 +1,5 @@
+package statusbar
+
+import (
+	"fmt"
+)
