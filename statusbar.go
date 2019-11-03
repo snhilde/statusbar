@@ -4,6 +4,7 @@ package statusbar
 import (
 	"fmt"
 	"time"
+	"string"
 )
 
 // Routine interface allows resource monitors to be linked in.
@@ -45,7 +46,7 @@ func (b *Bar) Run() {
 	}
 
 	// Launch a goroutine to build and print the master string.
-	go printOutputs(ch)
+	go buildBar(ch)
 
 	// Wait for all routines to finish (shouldn't happen though).
 	<-finished
@@ -74,10 +75,23 @@ func runRoutine(r Routine, i int, ch chan []string) {
 }
 
 // Build the master output and print in to the statusbar. Runs a loop every second.
-func printOutputs(ch chan []string) {
+func buildBar(ch chan []string) {
+	var b strings.Builder
+
 	for {
 		// Start the clock.
 		start := time.Now()
+
+		// Receive the outputs slice and build the individual outputs into a master output.
+		outputs := <-ch
+		for _, s := range outputs {
+			fmt.Fprintf(&b, "[%s] ", s)
+		}
+		ch <- outputs
+
+		// Print the master output to the statusbar.
+		printBar(b.String())
+		b.Reset()
 
 		// Stop the clock and put the routine to sleep for the rest of the second.
 		end := time.Now()
