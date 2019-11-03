@@ -2,7 +2,7 @@
 package statusbar
 
 import (
-	"fmt"
+	_ "fmt"
 )
 
 // Routine interface allows resource monitors to be linked in.
@@ -28,17 +28,18 @@ func (b *Bar) Append(r Routine) {
 
 // Spins up every routine and displays them on the statusbar.
 func (b *Bar) Run() {
-	// A slice of strings to hold the output from each routine
-	outputs := make([]string, len(*b)
-
 	// Shared channel used to pass the slice of outputs
 	ch := make(chan []string)
+
+	// A slice of strings to hold the output from each routine
+	outputs := make([]string, len(*b))
+	ch <- outputs
 
 	// Channel used to indicate everything is done
 	// TODO: currently unused
 	finished := make(chan error)
 
-	for i, r := range b {
+	for i, r := range *b {
 		go runRoutine(r, i, ch)
 	}
 
