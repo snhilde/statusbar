@@ -25,3 +25,23 @@ func New() Bar {
 func (b *Bar) Append(r Routine) {
 	*b = append(*b, r)
 }
+
+// Spins up every routine and displays them on the statusbar.
+func (b *Bar) Run() {
+	// A slice of strings to hold the output from each routine
+	outputs := make([]string, len(*b)
+
+	// Shared channel used to pass the slice of outputs
+	ch := make(chan []string)
+
+	// Channel used to indicate everything is done
+	// TODO: currently unused
+	finished := make(chan error)
+
+	for i, r := range b {
+		go runRoutine(r, i, ch)
+	}
+
+	// Wait for all routines to finish (shouldn't happen though).
+	<- finished
+}
