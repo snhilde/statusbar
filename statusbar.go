@@ -1,10 +1,17 @@
 // Package statusbar displays various resources on the DWM statusbar.
 package statusbar
 
+/*
+#cgo pkg-config: x11
+#include<X11/X.h>
+#include<X11/Xlib.h>
+*/
+import "C"
+
 import (
 	"fmt"
+	"strings"
 	"time"
-	"string"
 )
 
 // Routine interface allows resource monitors to be linked in.
@@ -63,7 +70,7 @@ func runRoutine(r Routine, i int, ch chan []string) {
 		r.Update()
 
 		// Get the routine's output and set it in the master output slice.
-		output  := r.String()
+		output := r.String()
 		outputs := <-ch
 		outputs[i] = output
 		ch <- outputs
@@ -76,6 +83,9 @@ func runRoutine(r Routine, i int, ch chan []string) {
 
 // Build the master output and print in to the statusbar. Runs a loop every second.
 func buildBar(ch chan []string) {
+	dpy  := C.XOpenDisplay(nil)
+	root := C.XRootWindow(dpy, C.XDefaultScreen(dpy));
+
 	var b strings.Builder
 
 	for {
@@ -89,8 +99,8 @@ func buildBar(ch chan []string) {
 		}
 		ch <- outputs
 
-		// Print the master output to the statusbar.
-		printBar(b.String())
+		// Send the master output to the statusbar.
+		C.XStoreName(dpy, root, C.CString(b.String()));
 		b.Reset()
 
 		// Stop the clock and put the routine to sleep for the rest of the second.
