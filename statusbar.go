@@ -95,13 +95,19 @@ func setBar(ch chan []string) {
 		// TODO: handle error strings
 		outputs := <-ch
 		for _, s := range outputs {
-			fmt.Fprintf(&b, "[%s] ", s)
+			if s == ";" {
+				// This is a delimiter for the dualstatus patch. Append only that.
+				fmt.Fprintf(&b, ";")
+			} else {
+				fmt.Fprintf(&b, "[%s] ", s)
+			}
 		}
 		ch <- outputs
 
-		// Send the master output to the statusbar.
 		s := b.String()
 		s  = s[:b.Len()-1] // remove last space
+
+		// Send the master output to the statusbar.
 		C.XStoreName(dpy, root, C.CString(s));
 		C.XSync(dpy, 1)
 		b.Reset()
