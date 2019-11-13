@@ -23,42 +23,46 @@ type routine struct {
 	u        Updater
 	interval time.Duration
 }
-type Bar []routine
+type statusbar struct {
+	routines []routine
+	left     string
+	right    string
+}
 
 // Create a new statusbar.
-func New() Bar {
-	var b Bar
-	return b
+func New() statusbar {
+	s := statusbar{left: "[", right: "]"}
+	return s
 }
 
 // Append a routine to the statusbar's list.
-func (b *Bar) Append(u Updater, s int) {
+func (sb *statusbar) Append(u Updater, s int) {
 	// Convert the given number into proper seconds.
 	seconds := time.Duration(s) * time.Second
 
-	r := routine{u, seconds}
-	*b = append(*b, r)
+	r          := routine{u, seconds}
+	sb.routines = append(sb.routines, r)
 }
 
 // Spin up every routine and display them on the statusbar.
-func (b *Bar) Run() {
+func (sb *statusbar) Run() {
 	// Shared channel used to pass the slice of outputs
 	ch := make(chan []string, 1)
 
 	// A slice of strings to hold the output from each routine
-	outputs := make([]string, len(*b))
+	outputs := make([]string, len(sb.routines))
 	ch <- outputs
 
 	// Channel used to indicate everything is done
 	// TODO: currently unused
 	finished := make(chan error)
 
-	for i, r := range *b {
+	for i, r := range sb.routines {
 		go runRoutine(r, i, ch)
 	}
 
 	// Launch a goroutine to build and print the master string.
-	go setBar(ch)
+	go setBar(ch, sb.left, sb.right)
 
 	// Wait for all routines to finish (shouldn't happen though).
 	<-finished
@@ -87,7 +91,7 @@ func runRoutine(r routine, i int, ch chan []string) {
 }
 
 // Build the master output and print in to the statusbar. Runs a loop every second.
-func setBar(ch chan []string) {
+func setBar(ch chan []string, left string, right string) {
 	var b strings.Builder
 
 	dpy  := C.XOpenDisplay(nil)
@@ -106,7 +110,7 @@ func setBar(ch chan []string) {
 				// This is a delimiter for the dualstatus patch. Append only that.
 				fmt.Fprintf(&b, ";")
 			} else if len(s) > 0 {
-				fmt.Fprintf(&b, "[%s] ", s)
+				fmt.Fprintf(&b, "%s%s%s ", left, s, right)
 			}
 		}
 		ch <- outputs
@@ -123,4 +127,9 @@ func setBar(ch chan []string) {
 		end := time.Now()
 		time.Sleep(time.Second - end.Sub(start))
 	}
+}
+
+func (sb *statusbar) SetBoundary(left string, right string) {
+	sb.left  = left
+	sb.right = right
 }
