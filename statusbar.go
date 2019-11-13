@@ -18,11 +18,14 @@ type Updater interface {
 	String() string
 }
 
-// routine is the main structure for a statusbar's individual units.
+// A routine holds the data for an individual unit on the statusbar.
 type routine struct {
 	u        Updater
 	interval time.Duration
 }
+
+// A statusbar is the main type for this package. It holds the slice of routines (ordered according
+// to the user's instructions) and the left and right delimiters for each routine.
 type statusbar struct {
 	routines []routine
 	left     string
