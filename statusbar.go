@@ -18,12 +18,12 @@ type Updater interface {
 	String() string
 }
 
-// Routine is the main structure for a statusbar's individual units.
-type Routine struct {
+// routine is the main structure for a statusbar's individual units.
+type routine struct {
 	u        Updater
 	interval time.Duration
 }
-type Bar []Routine
+type Bar []routine
 
 // Create a new statusbar.
 func New() Bar {
@@ -36,7 +36,7 @@ func (b *Bar) Append(u Updater, s int) {
 	// Convert the given number into proper seconds.
 	seconds := time.Duration(s) * time.Second
 
-	r := Routine{u, seconds}
+	r := routine{u, seconds}
 	*b = append(*b, r)
 }
 
@@ -66,7 +66,7 @@ func (b *Bar) Run() {
 
 // Run the routine in a non-terminating loop.
 // TODO: handle errors
-func runRoutine(r Routine, i int, ch chan []string) {
+func runRoutine(r routine, i int, ch chan []string) {
 	for {
 		// Start the clock.
 		start := time.Now()
