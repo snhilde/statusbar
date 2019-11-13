@@ -31,12 +31,12 @@ type statusbar struct {
 	routines []routine
 	left     string
 	right    string
-	delim    int
+	div      int
 }
 
 // Create a new statusbar.
 func New() statusbar {
-	s := statusbar{left: "[", right: "]", delim: -1}
+	s := statusbar{left: "[", right: "]", div: -1}
 	return s
 }
 
@@ -115,7 +115,7 @@ func setBar(ch chan []string, sb statusbar) {
 				fmt.Fprintf(&b, "%s%s%s ", sb.left, s, sb.right)
 			}
 
-			if i == sb.delim {
+			if i == sb.div {
 				// Insert the breaking delimiter here.
 				fmt.Fprintf(&b, ";")
 			}
@@ -142,5 +142,5 @@ func (sb *statusbar) SetBoundary(left string, right string) {
 }
 
 func (sb *statusbar) Break() {
-	sb.delim = len(sb.routines)
+	sb.div = len(sb.routines)
 }
