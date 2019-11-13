@@ -25,11 +25,13 @@ type routine struct {
 }
 
 // A statusbar is the main type for this package. It holds the slice of routines (ordered according
-// to the user's instructions) and the left and right delimiters for each routine.
+// to the user's instructions) and the left and right delimiters for each routine, as well as the
+// position to insert the delimiter (";") to break the statusbar in half.
 type statusbar struct {
 	routines []routine
 	left     string
 	right    string
+	delim    int
 }
 
 // Create a new statusbar.
@@ -65,7 +67,7 @@ func (sb *statusbar) Run() {
 	}
 
 	// Launch a goroutine to build and print the master string.
-	go setBar(ch, sb.left, sb.right)
+	go setBar(ch, *sb)
 
 	// Wait for all routines to finish (shouldn't happen though).
 	<-finished
@@ -94,7 +96,7 @@ func runRoutine(r routine, i int, ch chan []string) {
 }
 
 // Build the master output and print in to the statusbar. Runs a loop every second.
-func setBar(ch chan []string, left string, right string) {
+func setBar(ch chan []string, sb statusbar) {
 	var b strings.Builder
 
 	dpy  := C.XOpenDisplay(nil)
@@ -108,12 +110,14 @@ func setBar(ch chan []string, left string, right string) {
 		// TODO: handle empty strings (if b is empty, b.String() will fail too)
 		// TODO: handle error strings
 		outputs := <-ch
-		for _, s := range outputs {
-			if s == ";" {
-				// This is a delimiter for the dualstatus patch. Append only that.
+		for i, s := range outputs {
+			if len(s) > 0 {
+				fmt.Fprintf(&b, "%s%s%s ", sb.left, s, sb.right)
+			}
+
+			if i == sb.delim {
+				// Insert the breaking delimiter here.
 				fmt.Fprintf(&b, ";")
-			} else if len(s) > 0 {
-				fmt.Fprintf(&b, "%s%s%s ", left, s, right)
 			}
 		}
 		ch <- outputs
