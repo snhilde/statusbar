@@ -26,7 +26,7 @@ type routine struct {
 
 // A statusbar is the main type for this package. It holds the slice of routines (ordered according
 // to the user's instructions) and the left and right delimiters for each routine, as well as the
-// position to insert the delimiter (";") to break the statusbar in half.
+// position to insert the delimiter (";") for splitting the statusbar.
 type statusbar struct {
 	routines []routine
 	left     string
@@ -136,11 +136,13 @@ func setBar(ch chan []string, sb statusbar) {
 	}
 }
 
+// Set the left and right markers around each routine.
 func (sb *statusbar) SetBoundary(left string, right string) {
 	sb.left  = left
 	sb.right = right
 }
 
+// Split the statusbar at this index, for dualstatus patch.
 func (sb *statusbar) Break() {
 	sb.div = len(sb.routines)
 }
