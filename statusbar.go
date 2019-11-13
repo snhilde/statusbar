@@ -82,8 +82,6 @@ func runRoutine(r routine, i int, ch chan []string) {
 
 		// Stop the clock and put the routine to sleep for the given time.
 		end := time.Now()
-		fmt.Println(r.interval)
-		fmt.Println(r.interval - end.Sub(start))
 		time.Sleep(r.interval - end.Sub(start))
 	}
 }
