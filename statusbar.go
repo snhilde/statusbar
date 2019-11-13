@@ -83,11 +83,16 @@ func runRoutine(r routine, i int, ch chan []string) {
 		// Update the contents of the routine.
 		r.u.Update()
 
-		// Get the routine's output and set it in the master output slice.
+		// Get the routine's output and store it in the master output slice.
 		output    := r.u.String()
 		outputs   := <-ch
 		outputs[i] = output
 		ch <- outputs
+
+		if r.interval == 0 {
+			// We only need to run this loop once. We'll bail out here.
+			break;
+		}
 
 		// Stop the clock and put the routine to sleep for the given time.
 		end := time.Now()
