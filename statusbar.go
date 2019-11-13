@@ -36,7 +36,7 @@ type statusbar struct {
 
 // Create a new statusbar.
 func New() statusbar {
-	s := statusbar{left: "[", right: "]"}
+	s := statusbar{left: "[", right: "]", delim: -1}
 	return s
 }
 
@@ -139,4 +139,8 @@ func setBar(ch chan []string, sb statusbar) {
 func (sb *statusbar) SetBoundary(left string, right string) {
 	sb.left  = left
 	sb.right = right
+}
+
+func (sb *statusbar) Break() {
+	sb.delim = len(sb.routines)
 }
