@@ -105,7 +105,7 @@ func setBar(ch chan []string) {
 			if s == ";" {
 				// This is a delimiter for the dualstatus patch. Append only that.
 				fmt.Fprintf(&b, ";")
-			} else {
+			} else if len(s) > 0 {
 				fmt.Fprintf(&b, "[%s] ", s)
 			}
 		}
