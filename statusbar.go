@@ -102,6 +102,7 @@ func setBar(ch chan []string, sb statusbar) {
 	dpy  := C.XOpenDisplay(nil)
 	root := C.XDefaultRootWindow(dpy)
 
+	// This loop will run twice a second to catch any changes that run every second.
 	for {
 		// Start the clock.
 		start := time.Now()
@@ -132,7 +133,7 @@ func setBar(ch chan []string, sb statusbar) {
 
 		// Stop the clock and put the routine to sleep for the rest of the second.
 		end := time.Now()
-		time.Sleep(time.Second - end.Sub(start))
+		time.Sleep((time.Second / 2) - end.Sub(start))
 	}
 }
 
