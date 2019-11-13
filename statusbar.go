@@ -142,7 +142,7 @@ func (sb *statusbar) SetMarkers(left string, right string) {
 	sb.right = right
 }
 
-// Split the statusbar at this index, for dualstatus patch.
+// Split the statusbar at this point, for dualstatus patch.
 func (sb *statusbar) Split() {
-	sb.split = len(sb.routines)
+	sb.split = len(sb.routines)-1
 }
