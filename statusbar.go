@@ -137,7 +137,7 @@ func setBar(ch chan []string, sb statusbar) {
 }
 
 // Set the left and right markers around each routine.
-func (sb *statusbar) SetBoundary(left string, right string) {
+func (sb *statusbar) SetMarkers(left string, right string) {
 	sb.left  = left
 	sb.right = right
 }
