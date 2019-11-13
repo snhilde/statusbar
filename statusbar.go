@@ -89,8 +89,8 @@ func runRoutine(r routine, i int, ch chan []string) {
 		outputs[i] = output
 		ch <- outputs
 
+		// If interval was set for infinite sleep, then we'll close routine here.
 		if r.interval == 0 {
-			// We only need to run this loop once. We'll bail out here.
 			break;
 		}
 
