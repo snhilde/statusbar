@@ -12,15 +12,15 @@ import (
 	"time"
 )
 
-// Updater interface allows resource monitors to be linked in.
-type Updater interface {
+// RoutineHandler interface allows resource monitors to be linked in.
+type RoutineHandler interface {
 	Update() error
 	String() string
 }
 
 // A routine holds the data for an individual unit on the statusbar.
 type routine struct {
-	u        Updater
+	rh       RoutineHandler
 	interval time.Duration
 }
 
@@ -41,11 +41,11 @@ func New() statusbar {
 }
 
 // Append a routine to the statusbar's list.
-func (sb *statusbar) Append(u Updater, s int) {
+func (sb *statusbar) Append(rh RoutineHandler, s int) {
 	// Convert the given number into proper seconds.
 	seconds := time.Duration(s) * time.Second
 
-	r          := routine{u, seconds}
+	r          := routine{rh, seconds}
 	sb.routines = append(sb.routines, r)
 }
 
@@ -81,10 +81,10 @@ func runRoutine(r routine, i int, ch chan []string) {
 		start := time.Now()
 
 		// Update the contents of the routine.
-		r.u.Update()
+		r.rh.Update()
 
 		// Get the routine's output and store it in the master output slice.
-		output    := r.u.String()
+		output    := r.rh.String()
 		outputs   := <-ch
 		outputs[i] = output
 		ch <- outputs
