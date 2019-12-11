@@ -14,7 +14,7 @@ import (
 
 // RoutineHandler interface allows resource monitors to be linked in.
 type RoutineHandler interface {
-	Update() error
+	Update()
 	String() string
 }
 
