@@ -9,6 +9,7 @@ import "C"
 import (
 	"strings"
 	"time"
+	"os/signal"
 )
 
 // RoutineHandler interface allows resource monitors to be linked in.
