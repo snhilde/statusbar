@@ -7,7 +7,6 @@ package statusbar
 import "C"
 
 import (
-	"fmt"
 	"strings"
 	"time"
 )
@@ -111,6 +110,7 @@ func setBar(ch chan []string, sb statusbar) {
 	for {
 		// Start the clock.
 		start := time.Now()
+		b.Reset()
 
 		// Receive the outputs slice and build the individual outputs into a master output.
 		// TODO: handle empty strings (if b is empty, b.String() will fail too)
@@ -118,12 +118,15 @@ func setBar(ch chan []string, sb statusbar) {
 		outputs := <-ch
 		for i, s := range outputs {
 			if len(s) > 0 {
-				fmt.Fprintf(&b, "%s%s%s ", sb.left, s, sb.right)
+				b.WriteString(sb.left)
+				b.WriteString(s)
+				b.WriteString(sb.right)
+				b.WriteByte(' ')
 			}
 
 			if i == sb.split {
 				// Insert the breaking delimiter here.
-				fmt.Fprintf(&b, ";")
+				b.WriteByte(';')
 			}
 		}
 		ch <- outputs
@@ -134,7 +137,6 @@ func setBar(ch chan []string, sb statusbar) {
 		// Send the master output to the statusbar.
 		C.XStoreName(dpy, root, C.CString(s));
 		C.XSync(dpy, 1)
-		b.Reset()
 
 		// Stop the clock and put the routine to sleep for the rest of the second.
 		end := time.Now()
