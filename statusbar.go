@@ -164,5 +164,15 @@ func (sb *statusbar) handleSignal() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	s := <-c
+	pid    := os.Getpid()
+	p, err := os.FindProcess(pid)
+	if (err != nil ) {
+		return
+	}
+
+	// Wait until we receive an interrupt signal.
+	<-c
+
+	// Stop the program.
+	p.Kill()
 }
