@@ -160,6 +160,7 @@ func (sb *statusbar) Split() {
 	sb.split = len(sb.routines)-1
 }
 
+// Clear the statusbar if the program receives an interrupt signal.
 func (sb *statusbar) handleSignal() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -171,7 +172,12 @@ func (sb *statusbar) handleSignal() {
 	}
 
 	// Wait until we receive an interrupt signal.
-	<-c
+	s := <-c
+
+	dpy  := C.XOpenDisplay(nil)
+	root := C.XDefaultRootWindow(dpy)
+	C.XStoreName(dpy, root, C.CString(s.String()));
+	C.XSync(dpy, 1)
 
 	// Stop the program.
 	p.Kill()
