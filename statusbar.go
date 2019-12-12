@@ -52,7 +52,7 @@ func (sb *statusbar) Append(rh RoutineHandler, s int) {
 // Spin up every routine and display them on the statusbar.
 func (sb *statusbar) Run() {
 	// Add a signal handler so we can clear the statusbar if the program goes down.
-	go handleSignal()
+	go sb.handleSignal()
 
 	// Shared channel used to pass the slice of outputs
 	ch := make(chan []string, 1)
@@ -157,4 +157,7 @@ func (sb *statusbar) SetMarkers(left string, right string) {
 // Split the statusbar at this point, for dualstatus patch.
 func (sb *statusbar) Split() {
 	sb.split = len(sb.routines)-1
+}
+
+func (sb *statusbar) handleSignal() {
 }
