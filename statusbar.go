@@ -51,6 +51,9 @@ func (sb *statusbar) Append(rh RoutineHandler, s int) {
 
 // Spin up every routine and display them on the statusbar.
 func (sb *statusbar) Run() {
+	// Add a signal handler so we can clear the statusbar if the program goes down.
+	go handleSignal()
+
 	// Shared channel used to pass the slice of outputs
 	ch := make(chan []string, 1)
 
