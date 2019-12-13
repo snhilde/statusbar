@@ -98,9 +98,8 @@ func runRoutine(r routine, i int, ch chan []string) {
 			break;
 		}
 
-		// Stop the clock and put the routine to sleep for the given time.
-		end := time.Now()
-		time.Sleep(r.interval - end.Sub(start))
+		// Put the routine to sleep for the given time.
+		time.Sleep(r.interval - time.Since(start))
 	}
 }
 
