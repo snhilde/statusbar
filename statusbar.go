@@ -7,10 +7,10 @@ package statusbar
 import "C"
 
 import (
-	"strings"
-	"time"
 	"os"
 	"os/signal"
+	"strings"
+	"time"
 )
 
 // RoutineHandler interface allows resource monitors to be linked in.
@@ -46,7 +46,7 @@ func (sb *statusbar) Append(rh RoutineHandler, s int) {
 	// Convert the given number into proper seconds.
 	seconds := time.Duration(s) * time.Second
 
-	r          := routine{rh, seconds}
+	r := routine{rh, seconds}
 	sb.routines = append(sb.routines, r)
 }
 
@@ -88,14 +88,14 @@ func runRoutine(r routine, i int, ch chan []string) {
 		r.rh.Update()
 
 		// Get the routine's output and store it in the master output slice.
-		output    := r.rh.String()
-		outputs   := <-ch
+		output := r.rh.String()
+		outputs := <-ch
 		outputs[i] = output
 		ch <- outputs
 
 		// If interval was set for infinite sleep, then we'll close routine here.
 		if r.interval == 0 {
-			break;
+			break
 		}
 
 		// Put the routine to sleep for the given time.
@@ -107,7 +107,7 @@ func runRoutine(r routine, i int, ch chan []string) {
 func setBar(ch chan []string, sb statusbar) {
 	var b strings.Builder
 
-	dpy  := C.XOpenDisplay(nil)
+	dpy := C.XOpenDisplay(nil)
 	root := C.XDefaultRootWindow(dpy)
 
 	// This loop will run twice a second to catch any changes that run every second.
@@ -136,10 +136,10 @@ func setBar(ch chan []string, sb statusbar) {
 		ch <- outputs
 
 		s := b.String()
-		s  = s[:b.Len()-1] // remove last space
+		s = s[:b.Len()-1] // remove last space
 
 		// Send the master output to the statusbar.
-		C.XStoreName(dpy, root, C.CString(s));
+		C.XStoreName(dpy, root, C.CString(s))
 		C.XSync(dpy, 1)
 
 		// Stop the clock and put the routine to sleep for the rest of the second.
@@ -150,13 +150,13 @@ func setBar(ch chan []string, sb statusbar) {
 
 // Set the left and right markers around each routine.
 func (sb *statusbar) SetMarkers(left string, right string) {
-	sb.left  = left
+	sb.left = left
 	sb.right = right
 }
 
 // Split the statusbar at this point, for dualstatus patch.
 func (sb *statusbar) Split() {
-	sb.split = len(sb.routines)-1
+	sb.split = len(sb.routines) - 1
 }
 
 // Clear the statusbar if the program receives an interrupt signal.
@@ -164,18 +164,18 @@ func (sb *statusbar) handleSignal() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	pid    := os.Getpid()
+	pid := os.Getpid()
 	p, err := os.FindProcess(pid)
-	if (err != nil ) {
+	if err != nil {
 		return
 	}
 
 	// Wait until we receive an interrupt signal.
 	s := <-c
 
-	dpy  := C.XOpenDisplay(nil)
+	dpy := C.XOpenDisplay(nil)
 	root := C.XDefaultRootWindow(dpy)
-	C.XStoreName(dpy, root, C.CString(s.String()));
+	C.XStoreName(dpy, root, C.CString(s.String()))
 	C.XSync(dpy, 1)
 
 	// Stop the program.
