@@ -28,7 +28,7 @@ type routine struct {
 // A statusbar is the main type for this package. It holds the slice of routines (ordered according
 // to the user's instructions) and the left and right delimiters for each routine, as well as the
 // position to insert the delimiter (";") for splitting the statusbar.
-type statusbar struct {
+type Statusbar struct {
 	routines []routine
 	left     string
 	right    string
@@ -36,13 +36,13 @@ type statusbar struct {
 }
 
 // Create a new statusbar.
-func New() statusbar {
-	s := statusbar{left: "[", right: "]", split: -1}
+func New() Statusbar {
+	s := Statusbar{left: "[", right: "]", split: -1}
 	return s
 }
 
 // Append a routine to the statusbar's list.
-func (sb *statusbar) Append(rh RoutineHandler, s int) {
+func (sb *Statusbar) Append(rh RoutineHandler, s int) {
 	// Convert the given number into proper seconds.
 	seconds := time.Duration(s) * time.Second
 
@@ -51,7 +51,7 @@ func (sb *statusbar) Append(rh RoutineHandler, s int) {
 }
 
 // Spin up every routine and display them on the statusbar.
-func (sb *statusbar) Run() {
+func (sb *Statusbar) Run() {
 	// Add a signal handler so we can clear the statusbar if the program goes down.
 	go sb.handleSignal()
 
@@ -104,7 +104,7 @@ func runRoutine(r routine, i int, ch chan []string) {
 }
 
 // Build the master output and print in to the statusbar. Runs a loop every second.
-func setBar(ch chan []string, sb statusbar) {
+func setBar(ch chan []string, sb Statusbar) {
 	var b strings.Builder
 
 	dpy := C.XOpenDisplay(nil)
@@ -149,18 +149,18 @@ func setBar(ch chan []string, sb statusbar) {
 }
 
 // Set the left and right markers around each routine.
-func (sb *statusbar) SetMarkers(left string, right string) {
+func (sb *Statusbar) SetMarkers(left string, right string) {
 	sb.left = left
 	sb.right = right
 }
 
 // Split the statusbar at this point, for dualstatus patch.
-func (sb *statusbar) Split() {
+func (sb *Statusbar) Split() {
 	sb.split = len(sb.routines) - 1
 }
 
 // Clear the statusbar if the program receives an interrupt signal.
-func (sb *statusbar) handleSignal() {
+func (sb *Statusbar) handleSignal() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
