@@ -17,4 +17,7 @@ func ExampleStatusbar_Append() {
 	time_routine := sbtime.New(time_fmt, colors)
 
 	bar.Append(time_routine, 1)
+
+	// Or, as a one-liner:
+	bar.Append(sbtime.New("Jan 2 - 03:04", [3]string{"#FFFFFF", "#BB4F2E", "#A1273E"}), 1)
 }
