@@ -154,7 +154,8 @@ func (sb *Statusbar) SetMarkers(left string, right string) {
 	sb.right = right
 }
 
-// Split the statusbar at this point, for dualstatus patch.
+// Split the statusbar at this point, for dualstatus patch. A semicolon (';') will be inserted at this point
+// in the routine list, which will signal to dualstatus to split the statusbar at this point.
 func (sb *Statusbar) Split() {
 	sb.split = len(sb.routines) - 1
 }
