@@ -1,4 +1,5 @@
-// Package statusbar displays various resources on the dwm statusbar.
+// Package statusbar displays various information on the dwm statusbar.
+// TODO: explain that you have to import and New() each routine, this is only the framework
 package statusbar
 
 // #cgo pkg-config: x11
@@ -13,7 +14,8 @@ import (
 	"time"
 )
 
-// RoutineHandler interface allows resource monitors to be linked in.
+// RoutineHandler interface allows information monitors to be linked in.
+// TODO: explain methods
 type RoutineHandler interface {
 	Update()
 	String() string
