@@ -1,4 +1,4 @@
-// Package statusbar displays various resources on the DWM statusbar.
+// Package statusbar displays various resources on the dwm statusbar.
 package statusbar
 
 // #cgo pkg-config: x11
