@@ -18,7 +18,7 @@ func ExampleStatusbar_Append() {
 	// Create a new routine.
 	time_routine := sbtime.New(time_fmt, colors)
 
-	// Append the routine to the bar. Routines will be displayed in order of addition to the bar object.
+	// Append the routine to the bar.
 	bar.Append(time_routine, 1)
 
 	// Or, as a one-liner:

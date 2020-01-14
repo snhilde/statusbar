@@ -41,7 +41,7 @@ func New() Statusbar {
 	return s
 }
 
-// Append a routine to the statusbar's list.
+// Append a routine to the statusbar's list. Routines will be displayed in order of addition to the bar object.
 func (sb *Statusbar) Append(rh RoutineHandler, s int) {
 	// Convert the given number into proper seconds.
 	seconds := time.Duration(s) * time.Second
