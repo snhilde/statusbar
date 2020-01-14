@@ -35,7 +35,7 @@ type Statusbar struct {
 	split    int
 }
 
-// Create a new statusbar.
+// Create a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
 func New() Statusbar {
 	s := Statusbar{left: "[", right: "]", split: -1}
 	return s
@@ -148,7 +148,7 @@ func setBar(ch chan []string, sb Statusbar) {
 	}
 }
 
-// Set the left and right markers around each routine.
+// Set the left and right delimiters around each routine.
 func (sb *Statusbar) SetMarkers(left string, right string) {
 	sb.left = left
 	sb.right = right
