@@ -50,10 +50,6 @@ func (sb *Statusbar) Append(rh RoutineHandler, s int) {
 	sb.routines = append(sb.routines, r)
 }
 
-func ExampleStatusbar_Append() {
-	// test function
-}
-
 // Spin up every routine and display them on the statusbar.
 func (sb *Statusbar) Run() {
 	// Add a signal handler so we can clear the statusbar if the program goes down.
