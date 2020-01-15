@@ -13,10 +13,9 @@ import (
 )
 
 // RoutineHandler interface allows information monitors to be linked in.
-// TODO: explain methods
 type RoutineHandler interface {
-	Update()
-	String() string
+	Update()        // Update the routine's information. Will be run according to the provided interval time.
+	String() string // Format and return the routine's output.
 }
 
 // A routine holds the data for an individual unit on the statusbar.
@@ -25,9 +24,7 @@ type routine struct {
 	interval time.Duration
 }
 
-// A statusbar is the main type for this package. It holds the slice of routines (ordered according
-// to the user's instructions) and the left and right delimiters for each routine, as well as the
-// position to insert the delimiter (";") for splitting the statusbar.
+// A statusbar is the main type for this package.
 type Statusbar struct {
 	routines []routine
 	left     string
@@ -148,7 +145,7 @@ func setBar(ch chan []string, sb Statusbar) {
 	}
 }
 
-// Set the left and right delimiters around each routine.
+// Set the left and right delimiters around each routine. If not set, these will default to '[' and ']'.
 func (sb *Statusbar) SetMarkers(left string, right string) {
 	sb.left = left
 	sb.right = right

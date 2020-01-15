@@ -1,14 +1,14 @@
 /*
 Package statusbar displays various information on the dwm statusbar.
 
-The design of this package is modular by nature; you create the main process with this package and populate it with only the information you want. For example, if you want to show only the time and weather, then you would only import those two modules and add their objects to the statusbar, resulting in only the time and weather to appear on the statusbar for dwm. This modular design allows flexibility in customizing each individual statusbar and ease in not having to worry about supported libraries/dependencies.
+The design of this statusbar manager is modular by nature; you create the main process with this package and then populate it with only the information you want using separate modules. For example, if you want to show only the time and weather, then you would only import those two modules and add their objects to the statusbar, resulting in only the time and weather to appear on the statusbar for dwm. This modular design allows flexibility in customizing each individual statusbar and ease in not having to worry about supported libraries/dependencies.
 
 This package is only the framework that controls the modular routines. For the modules currently integrated with this framework, see https://godoc.org/github.com/snhilde/sb4routines. There are currently modules that display a range of information, including various system resources, personal TODO lists, the current weather, VPN status, and the current time.
 
 To integrate a custom module into this statusbar framework, the routine's object needs to implement these methods:
 	Update()        // Update the routine's information. Will be run according to the provided interval time.
 	String() string // Format and return the routine's output.
-It is suggested that this object be created by New(), which will also initialize any members of the object, if needed.
+It is suggested that this object be created by New(), which will also initialize any members of the object (if needed).
 
 This sample code will create a new statusbar, add some routines to it, and begin displaying the formatted output:
 	import (
