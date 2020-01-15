@@ -8,7 +8,7 @@ This package is only the framework that controls the modular routines. For the m
 To integrate a custom module into this statusbar framework, the routine's object needs to implement these methods:
 	Update()        // Update the routine's information. Will be run according to the provided interval time.
 	String() string // Format and return the routine's output.
-It is suggested that this object is created by New(), which will also initialize any members of the object, if needed.
+It is suggested that this object be created by New(), which will also initialize any members of the object, if needed.
 
 This sample code will create a new statusbar, add some routines to it, and begin displaying the formatted output:
 	import (
