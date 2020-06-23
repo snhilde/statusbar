@@ -141,8 +141,7 @@ func (r *Routine) parseOutput(output string) error {
 		return errors.New("Bad response")
 	}
 
-	switch fields[field+1] {
-	case "Connected":
+	if fields[field+1] == "Connected" {
 		for _, line := range lines {
 			if strings.HasPrefix(line, "City") {
 				city := strings.Split(line, ":")
@@ -162,15 +161,9 @@ func (r *Routine) parseOutput(output string) error {
 				r.color = r.colors.normal
 			}
 		}
-	case "Connecting":
-		r.parsed = "Connecting..."
+	} else {
+		r.parsed = fields[field+1]
 		r.color = r.colors.warning
-	case "Disconnected":
-		r.parsed = "Disconnected"
-		r.color = r.colors.warning
-	default:
-		// If we're here, then we have an unknown error.
-		return errors.New(lines[0])
 	}
 
 	return nil
