@@ -1,5 +1,5 @@
 ![Maintenance Badge](https://img.shields.io/badge/Maintained-yes-success)
-![Version Badge](https://img.shields.io/badge/Version-4.0-informational)
+![Version Badge](https://img.shields.io/badge/Version-4.1-informational)
 [![GoDoc reference example](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/snhilde/statusbar4)
 [![GoReportCard example](https://goreportcard.com/badge/github.com/snhilde/statusbar4)](https://goreportcard.com/report/github.com/snhilde/statusbar4)
 
