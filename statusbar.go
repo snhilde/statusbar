@@ -18,13 +18,13 @@ type RoutineHandler interface {
 	String() string // Format and return the routine's output.
 }
 
-// A routine holds the data for an individual unit on the statusbar.
+// routine holds the data for an individual unit on the statusbar.
 type routine struct {
 	rh       RoutineHandler
 	interval time.Duration
 }
 
-// A statusbar is the main type for this package.
+// Statusbar is the main type for this package.
 type Statusbar struct {
 	routines []routine
 	left     string
@@ -32,13 +32,13 @@ type Statusbar struct {
 	split    int
 }
 
-// Create a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
+// New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
 func New() Statusbar {
 	s := Statusbar{left: "[", right: "]", split: -1}
 	return s
 }
 
-// Append a routine to the statusbar's list. Routines will be displayed in order of addition to the bar object.
+// Append adds a routine to the statusbar's list. Routines will be displayed in order of addition to the bar object.
 func (sb *Statusbar) Append(rh RoutineHandler, s int) {
 	// Convert the given number into proper seconds.
 	seconds := time.Duration(s) * time.Second
@@ -47,7 +47,7 @@ func (sb *Statusbar) Append(rh RoutineHandler, s int) {
 	sb.routines = append(sb.routines, r)
 }
 
-// Spin up every routine and display them on the statusbar.
+// Run spins up every routine and displays them on the statusbar.
 func (sb *Statusbar) Run() {
 	// Add a signal handler so we can clear the statusbar if the program goes down.
 	go sb.handleSignal()
@@ -74,7 +74,7 @@ func (sb *Statusbar) Run() {
 	<-finished
 }
 
-// Run the routine in a non-terminating loop.
+// runRoutine runs the routine in a non-terminating loop.
 // TODO: handle errors
 func runRoutine(r routine, i int, ch chan []string) {
 	for {
@@ -100,7 +100,7 @@ func runRoutine(r routine, i int, ch chan []string) {
 	}
 }
 
-// Build the master output and print in to the statusbar. Runs a loop every second.
+// setBar builds the master output and prints it to the statusbar. This runs a loop every second.
 func setBar(ch chan []string, sb Statusbar) {
 	var b strings.Builder
 
@@ -145,19 +145,19 @@ func setBar(ch chan []string, sb Statusbar) {
 	}
 }
 
-// Set the left and right delimiters around each routine. If not set, these will default to '[' and ']'.
+// SetMarkers sets the left and right delimiters around each routine. If not set, these will default to '[' and ']'.
 func (sb *Statusbar) SetMarkers(left string, right string) {
 	sb.left = left
 	sb.right = right
 }
 
-// Split the statusbar at this point, for dualstatus patch. A semicolon (';') will be inserted at this point
-// in the routine list, which will signal to dualstatus to split the statusbar at this point.
+// Split splits the statusbar at this point, for dualstatus patch. A semicolon (';') will be inserted at this point in
+// the routine list, which will signal to dualstatus to split the statusbar at this point.
 func (sb *Statusbar) Split() {
 	sb.split = len(sb.routines) - 1
 }
 
-// Clear the statusbar if the program receives an interrupt signal.
+// handleSignal clears the statusbar if the program receives an interrupt signal.
 func (sb *Statusbar) handleSignal() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
