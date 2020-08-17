@@ -2,13 +2,13 @@
 package sbtodo
 
 import (
-	"errors"
-	"strings"
-	"os"
 	"bufio"
+	"errors"
+	"os"
+	"strings"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // routine is the main object for this package.
 // It contains the data obtained from the specified TODO file, including file info and a copy of the first 2 lines.
@@ -46,12 +46,12 @@ func New(path string, colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	// Grab the base details of the TODO file.
@@ -82,7 +82,7 @@ func (r *routine) Update() {
 	// If mtime is not newer than what we already have, we can skip reading the file.
 	new_mtime := new_info.ModTime().UnixNano()
 	old_mtime := r.info.ModTime().UnixNano()
-	if (new_mtime > old_mtime) {
+	if new_mtime > old_mtime {
 		// The file was modified. Let's parse it.
 		r.readFile()
 		if r.err != nil {
@@ -94,17 +94,17 @@ func (r *routine) Update() {
 }
 
 // Format the first two lines of the file according to a few rules:
- //   1. If the file is empty, print "Finished".
- //   2. If the first line has content but the second line is empty, print only the first line.
- //   3. If the first line is empty but the second line has content, print only the second line.
- //   4. If the first line has content and the second line is indented, print "line1 -> line2".
- //   5. If both lines have content and both are flush, print "line1 | line2".
+//   1. If the file is empty, print "Finished".
+//   2. If the first line has content but the second line is empty, print only the first line.
+//   3. If the first line is empty but the second line has content, print only the second line.
+//   4. If the first line has content and the second line is indented, print "line1 -> line2".
+//   5. If both lines have content and both are flush, print "line1 | line2".
 func (r *routine) String() string {
 	var b strings.Builder
 
 	// Handle any error we might have received in another stage.
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	r.line1 = strings.TrimSpace(r.line1)
@@ -131,7 +131,7 @@ func (r *routine) String() string {
 			b.WriteString("Finished")
 		}
 	}
-	b.WriteString(COLOR_END)
+	b.WriteString(colorEnd)
 
 	return b.String()
 }
