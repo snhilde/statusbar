@@ -3,14 +3,14 @@ package sbfan
 
 import (
 	"errors"
-	"strings"
-	"os"
-	"io/ioutil"
-	"strconv"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"strings"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // We need to root around in this directory for the device directory for the fan.
 const base_dir = "/sys/class/hwmon/"
@@ -51,12 +51,12 @@ func New(colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	// Find the max fan speed file and read its value.
@@ -93,7 +93,7 @@ func (r *routine) String() string {
 	var c string
 
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	if r.perc < 75 {
@@ -104,13 +104,13 @@ func (r *routine) String() string {
 		c = r.colors.error
 	}
 
-	return fmt.Sprintf("%s%v RPM%s", c, r.out, COLOR_END)
+	return fmt.Sprintf("%s%v RPM%s", c, r.out, colorEnd)
 }
 
 // Find the file that we'll monitor for the fan speed.
 // It will be in one of the hardware device directories in /sys/class/hwmon.
 func (r *routine) findFiles() {
-	var dirs  []os.FileInfo
+	var dirs []os.FileInfo
 	var files []os.FileInfo
 
 	// Get all the device directories in the main directory.
@@ -136,7 +136,7 @@ func (r *routine) findFiles() {
 					// We found one of the two.
 					if strings.HasSuffix(file.Name(), "max") {
 						r.max_file = file
-						prefix     = strings.TrimSuffix(file.Name(), "max")
+						prefix = strings.TrimSuffix(file.Name(), "max")
 					} else {
 						r.out_file = file
 						prefix = strings.TrimSuffix(prefix, "output")
