@@ -3,12 +3,12 @@ package sbload
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"syscall"
-	"fmt"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // routine is the main object in the package.
 // err:     error encountered along the way, if any
@@ -40,12 +40,12 @@ func New(colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	return &r
@@ -61,9 +61,9 @@ func (r *routine) Update() {
 	}
 
 	// Each load average must be divided by 2^16 to get the same format as /proc/loadavg.
-	r.load_1  = float64(info.Loads[0]) / float64(1 << 16)
-	r.load_5  = float64(info.Loads[1]) / float64(1 << 16)
-	r.load_15 = float64(info.Loads[2]) / float64(1 << 16)
+	r.load_1 = float64(info.Loads[0]) / float64(1<<16)
+	r.load_5 = float64(info.Loads[1]) / float64(1<<16)
+	r.load_15 = float64(info.Loads[2]) / float64(1<<16)
 }
 
 // Print the 3 load averages with 2 decimal places of precision.
@@ -71,7 +71,7 @@ func (r *routine) String() string {
 	var c string
 
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	if r.load_1 >= 2 || r.load_5 >= 2 || r.load_15 >= 2 {
@@ -82,5 +82,5 @@ func (r *routine) String() string {
 		c = r.colors.normal
 	}
 
-	return fmt.Sprintf("%s%.2f %.2f %.2f%s", c, r.load_1, r.load_5, r.load_15, COLOR_END)
+	return fmt.Sprintf("%s%.2f %.2f %.2f%s", c, r.load_1, r.load_5, r.load_15, colorEnd)
 }
