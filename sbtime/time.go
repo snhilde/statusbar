@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // A routine is the main object for the sbtime package.
 // error:    error in colors, if any
@@ -34,7 +34,7 @@ func New(format string, colors ...[3]string) *routine {
 	// Replace all colons in the format string with spaces, to get the blinking effect later.
 	r.format_a = format
 	r.format_b = strings.Replace(format, ":", " ", -1)
-	r.time     = time.Now()
+	r.time = time.Now()
 
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
@@ -44,12 +44,12 @@ func New(format string, colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	return &r
@@ -63,12 +63,12 @@ func (r *routine) Update() {
 // Print the time in provided format.
 func (r *routine) String() string {
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
-	if r.time.Second() % 2 == 0 {
-		return r.colors.normal + r.time.Format(r.format_a) + COLOR_END
+	if r.time.Second()%2 == 0 {
+		return r.colors.normal + r.time.Format(r.format_a) + colorEnd
 	} else {
-		return r.colors.normal + r.time.Format(r.format_b) + COLOR_END
+		return r.colors.normal + r.time.Format(r.format_b) + colorEnd
 	}
 }
