@@ -3,21 +3,21 @@ package sbdisk
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"syscall"
-	"fmt"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // routine is the main object for this package.
 // err:    error encountered along the way, if any
 // disks:  slice of provided filesystems to stat
 // colors: trio of user-provided colors for displaying various states
 type routine struct {
-	err      error
+	err    error
 	disks  []fs
-	colors   struct {
+	colors struct {
 		normal  string
 		warning string
 		error   string
@@ -58,12 +58,12 @@ func New(paths []string, colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	return &r
@@ -80,11 +80,11 @@ func (r *routine) Update() {
 			return
 		}
 
-		total  := b.Blocks * uint64(b.Bsize)
-		used   := total - (b.Bavail * uint64(b.Bsize))
-		r.disks[i].perc  = (used * 100) / total
+		total := b.Blocks * uint64(b.Bsize)
+		used := total - (b.Bavail * uint64(b.Bsize))
+		r.disks[i].perc = (used * 100) / total
 
-		r.disks[i].used,  r.disks[i].used_u  = shrink(used)
+		r.disks[i].used, r.disks[i].used_u = shrink(used)
 		r.disks[i].total, r.disks[i].total_u = shrink(total)
 	}
 }
@@ -95,7 +95,7 @@ func (r *routine) String() string {
 	var b strings.Builder
 
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	for i, disk := range r.disks {
@@ -112,7 +112,7 @@ func (r *routine) String() string {
 		}
 		b.WriteString(c)
 		fmt.Fprintf(&b, "%s: %v%c/%v%c", disk.path, disk.used, disk.used_u, disk.total, disk.total_u)
-		b.WriteString(COLOR_END)
+		b.WriteString(colorEnd)
 	}
 
 	return b.String()
