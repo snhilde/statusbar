@@ -1,17 +1,15 @@
-// Package sbbattery displays the percentage of battery capacity left as well as
-// a charging status indicator.
-// TODO: run lint
+// Package sbbattery displays the percentage of battery capacity left with a charging status indicator.
 package sbbattery
 
 import (
 	"errors"
-	"strings"
+	"fmt"
 	"io/ioutil"
 	"strconv"
-	"fmt"
+	"strings"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 const (
 	UNKNOWN  = -1
@@ -20,12 +18,12 @@ const (
 	FULL
 )
 
-// Main type for package.
+// Routine is the main type for this package.
 // err:    error encountered along the way, if any
 // max:    maximum capacity of battery
 // perc:   percentage of battery capacity left
 // colors: trio of user-provided colors for displaying various states
-type routine struct {
+type Routine struct {
 	err    error
 	max    int
 	perc   int
@@ -37,9 +35,9 @@ type routine struct {
 	}
 }
 
-// Read the maximum capacity of the battery and return struct.
-func New(colors ...[3]string) *routine {
-	var r routine
+// New reads the maximum capacity of the battery and returns a routinestruct.
+func New(colors ...[3]string) *Routine {
+	var r Routine
 
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
@@ -49,12 +47,12 @@ func New(colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	// Error will be handled in both Update() and String().
@@ -63,21 +61,21 @@ func New(colors ...[3]string) *routine {
 	return &r
 }
 
-// Read current capacity left and calculate percentage from that.
-func (r *routine) Update() {
+// Update reads the current battery capacity left and calculates a percentage based on it.
+func (r *Routine) Update() {
 	// Handle error reading max capacity.
-	if r.max == -1 {
+	if r.max < 0 {
 		return
 	}
 
-	// Get current charge and calculate percentage.
+	// Get current charge and calculate a percentage.
 	now, err := readCharge("/sys/class/power_supply/BAT0/charge_now")
 	if err != nil {
 		r.err = err
 		return
 	}
 
-	r.perc  = (now * 100) / r.max
+	r.perc = (now * 100) / r.max
 	if r.perc < 0 {
 		r.perc = 0
 	} else if r.perc > 100 {
@@ -105,12 +103,12 @@ func (r *routine) Update() {
 }
 
 // Print formatted percentage of battery left.
-func (r *routine) String() string {
+func (r *Routine) String() string {
 	var c string
 	var s string
 
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	if r.perc > 25 {
@@ -131,7 +129,7 @@ func (r *routine) String() string {
 		s = fmt.Sprintf("%v%%", r.perc)
 	}
 
-	return fmt.Sprintf("%s%s BAT%s", c, s, COLOR_END)
+	return fmt.Sprintf("%s%s BAT%s", c, s, colorEnd)
 }
 
 // Read out value from file.
