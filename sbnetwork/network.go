@@ -4,23 +4,23 @@ package sbnetwork
 
 import (
 	"errors"
-	"strings"
-	"net"
-	"io/ioutil"
-	"strconv"
 	"fmt"
+	"io/ioutil"
+	"net"
+	"strconv"
+	"strings"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // routine is the main object for this package.
 // err:    error encountered along the way, if any
 // ilist:  list of interfaces
 // colors: trio of user-provided colors for displaying various states
 type routine struct {
-	err      error
+	err    error
 	ilist  []sbiface
-	colors   struct {
+	colors struct {
 		normal  string
 		warning string
 		error   string
@@ -47,9 +47,9 @@ type sbiface struct {
 
 // Return a new routine object populated with either the given interfaces or the active ones.
 func New(inames []string, colors ...[3]string) *routine {
-	var r       routine
+	var r routine
 	var ilist []string
-	var err     error
+	var err error
 
 	if len(inames) == 0 {
 		// Nothing was passed in. We'll grab the default interfaces.
@@ -75,7 +75,7 @@ func New(inames []string, colors ...[3]string) *routine {
 	} else {
 		for _, iname := range ilist {
 			down_path := "/sys/class/net/" + iname + "/statistics/rx_bytes"
-			up_path   := "/sys/class/net/" + iname + "/statistics/tx_bytes"
+			up_path := "/sys/class/net/" + iname + "/statistics/tx_bytes"
 			r.ilist = append(r.ilist, sbiface{name: iname, down_path: down_path, up_path: up_path})
 		}
 	}
@@ -88,12 +88,12 @@ func New(inames []string, colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	return &r
@@ -103,7 +103,7 @@ func New(inames []string, colors ...[3]string) *routine {
 func (r *routine) Update() {
 	for i, iface := range r.ilist {
 		r.ilist[i].old_down = iface.new_down
-		r.ilist[i].old_up   = iface.new_up
+		r.ilist[i].old_up = iface.new_up
 
 		down, err := readFile(iface.down_path)
 		if err != nil {
@@ -127,12 +127,12 @@ func (r *routine) String() string {
 	var b strings.Builder
 
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	for i, iface := range r.ilist {
 		down, down_u := shrink(iface.new_down - iface.old_down)
-		up, up_u     := shrink(iface.new_up   - iface.old_up)
+		up, up_u := shrink(iface.new_up - iface.old_up)
 
 		if down_u == 'B' || up_u == 'B' || down_u == 'K' || up_u == 'K' {
 			c = r.colors.normal
@@ -147,7 +147,7 @@ func (r *routine) String() string {
 		}
 		b.WriteString(c)
 		fmt.Fprintf(&b, "%s: %4v%c↓/%4v%c↑", iface.name, down, down_u, up, up_u)
-		b.WriteString(COLOR_END)
+		b.WriteString(colorEnd)
 	}
 
 	return b.String()
