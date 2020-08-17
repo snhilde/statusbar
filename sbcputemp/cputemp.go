@@ -4,14 +4,14 @@ package sbcputemp
 
 import (
 	"errors"
-	"strings"
 	"fmt"
-	"os"
 	"io/ioutil"
+	"os"
 	"strconv"
+	"strings"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // We need to root around in this directory for the device directory for the fan.
 const base_dir = "/sys/class/hwmon/"
@@ -23,11 +23,11 @@ const base_dir = "/sys/class/hwmon/"
 // temp:   average temperature across all sensors, in degrees Celsius
 // colors: trio of user-provided colors for displaying various states
 type routine struct {
-	err      error
-	path     string
+	err    error
+	path   string
 	files  []os.FileInfo
-	temp     int
-	colors   struct {
+	temp   int
+	colors struct {
 		normal  string
 		warning string
 		error   string
@@ -46,12 +46,12 @@ func New(colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	// Error will be handled in Update() and String().
@@ -102,7 +102,7 @@ func (r *routine) String() string {
 	var c string
 
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	if r.temp < 75 {
@@ -113,7 +113,7 @@ func (r *routine) String() string {
 		c = r.colors.error
 	}
 
-	return fmt.Sprintf("%s%v °C%s", c, r.temp, COLOR_END)
+	return fmt.Sprintf("%s%v °C%s", c, r.temp, colorEnd)
 }
 
 // Find the directory that has the temperature readings. It will be the one with the fan speeds,
