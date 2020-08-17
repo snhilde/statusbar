@@ -3,13 +3,13 @@ package sbram
 
 import (
 	"errors"
-	"strings"
+	"fmt"
 	"io/ioutil"
 	"strconv"
-	"fmt"
+	"strings"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // routine is the main object for this package.
 // err:     error encountered along the way, if any
@@ -45,12 +45,12 @@ func New(colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	return &r
@@ -78,9 +78,9 @@ func (r *routine) Update() {
 		return
 	}
 
-	r.perc             = (total - avail) * 100 / total
+	r.perc = (total - avail) * 100 / total
 	r.total, r.total_u = shrink(total)
-	r.used,  r.used_u  = shrink(total - avail)
+	r.used, r.used_u = shrink(total - avail)
 }
 
 // Format and print the used and total system memory.
@@ -88,7 +88,7 @@ func (r *routine) String() string {
 	var c string
 
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	if r.perc < 75 {
@@ -99,16 +99,16 @@ func (r *routine) String() string {
 		c = r.colors.error
 	}
 
-	return fmt.Sprintf("%s%.1f%c/%.1f%c%s", c, r.used, r.used_u, r.total, r.total_u, COLOR_END)
+	return fmt.Sprintf("%s%.1f%c/%.1f%c%s", c, r.used, r.used_u, r.total, r.total_u, colorEnd)
 }
 
 // Parse the meminfo file.
 func parseFile(output string) (int, int, error) {
 	var total int
 	var avail int
-	var err   error
+	var err error
 
-	lines := strings.Split(string(output), "\n");
+	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
 		if strings.HasPrefix(line, "MemTotal") {
 			fields := strings.Fields(line)
