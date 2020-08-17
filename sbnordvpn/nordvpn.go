@@ -2,12 +2,12 @@
 package sbnordvpn
 
 import (
+	"errors"
 	"os/exec"
 	"strings"
-	"errors"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // routine is the main object in the package.
 // err:    error encountered along the way, if any
@@ -38,12 +38,12 @@ func New(colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	return &r
@@ -64,10 +64,10 @@ func (r *routine) Update() {
 // Format and print the current connection status.
 func (r *routine) String() string {
 	if r.err != nil {
-		return r.colors.error + "NordVPN: " + r.err.Error() + COLOR_END
+		return r.colors.error + "NordVPN: " + r.err.Error() + colorEnd
 	}
 
-	return r.color + r.s + COLOR_END
+	return r.color + r.s + colorEnd
 }
 
 // Parse the command's output.
@@ -90,7 +90,7 @@ func (r *routine) parseCommand(s string) (string, error) {
 	//     Please check your internet connection and try again.
 
 	// Split up all the lines of the output for parsing.
-	lines  := strings.Split(s, "\n");
+	lines := strings.Split(s, "\n")
 
 	// Break out each word in the first line. It's possible that there is some garbage (mostly unprintable characters)
 	// before the message, so we're going to scan the line until we find the word "Status" and then try to determine the
@@ -111,7 +111,7 @@ func (r *routine) parseCommand(s string) (string, error) {
 	case "Connected":
 		for _, line := range lines {
 			if strings.HasPrefix(line, "City") {
-				city := strings.Split(line, ":");
+				city := strings.Split(line, ":")
 				if len(city) != 2 {
 					return "", errors.New("Error parsing City")
 				}
