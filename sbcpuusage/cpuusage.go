@@ -2,16 +2,16 @@
 package sbcpuusage
 
 import (
+	"bufio"
 	"errors"
-	"strings"
-	"os/exec"
-	"strconv"
 	"fmt"
 	"os"
-	"bufio"
+	"os/exec"
+	"strconv"
+	"strings"
 )
 
-var COLOR_END = "^d^"
+var colorEnd = "^d^"
 
 // routine is the main object for this package.
 // err:       error encountered along the way, if any
@@ -50,12 +50,12 @@ func New(colors ...[3]string) *routine {
 				return &r
 			}
 		}
-		r.colors.normal  = "^c" + colors[0][0] + "^"
+		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error   = "^c" + colors[0][2] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
 	} else {
 		// If a color array wasn't passed in, then we don't want to print this.
-		COLOR_END = ""
+		colorEnd = ""
 	}
 
 	r.threads, r.err = numThreads()
@@ -81,8 +81,8 @@ func (r *routine) Update() {
 		return
 	}
 
-	used  := (new_stats.user-r.old_stats.user) + (new_stats.nice-r.old_stats.nice) + (new_stats.sys-r.old_stats.sys)
-	total := (new_stats.user-r.old_stats.user) + (new_stats.nice-r.old_stats.nice) + (new_stats.sys-r.old_stats.sys) + (new_stats.idle-r.old_stats.idle)
+	used := (new_stats.user - r.old_stats.user) + (new_stats.nice - r.old_stats.nice) + (new_stats.sys - r.old_stats.sys)
+	total := (new_stats.user - r.old_stats.user) + (new_stats.nice - r.old_stats.nice) + (new_stats.sys - r.old_stats.sys) + (new_stats.idle - r.old_stats.idle)
 	total *= r.threads
 
 	// Prevent divide-by-zero error
@@ -99,7 +99,7 @@ func (r *routine) Update() {
 
 	r.old_stats.user = new_stats.user
 	r.old_stats.nice = new_stats.nice
-	r.old_stats.sys  = new_stats.sys
+	r.old_stats.sys = new_stats.sys
 	r.old_stats.idle = new_stats.idle
 }
 
@@ -108,7 +108,7 @@ func (r *routine) String() string {
 	var c string
 
 	if r.err != nil {
-		return r.colors.error + r.err.Error() + COLOR_END
+		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	if r.perc < 75 {
@@ -119,7 +119,7 @@ func (r *routine) String() string {
 		c = r.colors.error
 	}
 
-	return fmt.Sprintf("%s%2d%% CPU%s", c, r.perc, COLOR_END)
+	return fmt.Sprintf("%s%2d%% CPU%s", c, r.perc, colorEnd)
 }
 
 // Open /proc/stat and read out the CPU stats from the first line.
@@ -149,7 +149,7 @@ func readFile(new_stats *stats) error {
 // averaged total. We only want to know if we need to be changing its range. To get this number, we're
 // going to loop through each line of the output until we find "Thread(s) per socket".
 func numThreads() (int, error) {
-	proc     := exec.Command("lscpu")
+	proc := exec.Command("lscpu")
 	out, err := proc.Output()
 	if err != nil {
 		return -1, err
