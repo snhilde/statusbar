@@ -10,3 +10,22 @@ Usage guidelines and documentation hosted at [GoDoc](https://godoc.org/github.co
 
 This is the framework that controls the modular routines for calculating, formatting, and displaying information on the statusbar.
 For modules currently integrated with this framework, see [sb4routines](https://godoc.org/github.com/snhilde/sb4routines).
+
+## Changelog
+### 4.1.1
+Changes made to formatting and style as per `gofmt` and `golint` recommendations.
+
+### 4.1
+Moved routines and engine into one common repository
+
+### 4.0
+Complete rewrite in `go`, modular routines, concurrency, simpler formatting and customization
+
+### 3.0
+Added support for concurrency, made routines modular
+
+### 2.0
+Ported to Linux
+
+### 1.0
+Initial release, OpenBSD only
