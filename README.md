@@ -37,6 +37,7 @@ Usage guidelines and documentation are hosted at [GoDoc](https://godoc.org/githu
 `statusbar4` is modular by design, and it's simple to build and integrate modules; you only have to implement [two methods](https://godoc.org/github.com/snhilde/statusbar4#RoutineHandler).
 
 This repository includes these modules to get up and running quickly:
+
 | Module       | Documentation                                                            | Major usage          |
 | ------------ | ------------------------------------------------------------------------ | -------------------- |
 | `sbbattery`  | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar4/sbbattery)  | Battery usage        |
