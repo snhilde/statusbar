@@ -14,8 +14,8 @@ import (
 
 // RoutineHandler allows information monitors (commonly called routines) to be linked in.
 type RoutineHandler interface {
-	Update()        // Update the routine's information. This is run according to the provided interval time.
-	String() string // Format and return the routine's output.
+	Update() (error, bool) // Update the routine's information. This is run according to the provided interval time.
+	String() string        // Format and return the routine's output.
 }
 
 // routine holds the data for an individual unit on the statusbar.
@@ -39,7 +39,7 @@ func New() Statusbar {
 }
 
 // Append adds a routine to the statusbar's list. Routines are displayed in the order they are added.
-func (sb *Statusbar) Append(rh RoutineHandler, s int) {
+func (sb *Statusbar) Append(rh RoutineHandler, seconds int) {
 	// Convert the given number into proper seconds.
 	seconds := time.Duration(s) * time.Second
 
@@ -74,14 +74,15 @@ func (sb *Statusbar) Run() {
 }
 
 // runRoutine runs the routine in a non-terminating loop.
-// TODO: handle errors
 func runRoutine(r routine, i int, ch chan []string) {
+	errors := 0
 	for {
 		// Start the clock.
 		start := time.Now()
 
 		// Update the contents of the routine.
-		r.rh.Update()
+		// TODO: add bool to stop on error
+		err := r.rh.Update()
 
 		// Get the routine's output and store it in the master output slice.
 		output := r.rh.String()
@@ -89,13 +90,32 @@ func runRoutine(r routine, i int, ch chan []string) {
 		outputs[i] = output
 		ch <- outputs
 
+		interval := r.interval
+		if err != nil {
+			os.Stderr.WriteString(err)
+
+			// If the routine reported an error, then we'll give the process a little time to cool down before trying again.
+			s := r.interval.Seconds()
+			switch {
+			case s < 60:
+				// For routines with intervals up to 1 minute, sleep for 5 seconds.
+				interval = 5 * time.Second
+			case s < 60 * 15:
+				// For routines with intervals up to 15 minutes, sleep for 1 minute.
+				interval = 60 * time.Second
+			default:
+				// For routines with intervals longer than 15 minutes, sleep for 5 minutes.
+				interval = 60 * 5 * time.Second
+			}
+		}
+
 		// If the interval was set for infinite sleep, then we can close the routine now.
-		if r.interval == 0 {
+		if interval == 0 {
 			break
 		}
 
 		// Put the routine to sleep for the given time.
-		time.Sleep(r.interval - time.Since(start))
+		time.Sleep(interval - time.Since(start))
 	}
 }
 
