@@ -30,18 +30,20 @@ Integrating a custom module is very simple. See [the section on modules](#includ
 
 
 ## Installation
-`statusbar4` is a package, not a stand-alone program. To download the package, you can use the gotool `go install` like this:
+`statusbar4` is a package, not a stand-alone program. To download the package, you can use gotools like this:
 ```
-go install github.com/snhilde/statusbar4`
+go install github.com/snhilde/statusbar4
 ```
 That will also pull in the repository's modules for quick activation.
 
 
 ## Usage and Documentation
+To get up and running with this package, follow these steps:
+1. [Create a new statusbar object.](https://godoc.org/github.com/snhilde/statusbar4#New)
+1. [Add routines to the statusbar.](https://godoc.org/github.com/snhilde/statusbar4#Statusbar.Append)
+1. [Run the engine.](https://godoc.org/github.com/snhilde/statusbar4#Statusbar.Run)
 
-### Usage
-
-Usage guidelines and documentation are hosted at [GoDoc](https://godoc.org/github.com/snhilde/statusbar4).
+You can find the complete documentation and usage guidelines at [GoDoc](https://godoc.org/github.com/snhilde/statusbar4). The docs also include an example detailing the steps above.
 
 
 ## Included modules
