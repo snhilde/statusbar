@@ -1,13 +1,13 @@
 package statusbar_test
 
 import (
-	"github.com/snhilde/sb4routines/sbtime"
+	"github.com/snhilde/statusbar4/sbtime"
 )
 
 func ExampleStatusbar_Append() {
 	// Add the sbtime routine to our statusbar.
 
-	// sbtime.New() takes two arguments: format to use for the time string and triplet of color codes.
+	// sbtime.New() takes two arguments: the format to use for the time string and a triplet of color codes.
 	timeFmt := "Jan 2 - 03:04"
 
 	colorNormal := "#FFFFFF"
