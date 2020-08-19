@@ -13,35 +13,42 @@ import (
 var colorEnd = "^d^"
 
 // We need to root around in this directory for the device directory for the fan.
-const base_dir = "/sys/class/hwmon/"
+const baseDir = "/sys/class/hwmon/"
 
-// routine is the main object for this package.
-// err:      error encountered along the way, if any
-// path:     found path to the device directory
-// max_file: file that contains the maximum speed of the fan, in RPM
-// out_file: file that contains the current speed of the fan, in RPM
-// max:      maximum speed of the fan, in RPM
-// out:      current speed of the fan, in RPM
-// perc:     percentage of maximum fan speed
-// colors:   trio of user-provided colors for displaying various states
-type routine struct {
-	err      error
-	path     string
-	max_file os.FileInfo
-	out_file os.FileInfo
-	max      int
-	out      int
-	perc     int
-	colors   struct {
+// Routine is the main object for this package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// Found path to the device directory.
+	path string
+
+	// File that contains the maximum speed of the fan, in RPM.
+	maxFile os.FileInfo
+
+	// File that contains the current speed of the fan, in RPM.
+	outFile os.FileInfo
+
+	// Maximum speed of the fan, in RPM.
+	max int
+
+	// Current speed of the fan, in RPM.
+	out int
+
+	// Percentage of maximum fan speed.
+	perc int
+
+	// Trio of user-provided colors for displaying various states.
+	colors struct {
 		normal  string
 		warning string
 		error   string
 	}
 }
 
-// Search around in the base directory for a pair of max and current files, and return a new routine object.
-func New(colors ...[3]string) *routine {
-	var r routine
+// New searches around in the base directory for a pair of max and current files and makes a new routine object.
+func New(colors ...[3]string) *Routine {
+	var r Routine
 
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
@@ -66,18 +73,18 @@ func New(colors ...[3]string) *routine {
 	}
 
 	// Error will be handled later in Update() and String().
-	r.max, r.err = readSpeed(r.path + r.max_file.Name())
+	r.max, r.err = readSpeed(r.path + r.maxFile.Name())
 
 	return &r
 }
 
-// Read the current fan speed in RPM and calculate the percentage of the maximum speed.
-func (r *routine) Update() {
+// Update reads the current fan speed in RPM and calculates the percentage of the maximum speed.
+func (r *Routine) Update() {
 	if r.err != nil {
 		return
 	}
 
-	r.out, r.err = readSpeed(r.path + r.out_file.Name())
+	r.out, r.err = readSpeed(r.path + r.outFile.Name())
 	if r.err != nil {
 		return
 	}
@@ -88,8 +95,8 @@ func (r *routine) Update() {
 	}
 }
 
-// Print the formatted current speed in RPM.
-func (r *routine) String() string {
+// String prints the current speed in RPM.
+func (r *Routine) String() string {
 	var c string
 
 	if r.err != nil {
@@ -107,21 +114,21 @@ func (r *routine) String() string {
 	return fmt.Sprintf("%s%v RPM%s", c, r.out, colorEnd)
 }
 
-// Find the file that we'll monitor for the fan speed.
-// It will be in one of the hardware device directories in /sys/class/hwmon.
-func (r *routine) findFiles() {
+// findFiles finds the files that we'll monitor for the fan speed. It will be in one of the hardware device directories
+// in /sys/class/hwmon.
+func (r *Routine) findFiles() {
 	var dirs []os.FileInfo
 	var files []os.FileInfo
 
 	// Get all the device directories in the main directory.
-	dirs, r.err = ioutil.ReadDir(base_dir)
+	dirs, r.err = ioutil.ReadDir(baseDir)
 	if r.err != nil {
 		return
 	}
 
 	// Search in each device directory to find the fan.
 	for _, dir := range dirs {
-		path := base_dir + dir.Name() + "/device/"
+		path := baseDir + dir.Name() + "/device/"
 		files, r.err = ioutil.ReadDir(path)
 		if r.err != nil {
 			return
@@ -135,16 +142,16 @@ func (r *routine) findFiles() {
 				if strings.HasSuffix(file.Name(), "max") || strings.HasSuffix(file.Name(), "output") {
 					// We found one of the two.
 					if strings.HasSuffix(file.Name(), "max") {
-						r.max_file = file
+						r.maxFile = file
 						prefix = strings.TrimSuffix(file.Name(), "max")
 					} else {
-						r.out_file = file
+						r.outFile = file
 						prefix = strings.TrimSuffix(prefix, "output")
 					}
 				}
 
 				// If we've found both files, we can stop looking.
-				if r.max_file != nil && r.out_file != nil {
+				if r.maxFile != nil && r.outFile != nil {
 					r.path = path
 					return
 				}
@@ -157,7 +164,7 @@ func (r *routine) findFiles() {
 	return
 }
 
-// Read the value of the passed-in file, which will be a speed in RPM.
+// readSpeed reads the value of the provided file. The value will be a speed in RPM.
 func readSpeed(path string) (int, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {

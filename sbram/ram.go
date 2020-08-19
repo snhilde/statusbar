@@ -11,31 +11,37 @@ import (
 
 var colorEnd = "^d^"
 
-// routine is the main object for this package.
-// err:     error encountered along the way, if any
-// perc:    percentage of memory in use
-// total:   total amount of memory
-// total_u: unit of total memory
-// used:    amount of memory in current use
-// used_u:  unit of used memory
-// colors:  trio of user-provided colors for displaying various states
-type routine struct {
-	err     error
-	perc    int
-	total   float32
-	total_u rune
-	used    float32
-	used_u  rune
-	colors  struct {
+// Routine is the main object for this package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// Percentage of memory in use.
+	perc int
+
+	// Total amount of memory.
+	total float32
+
+	// Unit of total memory.
+	totalUnit rune
+
+	// Amount of memory in current use.
+	used float32
+
+	// Unit of used memory.
+	usedUnit rune
+
+	// Trio of user-provided colors for displaying various states.
+	colors struct {
 		normal  string
 		warning string
 		error   string
 	}
 }
 
-// Make and return a new routine object.
-func New(colors ...[3]string) *routine {
-	var r routine
+// New makes a new routine object.
+func New(colors ...[3]string) *Routine {
+	var r Routine
 
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
@@ -56,11 +62,11 @@ func New(colors ...[3]string) *routine {
 	return &r
 }
 
-// Get the memory resources. Unfortunately, we can't use syscall.Sysinfo() or another syscall function, because it
-// doesn't return the necessary information to calculate the actual amount of RAM in use at the moment (namely, it is
+// Update gets the memory resources. Unfortunately, we can't use syscall.Sysinfo() or another syscall function, because
+// it doesn't return the necessary information to calculate the actual amount of RAM in use at the moment (namely, it is
 // missing the amount of cached RAM). Instead, we're going to read out /proc/meminfo and grab the values we need from
 // there. All lines of that file have three fields: field name, value, and unit
-func (r *routine) Update() {
+func (r *Routine) Update() {
 	file, err := ioutil.ReadFile("/proc/meminfo")
 	if err != nil {
 		r.err = err
@@ -79,12 +85,12 @@ func (r *routine) Update() {
 	}
 
 	r.perc = (total - avail) * 100 / total
-	r.total, r.total_u = shrink(total)
-	r.used, r.used_u = shrink(total - avail)
+	r.total, r.totalUnit = shrink(total)
+	r.used, r.usedUnit = shrink(total - avail)
 }
 
-// Format and print the used and total system memory.
-func (r *routine) String() string {
+// String formats and prints the used and total system memory.
+func (r *Routine) String() string {
 	var c string
 
 	if r.err != nil {
@@ -99,10 +105,10 @@ func (r *routine) String() string {
 		c = r.colors.error
 	}
 
-	return fmt.Sprintf("%s%.1f%c/%.1f%c%s", c, r.used, r.used_u, r.total, r.total_u, colorEnd)
+	return fmt.Sprintf("%s%.1f%c/%.1f%c%s", c, r.used, r.usedUnit, r.total, r.totalUnit, colorEnd)
 }
 
-// Parse the meminfo file.
+// parseFile parses the meminfo file.
 func parseFile(output string) (int, int, error) {
 	var total int
 	var avail int
@@ -135,16 +141,16 @@ func parseFile(output string) (int, int, error) {
 	return total, avail, nil
 }
 
-// Iteratively decrease the amount of bytes by a step of 2^10 until human-readable.
+// shrink iteratively decreases the amount of bytes by a step of 2^10 until human-readable.
 func shrink(memory int) (float32, rune) {
 	var units = [...]rune{'K', 'M', 'G', 'T', 'P', 'E'}
 	var i int
 
-	memory_f := float32(memory)
-	for memory_f > 1024 {
-		memory_f /= 1024
+	f := float32(memory)
+	for f > 1024 {
+		f /= 1024
 		i++
 	}
 
-	return memory_f, units[i]
+	return f, units[i]
 }

@@ -10,13 +10,15 @@ import (
 
 var colorEnd = "^d^"
 
-// routine is the main object for this package.
-// err:    error encountered along the way, if any
-// disks:  slice of provided filesystems to stat
-// colors: trio of user-provided colors for displaying various states
-type routine struct {
-	err    error
-	disks  []fs
+// Routine is the main object for this package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// Slice of provided filesystems to stat.
+	disks []fs
+
+	// Trio of user-provided colors for displaying various states.
 	colors struct {
 		normal  string
 		warning string
@@ -25,26 +27,26 @@ type routine struct {
 }
 
 // fs holds information about a single filesystem.
-// path:    given path that will be used to stat the partition
-// avail:   used bytes for this filesystem
-// avail_u: unit for the used bytes
-// total:   total bytes for this filesystem
-// total_u: unit for the total bytes
-// perc:    percentage of total disk space used
+// path:      given path that will be used to stat the partition
+// used:      used bytes for this filesystem
+// usedUnit:  unit for the used bytes
+// total:     total bytes for this filesystem
+// totalUnit: unit for the total bytes
+// perc:      percentage of total disk space used
 type fs struct {
-	path    string
-	used    uint64
-	used_u  rune
-	total   uint64
-	total_u rune
-	perc    uint64
+	path      string
+	used      uint64
+	usedUnit  rune
+	total     uint64
+	totalUnit rune
+	perc      uint64
 	// Note: Bavail is the amount of blocks that can actually be used, while
 	// Bfree is the total amount of unused blocks.
 }
 
-// Copy over the provided filesystem paths and return a new routine object.
-func New(paths []string, colors ...[3]string) *routine {
-	var r routine
+// New copies over the provided filesystem paths and makes a new routine object.
+func New(paths []string, colors ...[3]string) *Routine {
+	var r Routine
 
 	for _, path := range paths {
 		r.disks = append(r.disks, fs{path: path})
@@ -69,9 +71,9 @@ func New(paths []string, colors ...[3]string) *routine {
 	return &r
 }
 
-// For each provided filesystem, get the amounts of used and total disk space and
-// convert them into a human-readable size.
-func (r *routine) Update() {
+// Update gets the amount of used and total disk space and converts them into a human-readable size for each provided
+// filesystem.
+func (r *Routine) Update() {
 	var b syscall.Statfs_t
 
 	for i, disk := range r.disks {
@@ -84,13 +86,13 @@ func (r *routine) Update() {
 		used := total - (b.Bavail * uint64(b.Bsize))
 		r.disks[i].perc = (used * 100) / total
 
-		r.disks[i].used, r.disks[i].used_u = shrink(used)
-		r.disks[i].total, r.disks[i].total_u = shrink(total)
+		r.disks[i].used, r.disks[i].usedUnit = shrink(used)
+		r.disks[i].total, r.disks[i].totalUnit = shrink(total)
 	}
 }
 
 // Format and print the amounts of disk space for each provided filesystem.
-func (r *routine) String() string {
+func (r *Routine) String() string {
 	var c string
 	var b strings.Builder
 
@@ -111,7 +113,7 @@ func (r *routine) String() string {
 			b.WriteString(", ")
 		}
 		b.WriteString(c)
-		fmt.Fprintf(&b, "%s: %v%c/%v%c", disk.path, disk.used, disk.used_u, disk.total, disk.total_u)
+		fmt.Fprintf(&b, "%s: %v%c/%v%c", disk.path, disk.used, disk.usedUnit, disk.total, disk.totalUnit)
 		b.WriteString(colorEnd)
 	}
 

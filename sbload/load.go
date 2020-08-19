@@ -10,27 +10,31 @@ import (
 
 var colorEnd = "^d^"
 
-// routine is the main object in the package.
-// err:     error encountered along the way, if any
-// load_1:  load average over the last second
-// load_5:  load average over the last 5 seconds
-// load_15: load average over the last 15 seconds
-// colors:  trio of user-provided colors for displaying various states
-type routine struct {
-	err     error
-	load_1  float64
-	load_5  float64
-	load_15 float64
-	colors  struct {
+// Routine is the main object in the package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// Load average over the last second.
+	load1 float64
+
+	// Load average over the last 5 seconds.
+	load5 float64
+
+	// Load average over the last 15 seconds.
+	load15 float64
+
+	// Trio of user-provided colors for displaying various states.
+	colors struct {
 		normal  string
 		warning string
 		error   string
 	}
 }
 
-// Return a new rountine object.
-func New(colors ...[3]string) *routine {
-	var r routine
+// New makes a new rountine object.
+func New(colors ...[3]string) *Routine {
+	var r Routine
 
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
@@ -51,8 +55,8 @@ func New(colors ...[3]string) *routine {
 	return &r
 }
 
-// Call Sysinfo() method and calculate load averages.
-func (r *routine) Update() {
+// Update calls Sysinfo() and calculates load averages.
+func (r *Routine) Update() {
 	var info syscall.Sysinfo_t
 
 	r.err = syscall.Sysinfo(&info)
@@ -61,26 +65,26 @@ func (r *routine) Update() {
 	}
 
 	// Each load average must be divided by 2^16 to get the same format as /proc/loadavg.
-	r.load_1 = float64(info.Loads[0]) / float64(1<<16)
-	r.load_5 = float64(info.Loads[1]) / float64(1<<16)
-	r.load_15 = float64(info.Loads[2]) / float64(1<<16)
+	r.load1 = float64(info.Loads[0]) / float64(1<<16)
+	r.load5 = float64(info.Loads[1]) / float64(1<<16)
+	r.load15 = float64(info.Loads[2]) / float64(1<<16)
 }
 
-// Print the 3 load averages with 2 decimal places of precision.
-func (r *routine) String() string {
+// String prints the 3 load averages with 2 decimal places of precision.
+func (r *Routine) String() string {
 	var c string
 
 	if r.err != nil {
 		return r.colors.error + r.err.Error() + colorEnd
 	}
 
-	if r.load_1 >= 2 || r.load_5 >= 2 || r.load_15 >= 2 {
+	if r.load1 >= 2 || r.load5 >= 2 || r.load15 >= 2 {
 		c = r.colors.error
-	} else if r.load_1 >= 1 || r.load_5 >= 1 || r.load_15 >= 1 {
+	} else if r.load1 >= 1 || r.load5 >= 1 || r.load15 >= 1 {
 		c = r.colors.warning
 	} else {
 		c = r.colors.normal
 	}
 
-	return fmt.Sprintf("%s%.2f %.2f %.2f%s", c, r.load_1, r.load_5, r.load_15, colorEnd)
+	return fmt.Sprintf("%s%.2f %.2f %.2f%s", c, r.load1, r.load5, r.load15, colorEnd)
 }

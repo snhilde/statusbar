@@ -13,13 +13,15 @@ import (
 
 var colorEnd = "^d^"
 
-// routine is the main object for this package.
-// err:    error encountered along the way, if any
-// ilist:  list of interfaces
-// colors: trio of user-provided colors for displaying various states
-type routine struct {
-	err    error
-	ilist  []sbiface
+// Routine is the main object for this package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// List of interfaces.
+	ilist []sbiface
+
+	// Trio of user-provided colors for displaying various states.
 	colors struct {
 		normal  string
 		warning string
@@ -28,26 +30,26 @@ type routine struct {
 }
 
 // sbiface groups different pieces of information for a single interface.
-// name:      name of interface
-// down_path: path to rx_bytes file
-// up_path:   path to tx_bytes file
-// old_down:  last reading of rx_bytes file
-// old_up:    last reading of tx_bytes file
-// new_down:  current reading of rx_bytes file
-// new_up:    current reading of tx_bytes file
+// name:     name of interface
+// downPath: path to rx_bytes file
+// upPath:   path to tx_bytes file
+// oldDown:  last reading of rx_bytes file
+// oldUp:    last reading of tx_bytes file
+// newDown:  current reading of rx_bytes file
+// newUp:    current reading of tx_bytes file
 type sbiface struct {
-	name      string
-	down_path string
-	up_path   string
-	old_down  int
-	old_up    int
-	new_down  int
-	new_up    int
+	name     string
+	downPath string
+	upPath   string
+	oldDown  int
+	oldUp    int
+	newDown  int
+	newUp    int
 }
 
-// Return a new routine object populated with either the given interfaces or the active ones.
-func New(inames []string, colors ...[3]string) *routine {
-	var r routine
+// New returns a new routine object populated with either the given interfaces or the active ones.
+func New(inames []string, colors ...[3]string) *Routine {
+	var r Routine
 	var ilist []string
 	var err error
 
@@ -74,9 +76,9 @@ func New(inames []string, colors ...[3]string) *routine {
 		r.err = errors.New("No interfaces found")
 	} else {
 		for _, iname := range ilist {
-			down_path := "/sys/class/net/" + iname + "/statistics/rx_bytes"
-			up_path := "/sys/class/net/" + iname + "/statistics/tx_bytes"
-			r.ilist = append(r.ilist, sbiface{name: iname, down_path: down_path, up_path: up_path})
+			downPath := "/sys/class/net/" + iname + "/statistics/rx_bytes"
+			upPath := "/sys/class/net/" + iname + "/statistics/tx_bytes"
+			r.ilist = append(r.ilist, sbiface{name: iname, downPath: downPath, upPath: upPath})
 		}
 	}
 
@@ -99,30 +101,30 @@ func New(inames []string, colors ...[3]string) *routine {
 	return &r
 }
 
-// Get the current readings of the rx/tx files for each interface.
-func (r *routine) Update() {
+// Update gets the current readings of the rx/tx files for each interface.
+func (r *Routine) Update() {
 	for i, iface := range r.ilist {
-		r.ilist[i].old_down = iface.new_down
-		r.ilist[i].old_up = iface.new_up
+		r.ilist[i].oldDown = iface.newDown
+		r.ilist[i].oldUp = iface.newUp
 
-		down, err := readFile(iface.down_path)
+		down, err := readFile(iface.downPath)
 		if err != nil {
 			// r.err = err
 			continue
 		}
-		r.ilist[i].new_down = down
+		r.ilist[i].newDown = down
 
-		up, err := readFile(iface.up_path)
+		up, err := readFile(iface.upPath)
 		if err != nil {
 			// r.err = err
 			continue
 		}
-		r.ilist[i].new_up = up
+		r.ilist[i].newUp = up
 	}
 }
 
-// Calculate the byte difference for each interface, and format and print it.
-func (r *routine) String() string {
+// String calculates the byte difference for each interface, and formats and prints it.
+func (r *Routine) String() string {
 	var c string
 	var b strings.Builder
 
@@ -131,12 +133,12 @@ func (r *routine) String() string {
 	}
 
 	for i, iface := range r.ilist {
-		down, down_u := shrink(iface.new_down - iface.old_down)
-		up, up_u := shrink(iface.new_up - iface.old_up)
+		down, downUnit := shrink(iface.newDown - iface.oldDown)
+		up, upUnit := shrink(iface.newUp - iface.oldUp)
 
-		if down_u == 'B' || up_u == 'B' || down_u == 'K' || up_u == 'K' {
+		if downUnit == 'B' || upUnit == 'B' || downUnit == 'K' || upUnit == 'K' {
 			c = r.colors.normal
-		} else if down_u == 'M' || up_u == 'M' {
+		} else if downUnit == 'M' || upUnit == 'M' {
 			c = r.colors.warning
 		} else {
 			c = r.colors.error
@@ -146,14 +148,14 @@ func (r *routine) String() string {
 			b.WriteString(", ")
 		}
 		b.WriteString(c)
-		fmt.Fprintf(&b, "%s: %4v%c↓/%4v%c↑", iface.name, down, down_u, up, up_u)
+		fmt.Fprintf(&b, "%s: %4v%c↓/%4v%c↑", iface.name, down, downUnit, up, upUnit)
 		b.WriteString(colorEnd)
 	}
 
 	return b.String()
 }
 
-// Find all network interfaces that are currently active.
+// getInterfaces finds all network interfaces that are currently active.
 func getInterfaces() ([]string, error) {
 	var inames []string
 
@@ -176,7 +178,7 @@ func getInterfaces() ([]string, error) {
 	return inames, nil
 }
 
-// Read out the contents of the given file.
+// readFile reads out the contents of the given file.
 func readFile(path string) (int, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -186,7 +188,7 @@ func readFile(path string) (int, error) {
 	return strconv.Atoi(strings.TrimSpace(string(b)))
 }
 
-// Iteratively decrease the amount of bytes by a step of 2^10 until human-readable.
+// shrink iteratively decreases the amount of bytes by a step of 2^10 until human-readable.
 func shrink(bytes int) (int, rune) {
 	var units = [...]rune{'B', 'K', 'M', 'G', 'T', 'P', 'E'}
 	var i int

@@ -11,27 +11,31 @@ import (
 
 var colorEnd = "^d^"
 
-// routine is the main object for this package.
-// err:     error encountered along the way, if any
-// control: control to query, as passed in by called
-// vol:     system volume, in multiple of ten, as percentage of max
-// muted:   true if volume is muted
-// colors:  trio of user-provided colors for displaying various states
-type routine struct {
-	err     error
+// Routine is the main object for this package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// Control to query, as provided by caller.
 	control string
-	vol     int
-	muted   bool
-	colors  struct {
+
+	// System volume, in multiple of ten, as percentage of max.
+	vol int
+
+	// True if volume is muted.
+	muted bool
+
+	// Trio of user-provided colors for displaying various states.
+	colors struct {
 		normal  string
 		warning string
 		error   string
 	}
 }
 
-// Store the passed-in control value and return a new routine object.
-func New(control string, colors ...[3]string) *routine {
-	var r routine
+// New stores the provided control value and makes a new routine object.
+func New(control string, colors ...[3]string) *Routine {
+	var r Routine
 
 	r.control = control
 
@@ -54,8 +58,8 @@ func New(control string, colors ...[3]string) *routine {
 	return &r
 }
 
-// Run the 'amixer' command and parse the output for mute status and volume percentage.
-func (r *routine) Update() {
+// Update runs the 'amixer' command and parses the output for mute status and volume percentage.
+func (r *Routine) Update() {
 	r.muted = false
 	r.vol = -1
 
@@ -94,8 +98,8 @@ func (r *routine) Update() {
 	}
 }
 
-// Print either an error, the mute status, or the volume percentage.
-func (r *routine) String() string {
+// String prints either an error, the mute status, or the volume percentage.
+func (r *Routine) String() string {
 	if r.err != nil {
 		return r.colors.error + r.err.Error() + colorEnd
 	}
@@ -107,8 +111,8 @@ func (r *routine) String() string {
 	return fmt.Sprintf("%sVol %v%%%s", r.colors.normal, r.vol, colorEnd)
 }
 
-// Run the actual 'amixer' command, with the given control.
-func (r *routine) runCmd() (string, error) {
+// runCmd runs the actual 'amixer' command, with the given control.
+func (r *Routine) runCmd() (string, error) {
 	cmd := exec.Command("amixer", "get", r.control)
 	out, err := cmd.Output()
 	if err != nil {
@@ -118,7 +122,7 @@ func (r *routine) runCmd() (string, error) {
 	return string(out), nil
 }
 
-// Ensure that the volume is a multiple of 10 (so it looks nicer).
+// normalize ensures that the volume is a multiple of 10 (so it looks nicer).
 func normalize(vol int) int {
 	return (vol + 5) / 10 * 10
 }

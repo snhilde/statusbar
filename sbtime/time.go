@@ -9,31 +9,35 @@ import (
 
 var colorEnd = "^d^"
 
-// A routine is the main object for the sbtime package.
-// error:    error in colors, if any
-// time:     current timestamp
-// format_a: format for displaying time, when colons are displayed (every other second)
-// format_b: format for displaying time, when colons are blinked out (every other second)
-// colors:   trio of user-provided colors for displaying various states
-type routine struct {
-	err      error
-	time     time.Time
-	format_a string
-	format_b string
-	colors   struct {
+// Routine is the main object for the sbtime package.
+type Routine struct {
+	// Error with the color selection, if any.
+	err error
+
+	// Current timestamp.
+	time time.Time
+
+	// Format for displaying time, when colons are displayed (every other second).
+	formatA string
+
+	// Format for displaying time, when colons are blinked out (every other second).
+	formatB string
+
+	// Trio of user-provided colors for displaying various states.
+	colors struct {
 		normal  string
 		warning string
 		error   string
 	}
 }
 
-// Create a new routine object with the current time.
-func New(format string, colors ...[3]string) *routine {
-	var r routine
+// New creates a new routine object with the current time.
+func New(format string, colors ...[3]string) *Routine {
+	var r Routine
 
 	// Replace all colons in the format string with spaces, to get the blinking effect later.
-	r.format_a = format
-	r.format_b = strings.Replace(format, ":", " ", -1)
+	r.formatA = format
+	r.formatB = strings.Replace(format, ":", " ", -1)
 	r.time = time.Now()
 
 	// Do a minor sanity check on the color codes.
@@ -55,20 +59,19 @@ func New(format string, colors ...[3]string) *routine {
 	return &r
 }
 
-// Update the routine's current time.
-func (r *routine) Update() {
+// Update updates the routine's current time.
+func (r *Routine) Update() {
 	r.time = time.Now()
 }
 
-// Print the time in provided format.
-func (r *routine) String() string {
+// String prints the time in the provided format.
+func (r *Routine) String() string {
 	if r.err != nil {
 		return r.colors.error + r.err.Error() + colorEnd
 	}
 
 	if r.time.Second()%2 == 0 {
-		return r.colors.normal + r.time.Format(r.format_a) + colorEnd
-	} else {
-		return r.colors.normal + r.time.Format(r.format_b) + colorEnd
+		return r.colors.normal + r.time.Format(r.formatA) + colorEnd
 	}
+	return r.colors.normal + r.time.Format(r.formatB) + colorEnd
 }

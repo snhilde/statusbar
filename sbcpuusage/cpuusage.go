@@ -13,24 +13,29 @@ import (
 
 var colorEnd = "^d^"
 
-// routine is the main object for this package.
-// err:       error encountered along the way, if any
-// old_stats: CPU stats from last read
-// perc:      percentage of CPU currently being used
-// colors:    trio of user-provided colors for displaying various states
-type routine struct {
-	err       error
-	threads   int
-	old_stats stats
-	perc      int
-	colors    struct {
+// Routine is the main object for this package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// Number of threads per CPU core.
+	threads int
+
+	// CPU stats from last read.
+	oldStats stats
+
+	// Percentage of CPU currently being used.
+	perc int
+
+	// Trio of user-provided colors for displaying various states.
+	colors struct {
 		normal  string
 		warning string
 		error   string
 	}
 }
 
-// Type to hold values of different CPU stats
+// stats holds values of different CPU stats.
 type stats struct {
 	user int
 	nice int
@@ -38,9 +43,9 @@ type stats struct {
 	idle int
 }
 
-// Get current CPU stats and return routine object.
-func New(colors ...[3]string) *routine {
-	var r routine
+// New gets current CPU stats and makes a new routine object.
+func New(colors ...[3]string) *Routine {
+	var r Routine
 
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
@@ -63,7 +68,7 @@ func New(colors ...[3]string) *routine {
 		return &r
 	}
 
-	err := readFile(&(r.old_stats))
+	err := readFile(&(r.oldStats))
 	if err != nil {
 		r.err = err
 	}
@@ -71,18 +76,19 @@ func New(colors ...[3]string) *routine {
 	return &r
 }
 
-// Get current CPU stats, compare to last-read stats, and calculate percentage of CPU being used.
-func (r *routine) Update() {
-	var new_stats stats
+// Update gets the current CPU stats, compares them to the last-read stats, and calculates the percentage of CPU
+// currently being used.
+func (r *Routine) Update() {
+	var newStats stats
 
-	err := readFile(&new_stats)
+	err := readFile(&newStats)
 	if err != nil {
 		r.err = err
 		return
 	}
 
-	used := (new_stats.user - r.old_stats.user) + (new_stats.nice - r.old_stats.nice) + (new_stats.sys - r.old_stats.sys)
-	total := (new_stats.user - r.old_stats.user) + (new_stats.nice - r.old_stats.nice) + (new_stats.sys - r.old_stats.sys) + (new_stats.idle - r.old_stats.idle)
+	used := (newStats.user - r.oldStats.user) + (newStats.nice - r.oldStats.nice) + (newStats.sys - r.oldStats.sys)
+	total := (newStats.user - r.oldStats.user) + (newStats.nice - r.oldStats.nice) + (newStats.sys - r.oldStats.sys) + (newStats.idle - r.oldStats.idle)
 	total *= r.threads
 
 	// Prevent divide-by-zero error
@@ -97,14 +103,14 @@ func (r *routine) Update() {
 		}
 	}
 
-	r.old_stats.user = new_stats.user
-	r.old_stats.nice = new_stats.nice
-	r.old_stats.sys = new_stats.sys
-	r.old_stats.idle = new_stats.idle
+	r.oldStats.user = newStats.user
+	r.oldStats.nice = newStats.nice
+	r.oldStats.sys = newStats.sys
+	r.oldStats.idle = newStats.idle
 }
 
-// Print formatted CPU percentage.
-func (r *routine) String() string {
+// String prints the formatted CPU percentage.
+func (r *Routine) String() string {
 	var c string
 
 	if r.err != nil {
@@ -122,8 +128,8 @@ func (r *routine) String() string {
 	return fmt.Sprintf("%s%2d%% CPU%s", c, r.perc, colorEnd)
 }
 
-// Open /proc/stat and read out the CPU stats from the first line.
-func readFile(new_stats *stats) error {
+// readFile opens /proc/stat and reads out the CPU stats from the first line.
+func readFile(newStats *stats) error {
 	// The first line of /proc/stat will look like this:
 	// "cpu userVal niceVal sysVal idleVal ..."
 	f, err := os.Open("/proc/stat")
@@ -140,7 +146,7 @@ func readFile(new_stats *stats) error {
 	}
 
 	// Error will be handled in String().
-	_, err = fmt.Sscanf(line, "cpu %v %v %v %v", &(new_stats.user), &(new_stats.nice), &(new_stats.sys), &(new_stats.idle))
+	_, err = fmt.Sscanf(line, "cpu %v %v %v %v", &(newStats.user), &(newStats.nice), &(newStats.sys), &(newStats.idle))
 	return err
 }
 

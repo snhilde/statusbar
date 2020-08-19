@@ -11,6 +11,7 @@ import (
 
 var colorEnd = "^d^"
 
+// These are the possible charging states of the battery.
 const (
 	UNKNOWN  = -1
 	CHARGING = iota
@@ -19,15 +20,20 @@ const (
 )
 
 // Routine is the main type for this package.
-// err:    error encountered along the way, if any
-// max:    maximum capacity of battery
-// perc:   percentage of battery capacity left
-// colors: trio of user-provided colors for displaying various states
 type Routine struct {
-	err    error
-	max    int
-	perc   int
+	// Error encountered along the way, if any.
+	err error
+
+	// Maximum capacity of battery.
+	max int
+
+	// Percentage of battery capacity left.
+	perc int
+
+	// Status of the battery (unknown, charging, discharging, or full).
 	status int
+
+	// The three user-provided colors for displaying the various states.
 	colors struct {
 		normal  string
 		warning string

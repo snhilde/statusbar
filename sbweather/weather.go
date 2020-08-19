@@ -15,23 +15,30 @@ import (
 
 var colorEnd = "^d^"
 
-// routine is the main object for this package.
-// err:    error encountered along the way, if any
-// client: HTTP client to reuse for all requests out
-// zip:    user-supplied zip code for where the temperature should reflect
-// url:    NWS-provided URL for getting the temperature, as found during the init
-// temp:   current temperature for the provided zip code
-// high:   forecast high
-// low:    forecast low
-// colors: trio of user-provided colors for displaying various states
-type routine struct {
-	err    error
+// Routine is the main object for this package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// HTTP client to reuse for all requests out.
 	client http.Client
-	zip    string
-	url    string
-	temp   int
-	high   int
-	low    int
+
+	// User-supplied zip code for where the temperature should reflect.
+	zip string
+
+	// NWS-provided URL for getting the temperature, as found during the init.
+	url string
+
+	// Current temperature for the provided zip code.
+	temp int
+
+	// Forecast high.
+	high int
+
+	// Forecast low.
+	low int
+
+	// Trio of user-provided colors for displaying various states.
 	colors struct {
 		normal  string
 		warning string
@@ -39,9 +46,9 @@ type routine struct {
 	}
 }
 
-// Sanity-check zip code, and return new routine object.
-func New(zip string, colors ...[3]string) *routine {
-	var r routine
+// New runs a sanity check on the provided zip code and makes a new routine object.
+func New(zip string, colors ...[3]string) *Routine {
+	var r Routine
 
 	if len(zip) != 5 {
 		r.err = errors.New("Invalid Zip Code length")
@@ -74,10 +81,11 @@ func New(zip string, colors ...[3]string) *routine {
 	return &r
 }
 
-// Get the current hourly temperature. Also, if first run of the session, initialize object.
-func (r *routine) Update() {
+// Update gets the current hourly temperature.
+func (r *Routine) Update() {
 	r.err = nil
 
+	// If this is the first run of the session, initialize the routine.
 	if r.url == "" {
 		// Get coordinates.
 		lat, long, err := getCoords(r.client, r.zip)
@@ -112,8 +120,8 @@ func (r *routine) Update() {
 	r.low = low
 }
 
-// Format and print current temperature.
-func (r *routine) String() string {
+// String formats and prints the current temperature.
+func (r *Routine) String() string {
 	var s string
 
 	if r.err != nil {
@@ -130,8 +138,7 @@ func (r *routine) String() string {
 	return fmt.Sprintf("%s%v °F (%s: %v/%v)%s", r.colors.normal, r.temp, s, r.high, r.low, colorEnd)
 }
 
-// Get the geographic coordinates for the provided zip code.
-// We should receive a response in this format:
+// getCoords gets the geographic coordinates for the provided zip code. It should receive a response in this format:
 // {"status":1,"output":[{"zip":"90210","latitude":"34.103131","longitude":"-118.416253"}]}
 func getCoords(client http.Client, zip string) (string, string, error) {
 	type coords struct {
@@ -183,7 +190,7 @@ func getCoords(client http.Client, zip string) (string, string, error) {
 	return lat, long, nil
 }
 
-// Query the NWS to determine which URL we should be using for getting the weather forecast.
+// getURL queries the NWS to determine which URL we should be using for getting the weather forecast.
 // Our value should be here: properties -> forecast.
 func getURL(client http.Client, lat string, long string) (string, error) {
 	type props struct {
@@ -225,7 +232,7 @@ func getURL(client http.Client, lat string, long string) (string, error) {
 	return url, nil
 }
 
-// Get the current temperature from the NWS database.
+// getTemp gets the current temperature from the NWS database.
 // Our value should be here: properties -> periods -> (latest period) -> temperature.
 func getTemp(client http.Client, url string) (int, error) {
 	type temp struct {
@@ -273,7 +280,7 @@ func getTemp(client http.Client, url string) (int, error) {
 	return tempConvert(latest["temperature"])
 }
 
-// Get the forecasted temperatures from the NWS database.
+// getForecast gets the forecasted temperatures from the NWS database.
 // Our values should be here: properties -> periods -> (chosen periods) -> temperature.
 // We're going to use these rules to determine which day's forecast we want:
 //   1. If it's before 3 pm, we'll use the current day.
@@ -345,6 +352,7 @@ func getForecast(client http.Client, url string) (int, int, error) {
 	return -1, -1, errors.New("Failed to determine forecast")
 }
 
+// tempConvert converts the temperature from either a float or string into an int.
 func tempConvert(val interface{}) (int, error) {
 	switch val.(type) {
 	case float64:

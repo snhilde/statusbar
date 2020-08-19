@@ -14,19 +14,23 @@ import (
 var colorEnd = "^d^"
 
 // We need to root around in this directory for the device directory for the fan.
-const base_dir = "/sys/class/hwmon/"
+const baseDir = "/sys/class/hwmon/"
 
-// routine is the main object for this package.
-// err:    error encountered along the way, if any
-// path:   path to the device directory, as discovered in findDir()
-// files:  slice of files that contain temperature readings
-// temp:   average temperature across all sensors, in degrees Celsius
-// colors: trio of user-provided colors for displaying various states
-type routine struct {
-	err    error
-	path   string
-	files  []os.FileInfo
-	temp   int
+// Routine is the main object for this package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// Path to the device directory, as discovered in findDir().
+	path string
+
+	// Slice of files that contain temperature readings.
+	files []os.FileInfo
+
+	// Average temperature across all sensors, in degrees Celsius.
+	temp int
+
+	// Trio of user-provided colors for displaying various states.
 	colors struct {
 		normal  string
 		warning string
@@ -34,9 +38,9 @@ type routine struct {
 	}
 }
 
-// Find our device directory, build a list of all the temperature sensors in it, and return a new object.
-func New(colors ...[3]string) *routine {
-	var r routine
+// New finds the device directory, builds a list of all the temperature sensors in it, and makes a new object.
+func New(colors ...[3]string) *Routine {
+	var r Routine
 
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
@@ -66,9 +70,9 @@ func New(colors ...[3]string) *routine {
 	return &r
 }
 
-// Read out the value of each sensor, get an average of all temperatures, and convert it from milliCelsius to Celsius.
-// If we have trouble reading a particular sensor, then we'll skip it on this pass.
-func (r *routine) Update() {
+// Update reads out the value of each sensor, gets an average of all temperatures, and converts it from milliCelsius to
+// Celsius. If we have trouble reading a particular sensor, then we'll skip it on this pass.
+func (r *Routine) Update() {
 	var n int
 
 	if r.path == "" || len(r.files) == 0 {
@@ -97,8 +101,8 @@ func (r *routine) Update() {
 	r.temp /= 1000
 }
 
-// Print formatted temperature average in degrees Celsius.
-func (r *routine) String() string {
+// String prints a formatted temperature average in degrees Celsius.
+func (r *Routine) String() string {
 	var c string
 
 	if r.err != nil {
@@ -116,18 +120,18 @@ func (r *routine) String() string {
 	return fmt.Sprintf("%s%v °C%s", c, r.temp, colorEnd)
 }
 
-// Find the directory that has the temperature readings. It will be the one with the fan speeds,
+// findDir finds the directory that has the temperature readings. It will be the one with the fan speeds,
 // somewhere in /sys/class/hwmon.
 func findDir() (string, error) {
 	// Get all the device directories in the main directory.
-	dirs, err := ioutil.ReadDir(base_dir)
+	dirs, err := ioutil.ReadDir(baseDir)
 	if err != nil {
 		return "", err
 	}
 
 	// Search in each device directory to find the fan.
 	for _, dir := range dirs {
-		path := base_dir + dir.Name() + "/device/"
+		path := baseDir + dir.Name() + "/device/"
 		files, err := ioutil.ReadDir(path)
 		if err != nil {
 			return "", err
@@ -146,8 +150,8 @@ func findDir() (string, error) {
 	return "", errors.New("No fan file")
 }
 
-// Go through given path and build list of files that contain a temperature reading.
-// These files will begin with "temp" and end with "input".
+// findFiles goes through the given path and builds a list of files that contain a temperature reading. These files will
+// begin with "temp" and end with "input".
 func findFiles(path string) ([]os.FileInfo, error) {
 	var b []os.FileInfo
 

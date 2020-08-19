@@ -9,16 +9,21 @@ import (
 
 var colorEnd = "^d^"
 
-// routine is the main object in the package.
-// err:    error encountered along the way, if any
-// b:      buffer to hold connnection string
-// color:  current color of the 3 provided
-// colors: trio of user-provided colors for displaying various states
-type routine struct {
-	s      string
-	err    error
-	blink  bool
-	color  string
+// Routine is the main object in the package.
+type Routine struct {
+	// Error encountered along the way, if any.
+	err error
+
+	// Parsed and formatted output string.
+	parsed string
+
+	// Buffer to hold connnection string.
+	blink bool
+
+	// Current color of the 3 provided.
+	color string
+
+	// Trio of user-provided colors for displaying various states.
 	colors struct {
 		normal  string
 		warning string
@@ -26,9 +31,9 @@ type routine struct {
 	}
 }
 
-// Return a new routine object.
-func New(colors ...[3]string) *routine {
-	var r routine
+// New makes a new routine object.
+func New(colors ...[3]string) *Routine {
+	var r Routine
 
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
@@ -49,29 +54,29 @@ func New(colors ...[3]string) *routine {
 	return &r
 }
 
-// Run the command and capture the output.
-func (r *routine) Update() {
+// Update runs the command and captures the output.
+func (r *Routine) Update() {
 	cmd := exec.Command("nordvpn", "status")
-	out, err := cmd.Output()
+	output, err := cmd.Output()
 	if err != nil {
 		r.err = err
 		return
 	}
 
-	r.s, r.err = r.parseCommand(string(out))
+	r.parsed, r.err = r.parseOutput(string(output))
 }
 
-// Format and print the current connection status.
-func (r *routine) String() string {
+// String formats and prints the current connection status.
+func (r *Routine) String() string {
 	if r.err != nil {
 		return r.colors.error + "NordVPN: " + r.err.Error() + colorEnd
 	}
 
-	return r.color + r.s + colorEnd
+	return r.color + r.parsed + colorEnd
 }
 
-// Parse the command's output.
-func (r *routine) parseCommand(s string) (string, error) {
+// parseOutput parses the command's output.
+func (r *Routine) parseOutput(output string) (string, error) {
 	// If there is a connection to the VPN, the command will return this format:
 	//     Status: Connected
 	//     Current server: <server.url>
@@ -90,7 +95,7 @@ func (r *routine) parseCommand(s string) (string, error) {
 	//     Please check your internet connection and try again.
 
 	// Split up all the lines of the output for parsing.
-	lines := strings.Split(s, "\n")
+	lines := strings.Split(output, "\n")
 
 	// Break out each word in the first line. It's possible that there is some garbage (mostly unprintable characters)
 	// before the message, so we're going to scan the line until we find the word "Status" and then try to determine the
@@ -116,17 +121,17 @@ func (r *routine) parseCommand(s string) (string, error) {
 					return "", errors.New("Error parsing City")
 				}
 
-				s := "Connected"
+				parsed := "Connected"
 				if r.blink {
 					r.blink = false
-					s += ": "
+					parsed += ": "
 				} else {
 					r.blink = true
-					s += "  "
+					parsed += "  "
 				}
-				s += strings.TrimSpace(city[1])
+				parsed += strings.TrimSpace(city[1])
 				r.color = r.colors.normal
-				return s, nil
+				return parsed, nil
 			}
 		}
 	case "Connecting":
