@@ -148,8 +148,10 @@ func (sb *Statusbar) SetMarkers(left string, right string) {
 	sb.right = right
 }
 
-// Split splits the statusbar at this point, for dualstatus patch. A semicolon (';') will be inserted at this point in
-// the routine list, which will signal to dualstatus to split the statusbar at this point.
+// Split splits the statusbar at this point, when using dualstatus patch for dwm. A semicolon (';') is inserted at this
+// point in the routine list, which signals to dualstatus to split the statusbar at this point. Before this is called,
+// the routines already added are displayed on the top bar. After this is called, all subsequently added routines are
+// displayed on the bottom bar.
 func (sb *Statusbar) Split() {
 	sb.split = len(sb.routines) - 1
 }
