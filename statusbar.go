@@ -12,9 +12,9 @@ import (
 	"time"
 )
 
-// RoutineHandler interface allows information monitors to be linked in.
+// RoutineHandler allows information monitors (commonly called routines) to be linked in.
 type RoutineHandler interface {
-	Update()        // Update the routine's information. Will be run according to the provided interval time.
+	Update()        // Update the routine's information. This is run according to the provided interval time.
 	String() string // Format and return the routine's output.
 }
 
@@ -24,7 +24,7 @@ type routine struct {
 	interval time.Duration
 }
 
-// Statusbar is the main type for this package.
+// Statusbar is the main type for this package. It holds information about the bar as a whole.
 type Statusbar struct {
 	routines []routine
 	left     string
@@ -38,7 +38,7 @@ func New() Statusbar {
 	return s
 }
 
-// Append adds a routine to the statusbar's list. Routines will be displayed in order of addition to the bar object.
+// Append adds a routine to the statusbar's list. Routines are displayed in the order they are added.
 func (sb *Statusbar) Append(rh RoutineHandler, s int) {
 	// Convert the given number into proper seconds.
 	seconds := time.Duration(s) * time.Second
@@ -47,20 +47,19 @@ func (sb *Statusbar) Append(rh RoutineHandler, s int) {
 	sb.routines = append(sb.routines, r)
 }
 
-// Run spins up every routine and displays them on the statusbar.
+// Run spins up all the routines and displays them on the statusbar.
 func (sb *Statusbar) Run() {
 	// Add a signal handler so we can clear the statusbar if the program goes down.
 	go sb.handleSignal()
 
-	// Shared channel used to pass the slice of outputs
-	ch := make(chan []string, 1)
-
 	// A slice of strings to hold the output from each routine
 	outputs := make([]string, len(sb.routines))
+
+	// Shared channel used to pass the slice of outputs
+	ch := make(chan []string, 1)
 	ch <- outputs
 
 	// Channel used to indicate everything is done
-	// TODO: currently unused
 	finished := make(chan error)
 
 	for i, r := range sb.routines {
@@ -70,7 +69,7 @@ func (sb *Statusbar) Run() {
 	// Launch a goroutine to build and print the master string.
 	go setBar(ch, *sb)
 
-	// Wait for all routines to finish (shouldn't happen though).
+	// Keep running forever (TODO: this is currently unused).
 	<-finished
 }
 
@@ -90,7 +89,7 @@ func runRoutine(r routine, i int, ch chan []string) {
 		outputs[i] = output
 		ch <- outputs
 
-		// If interval was set for infinite sleep, then we'll close routine here.
+		// If the interval was set for infinite sleep, then we can close the routine now.
 		if r.interval == 0 {
 			break
 		}
@@ -100,22 +99,18 @@ func runRoutine(r routine, i int, ch chan []string) {
 	}
 }
 
-// setBar builds the master output and prints it to the statusbar. This runs a loop every second.
+// setBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any changes
+// that run every second.
 func setBar(ch chan []string, sb Statusbar) {
-	var b strings.Builder
-
 	dpy := C.XOpenDisplay(nil)
 	root := C.XDefaultRootWindow(dpy)
 
-	// This loop will run twice a second to catch any changes that run every second.
 	for {
 		// Start the clock.
 		start := time.Now()
-		b.Reset()
+		b := new(strings.Builder)
 
 		// Receive the outputs slice and build the individual outputs into a master output.
-		// TODO: handle empty strings (if b is empty, b.String() will fail too)
-		// TODO: handle error strings
 		outputs := <-ch
 		for i, s := range outputs {
 			if len(s) > 0 {
@@ -132,16 +127,18 @@ func setBar(ch chan []string, sb Statusbar) {
 		}
 		ch <- outputs
 
-		s := b.String()
-		s = s[:b.Len()-1] // remove last space
+		s := ""
+		if b.Len() > 0 {
+			s = b.String()
+			s = s[:b.Len()-1] // remove last space
+		}
 
 		// Send the master output to the statusbar.
 		C.XStoreName(dpy, root, C.CString(s))
 		C.XSync(dpy, 1)
 
-		// Stop the clock and put the routine to sleep for the rest of the second.
-		end := time.Now()
-		time.Sleep((time.Second / 2) - end.Sub(start))
+		// Put the routine to sleep for the rest of the half second.
+		time.Sleep((time.Second / 2) - time.Since(start))
 	}
 }
 
