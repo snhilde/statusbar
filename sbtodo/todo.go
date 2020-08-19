@@ -2,8 +2,8 @@
 package sbtodo
 
 import (
-	"bufio"
 	"errors"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -65,9 +65,9 @@ func New(path string, colors ...[3]string) *Routine {
 		return &r
 	}
 
-	r.readFile()
-	if r.err != nil {
+	if err := r.readFile(); err != nil {
 		// We'll print the error in String().
+		r.err = err
 		return &r
 	}
 
@@ -76,10 +76,9 @@ func New(path string, colors ...[3]string) *Routine {
 
 // Update reads the TODO file again, if it was modified since the last read.
 func (r *Routine) Update() {
-	var newInfo os.FileInfo
-
-	newInfo, r.err = os.Stat(r.path)
-	if r.err != nil {
+	newInfo, err := os.Stat(r.path)
+	if err != nil {
+		r.err = err
 		return
 	}
 
@@ -88,8 +87,9 @@ func (r *Routine) Update() {
 	oldMtime := r.info.ModTime().UnixNano()
 	if newMtime > oldMtime {
 		// The file was modified. Let's parse it.
-		r.readFile()
-		if r.err != nil {
+		if err := r.readFile(); err != nil {
+			// We'll print the error in String().
+			r.err = err
 			return
 		}
 	}
@@ -99,10 +99,9 @@ func (r *Routine) Update() {
 
 // String formats the first two lines of the file according to these rules:
 //   1. If the file is empty, print "Finished".
-//   2. If the first line has content but the second line is empty, print only the first line.
-//   3. If the first line is empty but the second line has content, print only the second line.
-//   4. If the first line has content and the second line is indented, print "line1 -> line2".
-//   5. If both lines have content and both are flush, print "line1 | line2".
+//   2. If only one line in the file has content, print only that line.
+//   3. If one line has content and the next line with content is indented (tabs or spaces), print "line1 -> line2".
+//   4. If two lines have content and both are flush, print "line1 | line2".
 func (r *Routine) String() string {
 	var b strings.Builder
 
@@ -113,10 +112,10 @@ func (r *Routine) String() string {
 
 	r.line1 = strings.TrimSpace(r.line1)
 	b.WriteString(r.colors.normal)
-	if len(r.line1) > 0 {
+	if r.line1 != "" {
 		// We have content in the first line. Start by adding that.
 		b.WriteString(r.line1)
-		if len(r.line2) > 0 {
+		if r.line2 != "" {
 			// We have content in the second line as well. First, let's find out which joiner to use.
 			if (strings.HasPrefix(r.line2, "\t")) || (strings.HasPrefix(r.line2, " ")) {
 				b.WriteString(" -> ")
@@ -140,18 +139,27 @@ func (r *Routine) String() string {
 	return b.String()
 }
 
-// Grab the first two lines of the TODO file.
-func (r *Routine) readFile() {
-	var file *os.File
+// readFile grabs the first two lines of the TODO file that are not blank.
+func (r *Routine) readFile() error {
+	r.line1 = ""
+	r.line2 = ""
 
-	file, r.err = os.Open(r.path)
-	if r.err != nil {
-		return
+	contents, err := ioutil.ReadFile(r.path)
+	if err != nil {
+		return err
 	}
-	defer file.Close()
 
-	reader := bufio.NewReader(file)
+	lines := strings.Split(string(contents), "\n")
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			if r.line1 == "" {
+				r.line1 = line
+			} else {
+				r.line2 = line
+				break
+			}
+		}
+	}
 
-	r.line1, r.err = reader.ReadString('\n')
-	r.line2, r.err = reader.ReadString('\n')
+	return nil
 }
