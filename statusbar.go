@@ -14,22 +14,36 @@ import (
 
 // RoutineHandler allows information monitors (commonly called routines) to be linked in.
 type RoutineHandler interface {
-	Update() (error, bool) // Update the routine's information. This is run according to the provided interval time.
-	String() string        // Format and return the routine's output.
+	// Update updates the routine's information. This is run on a periodic interval according to the time provided.
+	// TODO: explain args
+	Update() (error, bool)
+
+	// String formats and returns the routine's output.
+	String() string
 }
 
 // routine holds the data for an individual unit on the statusbar.
 type routine struct {
-	rh       RoutineHandler
+	// Routine object that handles running the actual process.
+	rh RoutineHandler
+
+	// Time in seconds to wait between each run.
 	interval time.Duration
 }
 
 // Statusbar is the main type for this package. It holds information about the bar as a whole.
 type Statusbar struct {
+	// List of routines, in the order they were added.
 	routines []routine
-	left     string
-	right    string
-	split    int
+
+	// Delimiter to use for the left side of each routine's output, as set with SetMarkers.
+	left string
+
+	// Delimiter to use for the right side of each routine's output, as set with SetMarkers.
+	right string
+
+	// Index of the interval after which the routines are split, as set with Split.
+	split int
 }
 
 // New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
@@ -38,7 +52,8 @@ func New() Statusbar {
 	return s
 }
 
-// Append adds a routine to the statusbar's list. Routines are displayed in the order they are added.
+// Append adds a routine to the statusbar's list. Routines are displayed in the order they are added. rh is the
+// RoutineHandler module. seconds is the amount of time between each run of the routine.
 func (sb *Statusbar) Append(rh RoutineHandler, seconds int) {
 	// Convert the given number into proper seconds.
 	s := time.Duration(s) * time.Second
