@@ -27,24 +27,32 @@ type Routine struct {
 }
 
 // fs holds information about a single filesystem.
-// path:      given path that will be used to stat the partition
-// used:      used bytes for this filesystem
-// usedUnit:  unit for the used bytes
-// total:     total bytes for this filesystem
-// totalUnit: unit for the total bytes
-// perc:      percentage of total disk space used
 type fs struct {
-	path      string
-	used      uint64
-	usedUnit  rune
-	total     uint64
+	// Given path that will be used to stat the partition.
+	path string
+
+	// Used bytes for this filesystem.
+	used uint64
+
+	// Unit for the used bytes.
+	usedUnit rune
+
+	// Total bytes for this filesystem.
+	total uint64
+
+	// Unit for the total bytes.
 	totalUnit rune
-	perc      uint64
-	// Note: Bavail is the amount of blocks that can actually be used, while
-	// Bfree is the total amount of unused blocks.
+
+	// Percentage of total disk space used.
+	// Note: Bavail is the amount of blocks that can actually be used, while Bfree is the total amount of unused blocks.
+	perc uint64
 }
 
-// New copies over the provided filesystem paths and makes a new routine object.
+// New copies over the provided filesystem paths and makes a new routine object. colors is an optional triplet of hex
+// color codes for colorizing the output based on these rules:
+//   1. Normal color, disk is less than 75% full.
+//   2. Warning color, disk is between 75% and 90% full.
+//   3. Error color, disk is over 90% full.
 func New(paths []string, colors ...[3]string) *Routine {
 	var r Routine
 
@@ -91,7 +99,7 @@ func (r *Routine) Update() {
 	}
 }
 
-// Format and print the amounts of disk space for each provided filesystem.
+// String formats and prints the amounts of disk space for each provided filesystem.
 func (r *Routine) String() string {
 	var c string
 	var b strings.Builder
@@ -120,7 +128,7 @@ func (r *Routine) String() string {
 	return b.String()
 }
 
-// Iteratively decrease the amount of bytes by a step of 2^10 until human-readable.
+// Shrink iteratively decreases the amount of bytes by a step of 2^10 until human-readable.
 func shrink(blocks uint64) (uint64, rune) {
 	var units = [...]rune{'B', 'K', 'M', 'G', 'T', 'P', 'E'}
 	var i int

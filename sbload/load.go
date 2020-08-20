@@ -21,8 +21,8 @@ type Routine struct {
 	// Load average over the last 5 seconds.
 	load5 float64
 
-	// Load average over the last 15 seconds.
-	load15 float64
+	// Load average over the last   15 seconds.
+	load15     float64
 
 	// Trio of user-provided colors for displaying various states.
 	colors struct {
@@ -32,7 +32,11 @@ type Routine struct {
 	}
 }
 
-// New makes a new rountine object.
+// New makes a new rountine object. colors is an optional triplet of hex color codes for colorizing the output based on
+// these rules:
+//   1. Normal color, all load averages are below 1.
+//   2. Warning color, one or more load averages is greater than 1, but all are less than 2.
+//   3. Error color, one or more load averages is greater than 2.
 func New(colors ...[3]string) *Routine {
 	var r Routine
 

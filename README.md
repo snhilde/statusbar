@@ -1,4 +1,4 @@
-![Version Badge](https://img.shields.io/badge/Version-4.1.1-informational)
+![Version Badge](https://img.shields.io/badge/Version-4.1.2-informational)
 ![Maintenance Badge](https://img.shields.io/badge/Maintained-yes-success)
 [![GoDoc reference example](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/snhilde/statusbar4)
 [![GoReportCard example](https://goreportcard.com/badge/github.com/snhilde/statusbar4)](https://goreportcard.com/report/github.com/snhilde/statusbar4)
@@ -10,7 +10,8 @@
 
 ## Table of Contents
 1. [Overview](#overview)
-1. [Documentation](#documentation)
+1. [Installation](#installation)
+1. [Usage and Documentation](#usage-and-documentation)
 1. [Included modules](#included-modules)
 1. [Changelog](#changelog)
 	1. [4.1.2](#412)
@@ -23,14 +24,26 @@
 
 
 ## Overview
-<!-- TODO -->
-This is the framework that controls the modular routines for calculating, formatting, and displaying information on the statusbar.
-For modules currently integrated with this framework, see [sb4routines](https://godoc.org/github.com/snhilde/sb4routines).
-<!-- TODO -->
+`statusbar4` is an engine for handling the various components that make up the statusbar. The components are modular routines that handle their own logic for gathering and formatting data, with each routine run in its own thread. The engine triggers the routines to run their update process according to the time interval set by the caller and gathers the individual pieces of data for printing on the statusbar.
+
+Integrating a custom module is very simple. See [the section on modules](#included-modules) for more information.
 
 
-## Documentation
-Usage guidelines and documentation are hosted at [GoDoc](https://godoc.org/github.com/snhilde/statusbar4).
+## Installation
+`statusbar4` is a package, not a stand-alone program. To download the package, you can use gotools like this:
+```
+go install github.com/snhilde/statusbar4
+```
+That will also pull in the repository's modules for quick activation.
+
+
+## Usage and Documentation
+To get up and running with this package, follow these steps:
+1. [Create a new statusbar object.](https://godoc.org/github.com/snhilde/statusbar4#New)
+1. [Add routines to the statusbar.](https://godoc.org/github.com/snhilde/statusbar4#Statusbar.Append)
+1. [Run the engine.](https://godoc.org/github.com/snhilde/statusbar4#Statusbar.Run)
+
+You can find the complete documentation and usage guidelines at [GoDoc](https://godoc.org/github.com/snhilde/statusbar4). The docs also include an example detailing the steps above.
 
 
 ## Included modules
@@ -53,6 +66,7 @@ This repository includes these modules to get up and running quickly:
 | `sbtodo`     | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar4/sbtodo)     | TODO list display    |
 | `sbvolume`   | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar4/sbvolume)   | Volume percentage    |
 | `sbweather`  | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar4/sbweather)  | Weather information  |
+
 
 ## Changelog
 ### 4.1.2

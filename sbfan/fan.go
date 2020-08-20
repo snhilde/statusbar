@@ -46,7 +46,11 @@ type Routine struct {
 	}
 }
 
-// New searches around in the base directory for a pair of max and current files and makes a new routine object.
+// New searches around in the base directory for a pair of max and current files and makes a new routine object. colors
+// is an optional triplet of hex color codes for colorizing the output based on these rules:
+//   1. Normal color, fan is running at less than 75% of the maximum RPM.
+//   2. Warning color, fan is running at between 75% and 90% of the maximum RPM.
+//   3. Error color, fan is running at more than 90% of the maximum RPM.
 func New(colors ...[3]string) *Routine {
 	var r Routine
 
