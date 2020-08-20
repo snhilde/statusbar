@@ -40,9 +40,9 @@ type Routine struct {
 
 // New finds the device directory, builds a list of all the temperature sensors in it, and makes a new object. colors is
 // an optional triplet of hex color codes for colorizing the output based on these rules:
-// 1: Normal color, CPU temperature is cooler than 75 °C.
-// 2: Warning color, CPU temperature is between 75 °C and 100 °C.
-// 3: Error color, CPU temperature is hotter than 100 °C.
+// 1. Normal color, CPU temperature is cooler than 75 °C.
+// 2. Warning color, CPU temperature is between 75 °C and 100 °C.
+// 3. Error color, CPU temperature is hotter than 100 °C.
 func New(colors ...[3]string) *Routine {
 	var r Routine
 

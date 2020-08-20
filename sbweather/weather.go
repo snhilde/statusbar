@@ -49,9 +49,9 @@ type Routine struct {
 // New runs a sanity check on the provided zip code and makes a new routine object. zip is the zip code to use for
 // localizing the weather. colors is an optional triplet of hex color codes for colorizing the output based on these
 // rules:
-// 1: Normal color, used for printing the current temperature and forecast.
-// 2: Warning color, currently unused.
-// 3: Error color, used for error messages.
+// 1. Normal color, used for printing the current temperature and forecast.
+// 2. Warning color, currently unused.
+// 3. Error color, used for error messages.
 func New(zip string, colors ...[3]string) *Routine {
 	var r Routine
 

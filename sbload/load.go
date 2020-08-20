@@ -34,9 +34,9 @@ type Routine struct {
 
 // New makes a new rountine object. colors is an optional triplet of hex color codes for colorizing the output based on
 // these rules:
-// 1: Normal color, all load averages are below 1.
-// 2: Warning color, one or more load averages is greater than 1, but all are less than 2.
-// 3: Error color, one or more load averages is greater than 2.
+// 1. Normal color, all load averages are below 1.
+// 2. Warning color, one or more load averages is greater than 1, but all are less than 2.
+// 3. Error color, one or more load averages is greater than 2.
 func New(colors ...[3]string) *Routine {
 	var r Routine
 

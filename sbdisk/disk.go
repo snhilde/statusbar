@@ -50,9 +50,9 @@ type fs struct {
 
 // New copies over the provided filesystem paths and makes a new routine object. colors is an optional triplet of hex
 // color codes for colorizing the output based on these rules:
-// 1: Normal color, disk is less than 75% full.
-// 2: Warning color, disk is between 75% and 90% full.
-// 3: Error color, disk is over 90% full.
+// 1. Normal color, disk is less than 75% full.
+// 2. Warning color, disk is between 75% and 90% full.
+// 3. Error color, disk is over 90% full.
 func New(paths []string, colors ...[3]string) *Routine {
 	var r Routine
 
