@@ -55,9 +55,9 @@ type sbiface struct {
 
 // New returns a new routine object populated with either the given interfaces or the active ones if no interfaces are
 // specified. colors is an optional triplet of hex color codes for colorizing the output based on these rules:
-// Color 1: Normal color, all interfaces are running at Kpbs speeds or less.
-// Color 2: Warning color, one of more interface is running at Mbps speeds.
-// Color 3: Error color, one of more interface is running at greater than Mbps speeds.
+// 1: Normal color, all interfaces are running at Kpbs speeds or less.
+// 2: Warning color, one of more interface is running at Mbps speeds.
+// 3: Error color, one of more interface is running at greater than Mbps speeds.
 func New(inames []string, colors ...[3]string) *Routine {
 	var r Routine
 	var ilist []string

@@ -38,9 +38,9 @@ type Routine struct {
 
 // New makes a new routine object. path is the absolute path to the TODO file. colors is an optional triplet of hex
 // color codes for colorizing the output based on these rules:
-// Color 1: Normal color, used for normal printing.
-// Color 2: Warning color, currently unused.
-// Color 3: Error color, used for printing error messages.
+// 1: Normal color, used for normal printing.
+// 2: Warning color, currently unused.
+// 3: Error color, used for printing error messages.
 func New(path string, colors ...[3]string) *Routine {
 	var r Routine
 

@@ -41,9 +41,9 @@ type Routine struct {
 
 // New makes a new routine object. colors is an optional triplet of hex color codes for colorizing the output based on
 // these rules:
-// Color 1: Normal color, less than 75% of available RAM is being used.
-// Color 2: Warning color, between 75% and 90% of available RAM is being used.
-// Color 3: Error color, more than 90% of available RAM is being used.
+// 1: Normal color, less than 75% of available RAM is being used.
+// 2: Warning color, between 75% and 90% of available RAM is being used.
+// 3: Error color, more than 90% of available RAM is being used.
 func New(colors ...[3]string) *Routine {
 	var r Routine
 
