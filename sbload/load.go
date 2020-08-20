@@ -21,8 +21,8 @@ type Routine struct {
 	// Load average over the last 5 seconds.
 	load5 float64
 
-	// Load average over the last 15 seconds.
-	load15 float64
+	// Load average over the last   15 seconds.
+	load15     float64
 
 	// Trio of user-provided colors for displaying various states.
 	colors struct {

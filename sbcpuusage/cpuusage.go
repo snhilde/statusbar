@@ -45,9 +45,9 @@ type stats struct {
 
 // New gets current CPU stats and makes a new routine object. colors is an optional triplet of hex color codes for
 // colorizing the output based on these rules:
-// 1. Normal color, CPU is running at less than 75% of its capacity.
-// 2. Warning color, CPU is running at between 75% and 90% of its capacity.
-// 3. Error color, CPU is running at more than 90% of its capacity.
+//   1. Normal color, CPU is running at less than 75% of its capacity.
+//   2. Warning color, CPU is running at between 75% and 90% of its capacity.
+//   3. Error color, CPU is running at more than 90% of its capacity.
 func New(colors ...[3]string) *Routine {
 	var r Routine
 
