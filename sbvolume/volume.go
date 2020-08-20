@@ -19,7 +19,7 @@ type Routine struct {
 	// Control to query, as provided by caller.
 	control string
 
-	// System volume, in multiple of ten, as percentage of max.
+	// System volume, in multiples of ten, as percentage of max.
 	vol int
 
 	// True if volume is muted.
@@ -36,9 +36,9 @@ type Routine struct {
 // New stores the provided control value and makes a new routine object. control is the mixer control to monitor. See
 // the man pages for amixer for more information on that. colors is an optional triplet of hex color codes for
 // colorizing the output based on these rules:
-// Color 1: Normal color, used for normal printing.
-// Color 2: Warning color, used when the volume is muted.
-// Color 3: Error color, used for error messages.
+// Color 1: Normal color, for normal printing.
+// Color 2: Warning color, for when the volume is muted.
+// Color 3: Error color, for error messages.
 func New(control string, colors ...[3]string) *Routine {
 	var r Routine
 
