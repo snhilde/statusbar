@@ -31,7 +31,12 @@ type Routine struct {
 	}
 }
 
-// New creates a new routine object with the current time.
+// New creates a new routine object with the current time. format is the format to use when printing the time, as per
+// the go standard used in the time package. If the format includes colons, they will blink every other second. colors
+// is an optional triplet of hex color codes for colorizing the output based on these rules:
+// Color 1: Normal color, used for normal printing.
+// Color 2: Warning color, currently unused.
+// Color 3: Error color, used for printing error messages.
 func New(format string, colors ...[3]string) *Routine {
 	var r Routine
 

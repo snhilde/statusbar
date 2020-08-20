@@ -41,7 +41,11 @@ type Routine struct {
 	}
 }
 
-// New reads the maximum capacity of the battery and returns a routinestruct.
+// New reads the maximum capacity of the battery and returns a Routine object. colors is an optional triplet of hex
+// color codes for colorizing the output based on these rules:
+// Color 1: Normal color, battery has more than 25% left.
+// Color 2: Warning color, battery has between 10% and 25% left.
+// Color 3: Error color, battery has less than 10% left.
 func New(colors ...[3]string) *Routine {
 	var r Routine
 
@@ -108,7 +112,7 @@ func (r *Routine) Update() {
 
 }
 
-// Print formatted percentage of battery left.
+// String formats the percentage of battery left.
 func (r *Routine) String() string {
 	var c string
 	var s string
@@ -138,7 +142,7 @@ func (r *Routine) String() string {
 	return fmt.Sprintf("%s%s BAT%s", c, s, colorEnd)
 }
 
-// Read out value from file.
+// readCharge reads out the value from the file at the provided path.
 func readCharge(path string) (int, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {

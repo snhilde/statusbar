@@ -31,7 +31,11 @@ type Routine struct {
 	}
 }
 
-// New makes a new routine object.
+// New makes a new routine object. colors is an optional triplet of hex color codes for colorizing the output based on
+// these rules:
+// Color 1: Normal color, VPN is connected.
+// Color 2: Warning color, VPN is disconnected or is in the process of connecting.
+// Color 3: Error color, error determining status, or network is down.
 func New(colors ...[3]string) *Routine {
 	var r Routine
 

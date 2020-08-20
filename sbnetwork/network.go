@@ -30,24 +30,34 @@ type Routine struct {
 }
 
 // sbiface groups different pieces of information for a single interface.
-// name:     name of interface
-// downPath: path to rx_bytes file
-// upPath:   path to tx_bytes file
-// oldDown:  last reading of rx_bytes file
-// oldUp:    last reading of tx_bytes file
-// newDown:  current reading of rx_bytes file
-// newUp:    current reading of tx_bytes file
 type sbiface struct {
-	name     string
+	// Name of interface.
+	name string
+
+	// Path to rx_bytes file.
 	downPath string
-	upPath   string
-	oldDown  int
-	oldUp    int
-	newDown  int
-	newUp    int
+
+	// Path to tx_bytes file.
+	upPath string
+
+	// Last reading of rx_bytes file.
+	oldDown int
+
+	// Last reading of tx_bytes file.
+	oldUp int
+
+	// Current reading of rx_bytes file.
+	newDown int
+
+	// Current reading of tx_bytes file.
+	newUp int
 }
 
-// New returns a new routine object populated with either the given interfaces or the active ones.
+// New returns a new routine object populated with either the given interfaces or the active ones if no interfaces are
+// specified. colors is an optional triplet of hex color codes for colorizing the output based on these rules:
+// Color 1: Normal color, all interfaces are running at Kpbs speeds or less.
+// Color 2: Warning color, one of more interface is running at Mbps speeds.
+// Color 3: Error color, one of more interface is running at greater than Mbps speeds.
 func New(inames []string, colors ...[3]string) *Routine {
 	var r Routine
 	var ilist []string
