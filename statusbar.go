@@ -78,21 +78,23 @@ func (sb *Statusbar) Run() {
 	ch <- outputs
 
 	// Channel used to indicate everything is done
-	finished := make(chan error)
+	finished := make(chan struct{})
 
 	for i, r := range sb.routines {
-		go runRoutine(r, i, ch)
+		go runRoutine(r, i, ch, finished)
 	}
 
 	// Launch a goroutine to build and print the master string.
 	go setBar(ch, *sb)
 
-	// Keep running forever (TODO: this is currently unused).
-	<-finished
+	// Keep running until every routine stops.
+	for i := 0; i < len(sb.routines); i++ {
+		<-finished
+	}
 }
 
 // runRoutine runs the routine in a non-terminating loop.
-func runRoutine(r routine, i int, ch chan []string) {
+func runRoutine(r routine, i int, ch chan []string, finished chan struct{}) {
 	for {
 		// Start the clock.
 		start := time.Now()
@@ -128,7 +130,7 @@ func runRoutine(r routine, i int, ch chan []string) {
 			}
 		}
 
-		// If the interval was set for infinite sleep, then we can close the routine now.
+		// If the interval was set to only run once, then we can close the routine now.
 		if interval == 0 {
 			break
 		}
@@ -136,6 +138,8 @@ func runRoutine(r routine, i int, ch chan []string) {
 		// Put the routine to sleep for the given time.
 		time.Sleep(interval - time.Since(start))
 	}
+
+	finished <- struct{}{}
 }
 
 // setBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any changes
