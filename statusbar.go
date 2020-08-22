@@ -52,17 +52,16 @@ type Statusbar struct {
 
 // New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
 func New() Statusbar {
-	s := Statusbar{left: "[", right: "]", split: -1}
-	return s
+	return Statusbar{left: "[", right: "]", split: -1}
 }
 
 // Append adds a routine to the statusbar's list. Routines are displayed in the order they are added. rh is the
 // RoutineHandler module. seconds is the amount of time between each run of the routine.
 func (sb *Statusbar) Append(rh RoutineHandler, seconds int) {
 	// Convert the given number into proper seconds.
-	s := time.Duration(s) * time.Second
-
+	s := time.Duration(seconds) * time.Second
 	r := routine{rh, s}
+
 	sb.routines = append(sb.routines, r)
 }
 
@@ -94,7 +93,6 @@ func (sb *Statusbar) Run() {
 
 // runRoutine runs the routine in a non-terminating loop.
 func runRoutine(r routine, i int, ch chan []string) {
-	errors := 0
 	for {
 		// Start the clock.
 		start := time.Now()
@@ -108,10 +106,13 @@ func runRoutine(r routine, i int, ch chan []string) {
 		outputs[i] = output
 		ch <- outputs
 
+		if !ok {
+			// The routine reported a critical error.
+			break
+		}
+
 		interval := r.interval
 		if err != nil {
-			os.Stderr.WriteString(err)
-
 			// If the routine reported an error, then we'll give the process a little time to cool down before trying again.
 			s := r.interval.Seconds()
 			switch {
