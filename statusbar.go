@@ -24,6 +24,9 @@ type RoutineHandler interface {
 
 	// String formats and returns the routine's output.
 	String() string
+
+	// Error formats and returns an error message.
+	Error() string
 }
 
 // routine holds the data for an individual unit on the statusbar.
@@ -55,12 +58,12 @@ func New() Statusbar {
 	return Statusbar{left: "[", right: "]", split: -1}
 }
 
-// Append adds a routine to the statusbar's list. Routines are displayed in the order they are added. rh is the
+// Append adds a routine to the statusbar's list. Routines are displayed in the order they are added. handler is the
 // RoutineHandler module. seconds is the amount of time between each run of the routine.
-func (sb *Statusbar) Append(rh RoutineHandler, seconds int) {
+func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 	// Convert the given number into proper seconds.
 	s := time.Duration(seconds) * time.Second
-	r := routine{rh, s}
+	r := routine{handler, s}
 
 	sb.routines = append(sb.routines, r)
 }
@@ -93,23 +96,34 @@ func (sb *Statusbar) Run() {
 	}
 }
 
-// runRoutine runs the routine in a non-terminating loop.
-func runRoutine(r routine, i int, outputsChan chan []string, finished chan struct{}) {
+// runRoutine runs a routine in a non-terminating loop.
+func runRoutine(r routine, i int, outputsChan chan []string, finished chan<- struct{}) {
+	handler := r.rh
 	for {
 		// Start the clock.
 		start := time.Now()
 
-		// Update the contents of the routine.
-		ok, err := r.rh.Update()
+		// Update the routine's data.
+		ok, err := handler.Update()
 
 		// Get the routine's output and store it in the master output slice.
-		output := r.rh.String()
+		var output string
+		if err == nil {
+			output = handler.String()
+		} else {
+			output = handler.Error()
+		}
 		outputs := <-outputsChan
 		outputs[i] = output
 		outputsChan <- outputs
 
+		// If the routine reported a critical error, then we'll break out of the loop now.
 		if !ok {
-			// The routine reported a critical error.
+			break
+		}
+
+		// If the interval was set to only run once, then we can close the routine now.
+		if r.interval == 0 {
 			break
 		}
 
@@ -121,7 +135,7 @@ func runRoutine(r routine, i int, outputsChan chan []string, finished chan struc
 			case s < 60:
 				// For routines with intervals up to 1 minute, sleep for 5 seconds.
 				interval = 5 * time.Second
-			case s < 60 * 15:
+			case s < 60*15:
 				// For routines with intervals up to 15 minutes, sleep for 1 minute.
 				interval = 60 * time.Second
 			default:
@@ -130,15 +144,11 @@ func runRoutine(r routine, i int, outputsChan chan []string, finished chan struc
 			}
 		}
 
-		// If the interval was set to only run once, then we can close the routine now.
-		if interval == 0 {
-			break
-		}
-
 		// Put the routine to sleep for the given time.
 		time.Sleep(interval - time.Since(start))
 	}
 
+	// Send on the finished channel to signify that we're stopping this routine.
 	finished <- struct{}{}
 }
 
@@ -170,10 +180,10 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 		}
 		outputsChan <- outputs
 
-		s := ""
+		s := "No output" // Default if nothing else is available
 		if b.Len() > 0 {
 			s = b.String()
-			s = s[:b.Len()-1] // remove last space
+			s = s[:b.Len()-1] // Remove last space.
 		}
 
 		// Send the master output to the statusbar.
@@ -211,11 +221,11 @@ func (sb *Statusbar) handleSignal() {
 	}
 
 	// Wait until we receive an interrupt signal.
-	s := <-c
+	<-c
 
 	dpy := C.XOpenDisplay(nil)
 	root := C.XDefaultRootWindow(dpy)
-	C.XStoreName(dpy, root, C.CString(s.String()))
+	C.XStoreName(dpy, root, C.CString("Statusbar stopped"))
 	C.XSync(dpy, 1)
 
 	// Stop the program.
