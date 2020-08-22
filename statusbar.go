@@ -74,18 +74,18 @@ func (sb *Statusbar) Run() {
 	outputs := make([]string, len(sb.routines))
 
 	// Shared channel used to pass the slice of outputs
-	ch := make(chan []string, 1)
-	ch <- outputs
+	outputsChan := make(chan []string, 1)
+	outputsChan <- outputs
 
 	// Channel used to indicate everything is done
 	finished := make(chan struct{})
 
 	for i, r := range sb.routines {
-		go runRoutine(r, i, ch, finished)
+		go runRoutine(r, i, outputsChan, finished)
 	}
 
 	// Launch a goroutine to build and print the master string.
-	go setBar(ch, *sb)
+	go setBar(outputsChan, *sb)
 
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
@@ -94,7 +94,7 @@ func (sb *Statusbar) Run() {
 }
 
 // runRoutine runs the routine in a non-terminating loop.
-func runRoutine(r routine, i int, ch chan []string, finished chan struct{}) {
+func runRoutine(r routine, i int, outputsChan chan []string, finished chan struct{}) {
 	for {
 		// Start the clock.
 		start := time.Now()
@@ -104,9 +104,9 @@ func runRoutine(r routine, i int, ch chan []string, finished chan struct{}) {
 
 		// Get the routine's output and store it in the master output slice.
 		output := r.rh.String()
-		outputs := <-ch
+		outputs := <-outputsChan
 		outputs[i] = output
-		ch <- outputs
+		outputsChan <- outputs
 
 		if !ok {
 			// The routine reported a critical error.
@@ -144,7 +144,7 @@ func runRoutine(r routine, i int, ch chan []string, finished chan struct{}) {
 
 // setBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any changes
 // that run every second.
-func setBar(ch chan []string, sb Statusbar) {
+func setBar(outputsChan chan []string, sb Statusbar) {
 	dpy := C.XOpenDisplay(nil)
 	root := C.XDefaultRootWindow(dpy)
 
@@ -154,7 +154,7 @@ func setBar(ch chan []string, sb Statusbar) {
 		b := new(strings.Builder)
 
 		// Receive the outputs slice and build the individual outputs into a master output.
-		outputs := <-ch
+		outputs := <-outputsChan
 		for i, s := range outputs {
 			if len(s) > 0 {
 				b.WriteString(sb.left)
@@ -168,7 +168,7 @@ func setBar(ch chan []string, sb Statusbar) {
 				b.WriteByte(';')
 			}
 		}
-		ch <- outputs
+		outputsChan <- outputs
 
 		s := ""
 		if b.Len() > 0 {
