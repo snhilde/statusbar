@@ -15,8 +15,12 @@ import (
 // RoutineHandler allows information monitors (commonly called routines) to be linked in.
 type RoutineHandler interface {
 	// Update updates the routine's information. This is run on a periodic interval according to the time provided.
-	// TODO: explain args
-	Update() (error, bool)
+	// It returns two arguments: a bool and an error. The bool indicates whether or not the engine should continue to
+	// run the routine. You can think of it as representing the "ok" status. The error is any error encountered during
+	// the process. For example, on a normal run with no error, Update would return (true, nil). On a run with a
+	// non-critical error, Update would return (true, errors.New("Warning message")). On a run with a critical error
+	// where the routine should not be attempted again, Update would return (false, errors.New("Critical error message").
+	Update() (bool, error)
 
 	// String formats and returns the routine's output.
 	String() string
@@ -96,8 +100,7 @@ func runRoutine(r routine, i int, ch chan []string) {
 		start := time.Now()
 
 		// Update the contents of the routine.
-		// TODO: add bool to stop on error
-		err := r.rh.Update()
+		ok, err := r.rh.Update()
 
 		// Get the routine's output and store it in the master output slice.
 		output := r.rh.String()
