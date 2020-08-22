@@ -69,25 +69,31 @@ This repository includes these modules to get up and running quickly:
 
 
 ## Changelog
+### 5.0.0
+* **API Break** Changed repository from `statusbar4` to `statusbar`.
+* **API Break** Redefined `RoutineHandler`'s method `Update()` to `Update() (bool, error)`.
+* Errors in modules are now handled more gracefully. Modules no longer need to track their own error state; the core engine handles displaying the error as well as either attempting the update procedure again after a predetermined waiting period or stopping the routine completely.
+* Implemented normal logging and error logging.
+
 ### 4.1.2
 * Updated documentation.
 
 ### 4.1.1
 * Changes made to formatting and style as per `gofmt` and `golint` recommendations.
 
-### 4.1
+### 4.1.0
 * Moved routines and engine into one common repository.
 
-### 4.0
+### 4.0.0
 * Complete rewrite in `go`.
 * Simpler formatting and customization.
 
-### 3.0
+### 3.0.0
 * Added support for concurrency.
 * Made routines modular.
 
-### 2.0
+### 2.0.0
 * Ported to Linux.
 
-### 1.0
+### 1.0.0
 * Initial release (OpenBSD only).
