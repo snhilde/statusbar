@@ -42,8 +42,6 @@ type Routine struct {
 func New(control string, colors ...[3]string) *Routine {
 	var r Routine
 
-	r.control = control
-
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
@@ -60,18 +58,27 @@ func New(control string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
+	r.control = control
 	return &r
 }
 
 // Update runs the 'amixer' command and parses the output for mute status and volume percentage.
 func (r *Routine) Update() (bool, error) {
+	// Handle error from New.
+	if r.control == "" {
+		if r.err == nil {
+			r.err = errors.New("Invalid control")
+		}
+		return false, r.err
+	}
+
 	r.muted = false
 	r.vol = -1
 
 	cmd := exec.Command("amixer", "get", r.control)
 	out, err := cmd.Output()
 	if err != nil {
-		r.err = err
+		r.err = errors.New("Error getting volume")
 		return true, err
 	}
 
@@ -89,7 +96,7 @@ func (r *Routine) Update() (bool, error) {
 					s := strings.TrimRight(field, "%")
 					vol, err := strconv.Atoi(s)
 					if err != nil {
-						r.err = err
+						r.err = errors.New("Error parsing volume")
 						return true, err
 					}
 					// Ensure that the volume is a multiple of 10 (so it looks nicer).
@@ -101,7 +108,7 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	if r.vol < 0 {
-		r.err = errors.New("No volume found for " + r.control)
+		r.err = errors.New("No volume found")
 	}
 
 	return true, nil

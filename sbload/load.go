@@ -22,7 +22,7 @@ type Routine struct {
 	load5 float64
 
 	// Load average over the last   15 seconds.
-	load15     float64
+	load15 float64
 
 	// Trio of user-provided colors for displaying various states.
 	colors struct {
@@ -61,11 +61,15 @@ func New(colors ...[3]string) *Routine {
 
 // Update calls Sysinfo() and calculates load averages.
 func (r *Routine) Update() (bool, error) {
-	var info syscall.Sysinfo_t
+	// Handle any error encountered in New.
+	if r.err != nil {
+		return true, r.err
+	}
 
+	var info syscall.Sysinfo_t
 	err := syscall.Sysinfo(&info)
 	if err != nil {
-		r.err = err
+		r.err = errors.New("Error getting stats")
 		return true, err
 	}
 
@@ -98,7 +102,10 @@ func (r *Routine) Error() string {
 		r.err = errors.New("Unknown error")
 	}
 
-	return r.colors.error + r.err.Error() + colorEnd
+	s := r.colors.error + r.err.Error() + colorEnd
+	r.err = nil
+
+	return s
 }
 
 // Name returns the display name of this module.

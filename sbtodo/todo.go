@@ -63,26 +63,34 @@ func New(path string, colors ...[3]string) *Routine {
 	}
 
 	// Grab the base details of the TODO file.
-	r.info, r.err = os.Stat(path)
-	if r.err != nil {
-		// We'll print the error in String().
-		return &r
-	}
-
-	if err := r.readFile(); err != nil {
-		// We'll print the error in String().
+	info, err := os.Stat(path)
+	if err != nil {
 		r.err = err
 		return &r
 	}
 
+	if err := r.readFile(); err != nil {
+		r.err = errors.New("Error reading file")
+		return &r
+	}
+
+	r.info = info
 	return &r
 }
 
 // Update reads the TODO file again, if it was modified since the last read.
 func (r *Routine) Update() (bool, error) {
+	// Handle any error from New.
+	if r.info.Name() == "" {
+		if r.err == nil {
+			r.err = errors.New("Invalid file")
+		}
+		return false, r.err
+	}
+
 	newInfo, err := os.Stat(r.path)
 	if err != nil {
-		r.err = err
+		r.err = errors.New("Error getting file stats")
 		return true, err
 	}
 
@@ -92,7 +100,7 @@ func (r *Routine) Update() (bool, error) {
 	if newMtime > oldMtime {
 		// The file was modified. Let's parse it.
 		if err := r.readFile(); err != nil {
-			r.err = err
+			r.err = errors.New("Error reading file")
 			return true, err
 		}
 	}

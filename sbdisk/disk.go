@@ -56,8 +56,9 @@ type fs struct {
 func New(paths []string, colors ...[3]string) *Routine {
 	var r Routine
 
-	for _, path := range paths {
-		r.disks = append(r.disks, fs{path: path})
+	if len(paths) == 0 {
+		r.err = errors.New("No paths provided")
+		return &r
 	}
 
 	// Do a minor sanity check on the color codes.
@@ -76,18 +77,27 @@ func New(paths []string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
+	// We want to do this after checking the colors so we can know in Update if New was successful or not.
+	for _, path := range paths {
+		r.disks = append(r.disks, fs{path: path})
+	}
+
 	return &r
 }
 
 // Update gets the amount of used and total disk space and converts them into a human-readable size for each provided
 // filesystem.
 func (r *Routine) Update() (bool, error) {
-	var b syscall.Statfs_t
+	// Handle error in New.
+	if len(r.disks) == 0 {
+		return false, r.err
+	}
 
 	for i, disk := range r.disks {
+		var b syscall.Statfs_t
 		err := syscall.Statfs(disk.path, &b)
 		if err != nil {
-			r.err = err
+			r.err = errors.New("Error checking stats")
 			return true, err
 		}
 
@@ -104,9 +114,8 @@ func (r *Routine) Update() (bool, error) {
 
 // String formats and prints the amounts of disk space for each provided filesystem.
 func (r *Routine) String() string {
-	var c string
-	var b strings.Builder
-
+	c := ""
+	b := new(strings.Builder)
 	for i, disk := range r.disks {
 		if disk.perc > 90 {
 			c = r.colors.error
@@ -120,7 +129,7 @@ func (r *Routine) String() string {
 			b.WriteString(", ")
 		}
 		b.WriteString(c)
-		fmt.Fprintf(&b, "%s: %v%c/%v%c", disk.path, disk.used, disk.usedUnit, disk.total, disk.totalUnit)
+		fmt.Fprintf(b, "%s: %v%c/%v%c", disk.path, disk.used, disk.usedUnit, disk.total, disk.totalUnit)
 		b.WriteString(colorEnd)
 	}
 

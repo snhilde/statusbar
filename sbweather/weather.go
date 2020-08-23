@@ -55,18 +55,6 @@ type Routine struct {
 func New(zip string, colors ...[3]string) *Routine {
 	var r Routine
 
-	if len(zip) != 5 {
-		r.err = errors.New("Invalid Zip Code length")
-		return &r
-	}
-
-	_, err := strconv.Atoi(zip)
-	if err != nil {
-		r.err = err
-		return &r
-	}
-	r.zip = zip
-
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
@@ -83,31 +71,46 @@ func New(zip string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
+	if len(zip) != 5 {
+		r.err = errors.New("Invalid zip code length")
+		return &r
+	}
+
+	_, err := strconv.Atoi(zip)
+	if err != nil {
+		r.err = errors.New("Invalid zip code")
+		return &r
+	}
+	r.zip = zip
+
+	// Initialize the routine. First, convert the provided zip code into geographic coordinates. If this fails, then
+	// it's most likely a connectivity problem.
+	lat, long, err := getCoords(r.client, r.zip)
+	if err != nil {
+		r.err = errors.New("Connection failed")
+		return &r
+	}
+
+	// Get the URL for the forecast at the geographic coordinates. We don't want to retry this on failure because
+	// there was some problem handling the coordinates.
+	url, err := getURL(r.client, lat, long)
+	if err != nil {
+		r.err = errors.New("No Forecast Data")
+		return &r
+	}
+	r.url = url
+
 	return &r
 }
 
 // Update gets the current hourly temperature.
 func (r *Routine) Update() (bool, error) {
-	r.err = nil
-
-	// If this is the first run of the session, initialize the routine.
-	if r.url == "" {
-		// Convert the provided zip into geographic coordinates. If this fails, then it's most likely a connectivity
-		// problem.
-		lat, long, err := getCoords(r.client, r.zip)
-		if err != nil {
-			r.err = errors.New("Cannot connect")
-			return false, err
+	// Handle any error from New.
+	if r.zip == "" || r.url == "" {
+		if r.err == nil {
+			r.err = errors.New("Bad parameters")
 		}
-
-		// Get the URL for the forecast at the geographic coordinates. We don't want to retry this on failure because
-		// there was some problem handling the coordinates.
-		url, err := getURL(r.client, lat, long)
-		if err != nil {
-			r.err = errors.New("No Forecast Data")
-			return false, err
-		}
-		r.url = url
+		return false, r.err
 	}
 
 	// Get hourly temperature.

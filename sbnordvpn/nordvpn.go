@@ -63,12 +63,16 @@ func (r *Routine) Update() (bool, error) {
 	cmd := exec.Command("nordvpn", "status")
 	output, err := cmd.Output()
 	if err != nil {
+		r.err = errors.New("Error getting status")
+		return true, err
+	}
+
+	if err := r.parseOutput(string(output)); err != nil {
 		r.err = err
 		return true, err
 	}
 
-	r.parseOutput(string(output))
-	return true, r.err
+	return true, nil
 }
 
 // String formats and prints the current connection status.
@@ -91,7 +95,7 @@ func (r *Routine) Name() string {
 }
 
 // parseOutput parses the command's output.
-func (r *Routine) parseOutput(output string) {
+func (r *Routine) parseOutput(output string) error {
 	// If there is a connection to the VPN, the command will return this format:
 	//     Status: Connected
 	//     Current server: <server.url>
@@ -124,8 +128,9 @@ func (r *Routine) parseOutput(output string) {
 		}
 	}
 	if field == -1 {
-		r.err = errors.New(lines[0])
-		return
+		return errors.New(lines[0])
+	} else if len(fields) <= field+1 {
+		return errors.New("Bad response")
 	}
 
 	switch fields[field+1] {
@@ -157,9 +162,11 @@ func (r *Routine) parseOutput(output string) {
 		r.parsed = "Disconnected"
 		r.color = r.colors.warning
 	case "Please check your internet connection and try again.":
-		r.err = errors.New("Internet Down")
+		return errors.New("Internet Down")
 	default:
 		// If we're here, then we have an unknown error.
-		r.err = errors.New(lines[0])
+		return errors.New(lines[0])
 	}
+
+	return nil
 }

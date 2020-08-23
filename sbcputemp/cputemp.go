@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -21,11 +21,8 @@ type Routine struct {
 	// Error encountered along the way, if any.
 	err error
 
-	// Path to the device directory, as discovered in findDir().
-	path string
-
 	// Slice of files that contain temperature readings.
-	files []os.FileInfo
+	files []string
 
 	// Average temperature across all sensors, in degrees Celsius.
 	temp int
@@ -62,38 +59,41 @@ func New(colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
-	// Error will be handled in Update() and String().
-	r.path, r.err = findDir()
-	if r.err != nil {
+	path, err := findDir()
+	if err != nil {
+		r.err = err
 		return &r
 	}
 
-	// Error will be handled in Update() and String().
-	r.files, r.err = findFiles(r.path)
+	files, err := findFiles(path)
+	if err != nil {
+		r.err = err
+		return &r
+	}
 
+	r.files = files
 	return &r
 }
 
 // Update reads out the value of each sensor, gets an average of all temperatures, and converts it from milliCelsius to
 // Celsius. If we have trouble reading a particular sensor, then we'll skip it on this pass.
 func (r *Routine) Update() (bool, error) {
-	var n int
-
-	if r.path == "" || len(r.files) == 0 {
+	// Handle error in New.
+	if len(r.files) == 0 {
 		return false, r.err
 	}
 
 	r.temp = 0
 	for _, file := range r.files {
-		b, err := ioutil.ReadFile(r.path + file.Name())
+		b, err := ioutil.ReadFile(file)
 		if err != nil {
-			r.err = err
+			r.err = errors.New("Error reading " + filepath.Base(file))
 			return true, err
 		}
 
-		n, err = strconv.Atoi(strings.TrimSpace(string(b)))
+		n, err := strconv.Atoi(strings.TrimSpace(string(b)))
 		if err != nil {
-			r.err = err
+			r.err = errors.New("Error parsing " + filepath.Base(file))
 			return true, err
 		}
 
@@ -112,7 +112,6 @@ func (r *Routine) Update() (bool, error) {
 // String prints a formatted temperature average in degrees Celsius.
 func (r *Routine) String() string {
 	var c string
-
 	if r.temp < 75 {
 		c = r.colors.normal
 	} else if r.temp < 100 {
@@ -170,8 +169,8 @@ func findDir() (string, error) {
 
 // findFiles goes through the given path and builds a list of files that contain a temperature reading. These files will
 // begin with "temp" and end with "input".
-func findFiles(path string) ([]os.FileInfo, error) {
-	var b []os.FileInfo
+func findFiles(path string) ([]string, error) {
+	var b []string
 
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -179,9 +178,10 @@ func findFiles(path string) ([]os.FileInfo, error) {
 	}
 
 	for _, file := range files {
-		if strings.HasPrefix(file.Name(), "temp") && strings.HasSuffix(file.Name(), "input") {
+		filename := file.Name()
+		if strings.HasPrefix(filename, "temp") && strings.HasSuffix(filename, "input") {
 			// We found a temperature reading. Add it to the list.
-			b = append(b, file)
+			b = append(b, filepath.Join(path, filename))
 		}
 	}
 

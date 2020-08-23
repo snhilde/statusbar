@@ -51,6 +51,9 @@ type stats struct {
 func New(colors ...[3]string) *Routine {
 	var r Routine
 
+	// Set this now so we can key off it in Update to determine whether or not New was successful.
+	r.threads = -1
+
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
@@ -67,12 +70,13 @@ func New(colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
+	// Find out how many threads the CPU has.
 	r.threads, r.err = numThreads()
 	if r.err != nil {
 		return &r
 	}
 
-	err := readFile(&(r.oldStats))
+	err := readStats(&(r.oldStats))
 	if err != nil {
 		r.err = err
 	}
@@ -83,9 +87,13 @@ func New(colors ...[3]string) *Routine {
 // Update gets the current CPU stats, compares them to the last-read stats, and calculates the percentage of CPU
 // currently being used.
 func (r *Routine) Update() (bool, error) {
-	var newStats stats
+	// Handle error in New.
+	if r.threads < 0 {
+		return false, r.err
+	}
 
-	err := readFile(&newStats)
+	var newStats stats
+	err := readStats(&newStats)
 	if err != nil {
 		r.err = err
 		return true, err
@@ -144,28 +152,6 @@ func (r *Routine) Name() string {
 	return "CPU Usage"
 }
 
-// readFile opens /proc/stat and reads out the CPU stats from the first line.
-func readFile(newStats *stats) error {
-	// The first line of /proc/stat will look like this:
-	// "cpu userVal niceVal sysVal idleVal ..."
-	f, err := os.Open("/proc/stat")
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	reader := bufio.NewReader(f)
-
-	line, err := reader.ReadString('\n')
-	if err != nil {
-		return err
-	}
-
-	// Error will be handled in String().
-	_, err = fmt.Sscanf(line, "cpu %v %v %v %v", &(newStats.user), &(newStats.nice), &(newStats.sys), &(newStats.idle))
-	return err
-}
-
 // The shell command 'lscpu' will return a variety of CPU information, including the number of threads
 // per CPU core. We don't care about the number of cores, because we're already reading in the
 // averaged total. We only want to know if we need to be changing its range. To get this number, we're
@@ -190,4 +176,26 @@ func numThreads() (int, error) {
 
 	// If we made it this far, then we didn't find anything.
 	return -1, errors.New("Failed to find number of threads")
+}
+
+// readStats opens /proc/stat and reads out the CPU stats from the first line.
+func readStats(newStats *stats) error {
+	// The first line of /proc/stat will look like this:
+	// "cpu userVal niceVal sysVal idleVal ..."
+	f, err := os.Open("/proc/stat")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	reader := bufio.NewReader(f)
+
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+
+	// Error will be handled in String().
+	_, err = fmt.Sscanf(line, "cpu %v %v %v %v", &(newStats.user), &(newStats.nice), &(newStats.sys), &(newStats.idle))
+	return err
 }

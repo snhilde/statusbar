@@ -13,10 +13,10 @@ var colorEnd = "^d^"
 
 // These are the possible charging states of the battery.
 const (
-	UNKNOWN  = -1
-	CHARGING = iota
-	DISCHARGING
-	FULL
+	statusUnknown  = 0
+	statusCharging = iota
+	statusDischarging
+	statusFull
 )
 
 // Routine is the main type for this package.
@@ -73,15 +73,15 @@ func New(colors ...[3]string) *Routine {
 
 // Update reads the current battery capacity left and calculates a percentage based on it.
 func (r *Routine) Update() (bool, error) {
-	// Handle error reading max capacity.
-	if r.max < 0 {
+	// Handle error in New or error reading max capacity.
+	if r.max <= 0 {
 		return false, r.err
 	}
 
 	// Get current charge and calculate a percentage.
 	now, err := readCharge("/sys/class/power_supply/BAT0/charge_now")
 	if err != nil {
-		r.err = err
+		r.err = errors.New("Error reading charge")
 		return true, err
 	}
 
@@ -95,19 +95,19 @@ func (r *Routine) Update() (bool, error) {
 	// Get charging status.
 	status, err := ioutil.ReadFile("/sys/class/power_supply/BAT0/status")
 	if err != nil {
-		r.err = err
+		r.err = errors.New("Error reading status")
 		return true, err
 	}
 
 	switch strings.TrimSpace(string(status)) {
 	case "Charging":
-		r.status = CHARGING
+		r.status = statusCharging
 	case "Discharging":
-		r.status = DISCHARGING
+		r.status = statusDischarging
 	case "Full":
-		r.status = FULL
+		r.status = statusFull
 	default:
-		r.status = UNKNOWN
+		r.status = statusUnknown
 	}
 
 	return true, nil
@@ -116,8 +116,6 @@ func (r *Routine) Update() (bool, error) {
 // String formats the percentage of battery left.
 func (r *Routine) String() string {
 	var c string
-	var s string
-
 	if r.perc > 25 {
 		c = r.colors.normal
 	} else if r.perc > 10 {
@@ -126,14 +124,13 @@ func (r *Routine) String() string {
 		c = r.colors.error
 	}
 
-	if r.status == CHARGING {
-		s = fmt.Sprintf("+%v%%", r.perc)
-	} else if r.status == DISCHARGING {
-		s = fmt.Sprintf("-%v%%", r.perc)
-	} else if r.status == FULL {
+	s := fmt.Sprintf("%v%%", r.perc)
+	if r.status == statusCharging {
+		s = "+" + s
+	} else if r.status == statusDischarging {
+		s = "-" + s
+	} else if r.status == statusFull {
 		s = "Full"
-	} else {
-		s = fmt.Sprintf("%v%%", r.perc)
 	}
 
 	return fmt.Sprintf("%s%s BAT%s", c, s, colorEnd)

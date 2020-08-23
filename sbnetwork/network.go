@@ -60,8 +60,6 @@ type sbiface struct {
 //   3. Error color, one of more interface is running at greater than Mbps speeds.
 func New(inames []string, colors ...[3]string) *Routine {
 	var r Routine
-	var ilist []string
-	var err error
 
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
@@ -79,6 +77,8 @@ func New(inames []string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
+	var ilist []string
+	var err error
 	if len(inames) == 0 {
 		// Nothing was passed in. We'll grab the default interfaces.
 		ilist, err = getInterfaces()
@@ -87,7 +87,6 @@ func New(inames []string, colors ...[3]string) *Routine {
 			// Make sure we have a valid interface name.
 			_, err = net.InterfaceByName(iname)
 			if err != nil {
-				// Error will be handled in Update() and String().
 				err = errors.New(iname + ": " + err.Error())
 				break
 			}
@@ -98,6 +97,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 	// Handle any problems that came up, or build up list of interfaces for later use.
 	if err != nil {
 		r.err = err
+		r.ilist = nil
 	} else if len(ilist) == 0 {
 		r.err = errors.New("No interfaces found")
 	} else {
@@ -113,30 +113,31 @@ func New(inames []string, colors ...[3]string) *Routine {
 
 // Update gets the current readings of the rx/tx files for each interface.
 func (r *Routine) Update() (bool, error) {
+	// Handle any error from New.
+	if len(r.ilist) == 0 {
+		return false, r.err
+	}
+
 	for i, iface := range r.ilist {
 		r.ilist[i].oldDown = iface.newDown
 		r.ilist[i].oldUp = iface.newUp
 
 		down, err := readFile(iface.downPath)
 		if err != nil {
-			if r.err == nil {
-				r.err = err
-			}
-			continue
+			r.err = errors.New("Error reading " + iface.name + " (Down)")
+			return true, err
 		}
 		r.ilist[i].newDown = down
 
 		up, err := readFile(iface.upPath)
 		if err != nil {
-			if r.err == nil {
-				r.err = err
-			}
-			continue
+			r.err = errors.New("Error reading " + iface.name + " (Up)")
+			return true, err
 		}
 		r.ilist[i].newUp = up
 	}
 
-	return true, r.err
+	return true, nil
 }
 
 // String calculates the byte difference for each interface, and formats and prints it.
@@ -160,7 +161,7 @@ func (r *Routine) String() string {
 			b.WriteString(", ")
 		}
 		b.WriteString(c)
-		fmt.Fprintf(&b, "%s: %4v%c↓/%4v%c↑", iface.name, down, downUnit, up, upUnit)
+		fmt.Fprintf(&b, "%s: %4v%c↓|%4v%c↑", iface.name, down, downUnit, up, upUnit)
 		b.WriteString(colorEnd)
 	}
 

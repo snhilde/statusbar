@@ -62,7 +62,6 @@ func New(colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
-	// Find the max fan speed file and read its value.
 	// Find the files holding the values for the maximum fan speed and the current fan speed.
 	maxFile, outFile, err := findFiles()
 	if err != nil {
@@ -70,10 +69,10 @@ func New(colors ...[3]string) *Routine {
 		return &r
 	}
 
-	// Error will be handled later in Update() and String().
+	// Find the max fan speed file and read its value.
 	r.max, r.err = readSpeed(maxFile)
-	r.fanPath = outFile
 
+	r.fanPath = outFile
 	return &r
 }
 
@@ -84,8 +83,14 @@ func (r *Routine) Update() (bool, error) {
 		return false, r.err
 	}
 
-	r.speed, r.err = readSpeed(r.fanPath)
-	return true, r.err
+	speed, err := readSpeed(r.fanPath)
+	if err != nil {
+		r.err = errors.New("Error reading speed")
+		return true, err
+	}
+
+	r.speed = speed
+	return true, nil
 }
 
 // String prints the current speed in RPM.

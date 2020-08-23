@@ -40,11 +40,6 @@ type Routine struct {
 func New(format string, colors ...[3]string) *Routine {
 	var r Routine
 
-	// Replace all colons in the format string with spaces, to get the blinking effect later.
-	r.formatA = format
-	r.formatB = strings.Replace(format, ":", " ", -1)
-	r.time = time.Now()
-
 	// Do a minor sanity check on the color codes.
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
@@ -61,11 +56,24 @@ func New(format string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
+	// Replace all colons in the format string with spaces, to get the blinking effect later.
+	r.formatA = format
+	r.formatB = strings.Replace(format, ":", " ", -1)
+	r.time = time.Now()
+
 	return &r
 }
 
 // Update updates the routine's current time.
 func (r *Routine) Update() (bool, error) {
+	// Handle error in New.
+	if r.formatA == "" || r.formatB == "" {
+		if r.err == nil {
+			r.err = Errors.New("Missing time format")
+		}
+		return false, r.err
+	}
+
 	r.time = time.Now()
 
 	return true, nil
@@ -73,10 +81,12 @@ func (r *Routine) Update() (bool, error) {
 
 // String prints the time in the provided format.
 func (r *Routine) String() string {
-	if r.time.Second()%2 == 0 {
-		return r.colors.normal + r.time.Format(r.formatA) + colorEnd
+	format := r.formatA
+	if r.time.Second()%2 != 0 {
+		format = r.formatB
 	}
-	return r.colors.normal + r.time.Format(r.formatB) + colorEnd
+
+	return r.colors.normal + r.time.Format(format) + colorEnd
 }
 
 // Error formats and returns an error message.

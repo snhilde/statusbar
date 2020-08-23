@@ -73,7 +73,7 @@ func New(colors ...[3]string) *Routine {
 func (r *Routine) Update() (bool, error) {
 	file, err := ioutil.ReadFile("/proc/meminfo")
 	if err != nil {
-		r.err = err
+		r.err = errors.New("Error reading file")
 		return true, err
 	}
 
@@ -139,7 +139,7 @@ func parseFile(output string) (int, int, error) {
 			}
 			total, err = strconv.Atoi(fields[1])
 			if err != nil {
-				return 0, 0, err
+				return 0, 0, errors.New("Error parsing MemTotal fields")
 			}
 
 		} else if strings.HasPrefix(line, "MemAvailable") {
@@ -149,7 +149,7 @@ func parseFile(output string) (int, int, error) {
 			}
 			avail, err = strconv.Atoi(fields[1])
 			if err != nil {
-				return 0, 0, err
+				return 0, 0, errors.New("Error parsing MemAvailable fields")
 			}
 		}
 	}
