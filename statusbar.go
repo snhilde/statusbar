@@ -102,11 +102,10 @@ func (sb *Statusbar) Run() {
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
 		r := <-finished
-		msg := fmt.Sprintf("%v: Routine stopped\n", r.rh.Name())
-		os.Stderr.WriteString(msg)
+		logError("%v: Routine stopped", r.rh.Name())
 	}
 
-	os.Stderr.WriteString("All routines have stopped\n")
+	logError("All routines have stopped")
 }
 
 // runRoutine runs a routine in a non-terminating loop.
@@ -125,8 +124,7 @@ func runRoutine(r routine, i int, outputsChan chan []string, finished chan<- rou
 			output = handler.String()
 		} else {
 			output = handler.Error()
-			msg := fmt.Sprintf("%v: %v\n", handler.Name(), err.Error())
-			os.Stderr.WriteString(msg)
+			logError("%v: %v", handler.Name(), err.Error())
 		}
 		outputs := <-outputsChan
 		outputs[i] = output
@@ -224,6 +222,15 @@ func (sb *Statusbar) Split() {
 	sb.split = len(sb.routines) - 1
 }
 
+// logError prints the formatted message to stderr.
+func logError(format string, a ...interface{}) {
+	// Add a timestamp and a newline to our message.
+	format = "(%v) " + format + "\n"
+	items := append([]interface{}{time.Now()}, a...)
+
+	fmt.Fprintf(os.Stderr, format, items...)
+}
+
 // handleSignal clears the statusbar if the program receives an interrupt signal.
 func (sb *Statusbar) handleSignal() {
 	c := make(chan os.Signal, 1)
@@ -237,7 +244,7 @@ func (sb *Statusbar) handleSignal() {
 
 	// Wait until we receive an interrupt signal.
 	<-c
-	os.Stderr.WriteString("Received interrupt\n")
+	logError("Received interrupt")
 
 	dpy := C.XOpenDisplay(nil)
 	root := C.XDefaultRootWindow(dpy)
