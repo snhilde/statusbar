@@ -64,18 +64,19 @@ func New(control string, colors ...[3]string) *Routine {
 }
 
 // Update runs the 'amixer' command and parses the output for mute status and volume percentage.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	r.muted = false
 	r.vol = -1
 
-	out, err := r.runCmd()
+	cmd := exec.Command("amixer", "get", r.control)
+	out, err := cmd.Output()
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 
 	// Find the line that has the percentage volume and mute status in it.
-	lines := strings.Split(out, "\n")
+	lines := strings.Split(string(out), "\n")
 	for _, line := range lines {
 		if strings.Contains(line, "Playback") && strings.Contains(line, "%]") {
 			// We found it. Check the mute status, then pull out the volume.
@@ -89,9 +90,10 @@ func (r *Routine) Update() {
 					vol, err := strconv.Atoi(s)
 					if err != nil {
 						r.err = err
-						return
+						return true, err
 					}
-					r.vol = normalize(vol)
+					// Ensure that the volume is a multiple of 10 (so it looks nicer).
+					r.vol = (vol + 5) / 10 * 10
 				}
 			}
 			break
@@ -101,14 +103,12 @@ func (r *Routine) Update() {
 	if r.vol < 0 {
 		r.err = errors.New("No volume found for " + r.control)
 	}
+
+	return true, nil
 }
 
 // String prints either an error, the mute status, or the volume percentage.
 func (r *Routine) String() string {
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
-
 	if r.muted {
 		return r.colors.warning + "Vol mute" + colorEnd
 	}
@@ -116,18 +116,16 @@ func (r *Routine) String() string {
 	return fmt.Sprintf("%sVol %v%%%s", r.colors.normal, r.vol, colorEnd)
 }
 
-// runCmd runs the actual 'amixer' command, with the given control.
-func (r *Routine) runCmd() (string, error) {
-	cmd := exec.Command("amixer", "get", r.control)
-	out, err := cmd.Output()
-	if err != nil {
-		return "", err
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
 	}
 
-	return string(out), nil
+	return r.colors.error + r.err.Error() + colorEnd
 }
 
-// normalize ensures that the volume is a multiple of 10 (so it looks nicer).
-func normalize(vol int) int {
-	return (vol + 5) / 10 * 10
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "Volume"
 }
