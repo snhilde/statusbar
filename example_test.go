@@ -1,7 +1,7 @@
 package statusbar_test
 
 import (
-	"github.com/snhilde/statusbar4/sbtime"
+	"github.com/snhilde/statusbar/sbtime"
 )
 
 func ExampleStatusbar_Append() {
