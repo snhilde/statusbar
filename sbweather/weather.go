@@ -87,23 +87,25 @@ func New(zip string, colors ...[3]string) *Routine {
 }
 
 // Update gets the current hourly temperature.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	r.err = nil
 
 	// If this is the first run of the session, initialize the routine.
 	if r.url == "" {
-		// Get coordinates.
+		// Convert the provided zip into geographic coordinates. If this fails, then it's most likely a connectivity
+		// problem.
 		lat, long, err := getCoords(r.client, r.zip)
 		if err != nil {
-			r.err = errors.New("No Coordinates")
-			return
+			r.err = errors.New("Cannot connect")
+			return false, err
 		}
 
-		// Get forecast URL.
+		// Get the URL for the forecast at the geographic coordinates. We don't want to retry this on failure because
+		// there was some problem handling the coordinates.
 		url, err := getURL(r.client, lat, long)
 		if err != nil {
 			r.err = errors.New("No Forecast Data")
-			return
+			return false, err
 		}
 		r.url = url
 	}
@@ -112,26 +114,24 @@ func (r *Routine) Update() {
 	temp, err := getTemp(r.client, r.url+"/hourly")
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 	r.temp = temp
 
 	high, low, err := getForecast(r.client, r.url)
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 	r.high = high
 	r.low = low
+
+	return true, nil
 }
 
 // String formats and prints the current temperature.
 func (r *Routine) String() string {
 	var s string
-
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
 
 	t := time.Now()
 	if t.Hour() < 15 {
@@ -141,6 +141,20 @@ func (r *Routine) String() string {
 	}
 
 	return fmt.Sprintf("%s%v °F (%s: %v/%v)%s", r.colors.normal, r.temp, s, r.high, r.low, colorEnd)
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "Weather"
 }
 
 // getCoords gets the geographic coordinates for the provided zip code. It should receive a response in this format:
