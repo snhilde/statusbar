@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -20,23 +21,14 @@ type Routine struct {
 	// Error encountered along the way, if any.
 	err error
 
-	// Found path to the device directory.
-	path string
-
-	// File that contains the maximum speed of the fan, in RPM.
-	maxFile os.FileInfo
-
-	// File that contains the current speed of the fan, in RPM.
-	outFile os.FileInfo
+	// Path to file that contains the current speed of the fan, in RPM.
+	fanPath string
 
 	// Maximum speed of the fan, in RPM.
 	max int
 
 	// Current speed of the fan, in RPM.
-	out int
-
-	// Percentage of maximum fan speed.
-	perc int
+	speed int
 
 	// Trio of user-provided colors for displaying various states.
 	colors struct {
@@ -71,101 +63,112 @@ func New(colors ...[3]string) *Routine {
 	}
 
 	// Find the max fan speed file and read its value.
-	r.findFiles()
-	if r.err != nil {
+	// Find the files holding the values for the maximum fan speed and the current fan speed.
+	maxFile, outFile, err := findFiles()
+	if err != nil {
+		r.err = err
 		return &r
 	}
 
 	// Error will be handled later in Update() and String().
-	r.max, r.err = readSpeed(r.path + r.maxFile.Name())
+	r.max, r.err = readSpeed(maxFile)
+	r.fanPath = outFile
 
 	return &r
 }
 
 // Update reads the current fan speed in RPM and calculates the percentage of the maximum speed.
-func (r *Routine) Update() {
-	if r.err != nil {
-		return
+func (r *Routine) Update() (bool, error) {
+	// Handle any error encountered in New.
+	if r.fanPath == "" || r.max == 0 {
+		return false, r.err
 	}
 
-	r.out, r.err = readSpeed(r.path + r.outFile.Name())
-	if r.err != nil {
-		return
-	}
-
-	r.perc = (r.out * 100) / r.max
-	if r.perc > 100 {
-		r.perc = 100
-	}
+	r.speed, r.err = readSpeed(r.fanPath)
+	return true, r.err
 }
 
 // String prints the current speed in RPM.
 func (r *Routine) String() string {
 	var c string
 
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
+	perc := (r.speed * 100) / r.max
+	if perc > 100 {
+		perc = 100
 	}
 
-	if r.perc < 75 {
+	if perc < 75 {
 		c = r.colors.normal
-	} else if r.perc < 90 {
+	} else if perc < 90 {
 		c = r.colors.warning
 	} else {
 		c = r.colors.error
 	}
 
-	return fmt.Sprintf("%s%v RPM%s", c, r.out, colorEnd)
+	return fmt.Sprintf("%s%v RPM%s", c, r.speed, colorEnd)
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "Fan"
 }
 
 // findFiles finds the files that we'll monitor for the fan speed. It will be in one of the hardware device directories
 // in /sys/class/hwmon.
-func (r *Routine) findFiles() {
-	var dirs []os.FileInfo
-	var files []os.FileInfo
+func findFiles() (string, string, error) {
+	var maxFile os.FileInfo // File that contains the maximum speed of the fan, in RPM.
+	var outFile os.FileInfo
 
 	// Get all the device directories in the main directory.
-	dirs, r.err = ioutil.ReadDir(baseDir)
-	if r.err != nil {
-		return
+	dirs, err := ioutil.ReadDir(baseDir)
+	if err != nil {
+		return "", "", err
 	}
 
 	// Search in each device directory to find the fan.
 	for _, dir := range dirs {
-		path := baseDir + dir.Name() + "/device/"
-		files, r.err = ioutil.ReadDir(path)
-		if r.err != nil {
-			return
+		path := filepath.Join(baseDir, dir.Name(), "/device/")
+		files, err := ioutil.ReadDir(path)
+		if err != nil {
+			return "", "", err
 		}
 
 		// Find the first file that has a name match. The files we want will start with "fan" and end
 		// with "max" or "output".
 		prefix := "fan"
 		for _, file := range files {
-			if strings.HasPrefix(file.Name(), prefix) {
-				if strings.HasSuffix(file.Name(), "max") || strings.HasSuffix(file.Name(), "output") {
+			filename := file.Name()
+			if strings.HasPrefix(filename, prefix) {
+				if strings.HasSuffix(filename, "max") || strings.HasSuffix(filename, "output") {
 					// We found one of the two.
-					if strings.HasSuffix(file.Name(), "max") {
-						r.maxFile = file
-						prefix = strings.TrimSuffix(file.Name(), "max")
+					if strings.HasSuffix(filename, "max") {
+						maxFile = file
+						prefix = strings.TrimSuffix(filename, "max")
 					} else {
-						r.outFile = file
+						outFile = file
 						prefix = strings.TrimSuffix(prefix, "output")
 					}
 				}
 
 				// If we've found both files, we can stop looking.
-				if r.maxFile != nil && r.outFile != nil {
-					r.path = path
-					return
+				if maxFile != nil && outFile != nil {
+					return filepath.Join(path, maxFile.Name()), filepath.Join(path, outFile.Name()), nil
 				}
 			}
 		}
 	}
 
 	// If we made it here, then we didn't find anything.
-	r.err = errors.New("No fan file")
-	return
+	return "", "", errors.New("No fan file")
 }
 
 // readSpeed reads the value of the provided file. The value will be a speed in RPM.
