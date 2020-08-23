@@ -13,6 +13,7 @@
 1. [Installation](#installation)
 1. [Usage and Documentation](#usage-and-documentation)
 1. [Modules](#modules)
+1. [Contributing](#contributing)
 1. [Changelog](#changelog)
 	1. [5.0.0](#500)
 	1. [4.1.2](#412)
@@ -67,7 +68,12 @@ This repository includes these modules to get up and running quickly:
 | `sbtodo`     | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbtodo)     | TODO list display    |
 | `sbvolume`   | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbvolume)   | Volume percentage    |
 | `sbweather`  | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbweather)  | Weather information  |
-| ------------ | ----------------------------------------------------------------------- | -------------------- |
+
+
+## Contributing
+If you find a bug, please submit a pull request.
+If you think their could be an improvement, please submit an issue or a pull request with the recommended change.
+Contributions of new modules are also very welcome.
 
 
 ## Changelog
