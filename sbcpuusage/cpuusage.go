@@ -82,13 +82,13 @@ func New(colors ...[3]string) *Routine {
 
 // Update gets the current CPU stats, compares them to the last-read stats, and calculates the percentage of CPU
 // currently being used.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	var newStats stats
 
 	err := readFile(&newStats)
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 
 	used := (newStats.user - r.oldStats.user) + (newStats.nice - r.oldStats.nice) + (newStats.sys - r.oldStats.sys)
@@ -111,15 +111,13 @@ func (r *Routine) Update() {
 	r.oldStats.nice = newStats.nice
 	r.oldStats.sys = newStats.sys
 	r.oldStats.idle = newStats.idle
+
+	return true, nil
 }
 
 // String prints the formatted CPU percentage.
 func (r *Routine) String() string {
 	var c string
-
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
 
 	if r.perc < 75 {
 		c = r.colors.normal
@@ -130,6 +128,20 @@ func (r *Routine) String() string {
 	}
 
 	return fmt.Sprintf("%s%2d%% CPU%s", c, r.perc, colorEnd)
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "CPU Usage"
 }
 
 // readFile opens /proc/stat and reads out the CPU stats from the first line.
