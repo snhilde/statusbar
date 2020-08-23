@@ -98,7 +98,7 @@ func (r *Routine) Error() string {
 		r.err = errors.New("Unknown error")
 	}
 
-	return r.colors.error + "NordVPN: " + r.err.Error() + colorEnd
+	return r.colors.error + r.err.Error() + colorEnd
 }
 
 // Name returns the display name of this module.
