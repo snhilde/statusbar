@@ -6,6 +6,7 @@ package statusbar
 import "C"
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"strings"
@@ -14,18 +15,23 @@ import (
 
 // RoutineHandler allows information monitors (commonly called routines) to be linked in.
 type RoutineHandler interface {
-	// Update updates the routine's information. This is run on a periodic interval according to the time provided.
-	// It returns two arguments: a bool and an error. The bool indicates whether or not the engine should continue to
-	// run the routine. You can think of it as representing the "ok" status. The error is any error encountered during
-	// the process. For example, on a normal run with no error, Update would return (true, nil). On a run with a
+	// Update updates the routine's information. This is run on a periodic interval according to the time provided. It
+	// returns two arguments: a bool and an error. The bool indicates whether or not the engine should continue to run
+	// the routine. You can think of it as representing the "ok" status. The error is any error encountered during the
+	// process. For example, on a normal run with no error, Update would return (true, nil). On a run with a
 	// non-critical error, Update would return (true, errors.New("Warning message")). On a run with a critical error
-	// where the routine should not be attempted again, Update would return (false, errors.New("Critical error message").
+	// where the routine should be stopped, Update would return (false, errors.New("Critical error message"). The
+	// returned error will be logged to stderr. Generally, the error returned from Update should be detailed and
+	// specific for debugging the routine, while the error returned from Error should be shorter, more concise, and more
+	// general.
 	Update() (bool, error)
 
 	// String formats and returns the routine's output.
 	String() string
 
-	// Error formats and returns an error message.
+	// Error formats and returns an error message. Generally, the error returned from Error should be shorter, more
+	// concise, and more general, while the error returned from Update should be detailed and specific for debugging the
+	// routine.
 	Error() string
 
 	// Name returns the display name of the module.
@@ -84,7 +90,7 @@ func (sb *Statusbar) Run() {
 	outputsChan <- outputs
 
 	// Channel used to indicate everything is done
-	finished := make(chan struct{})
+	finished := make(chan routine)
 
 	for i, r := range sb.routines {
 		go runRoutine(r, i, outputsChan, finished)
@@ -95,12 +101,16 @@ func (sb *Statusbar) Run() {
 
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
-		<-finished
+		r := <-finished
+		msg := fmt.Sprintf("%v: Routine stopped\n", r.rh.Name())
+		os.Stderr.WriteString(msg)
 	}
+
+	os.Stderr.WriteString("All routines have stopped\n")
 }
 
 // runRoutine runs a routine in a non-terminating loop.
-func runRoutine(r routine, i int, outputsChan chan []string, finished chan<- struct{}) {
+func runRoutine(r routine, i int, outputsChan chan []string, finished chan<- routine) {
 	handler := r.rh
 	for {
 		// Start the clock.
@@ -115,6 +125,8 @@ func runRoutine(r routine, i int, outputsChan chan []string, finished chan<- str
 			output = handler.String()
 		} else {
 			output = handler.Error()
+			msg := fmt.Sprintf("%v: %v\n", handler.Name(), err.Error())
+			os.Stderr.WriteString(msg)
 		}
 		outputs := <-outputsChan
 		outputs[i] = output
@@ -152,7 +164,7 @@ func runRoutine(r routine, i int, outputsChan chan []string, finished chan<- str
 	}
 
 	// Send on the finished channel to signify that we're stopping this routine.
-	finished <- struct{}{}
+	finished <- r
 }
 
 // setBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any changes
@@ -225,6 +237,7 @@ func (sb *Statusbar) handleSignal() {
 
 	// Wait until we receive an interrupt signal.
 	<-c
+	os.Stderr.WriteString("Received interrupt\n")
 
 	dpy := C.XOpenDisplay(nil)
 	root := C.XDefaultRootWindow(dpy)
