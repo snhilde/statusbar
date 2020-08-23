@@ -73,7 +73,7 @@ func (r *Routine) Update() (bool, error) {
 	// Handle error in New.
 	if r.formatA == "" || r.formatB == "" {
 		if r.err == nil {
-			r.err = Errors.New("Missing time format")
+			r.err = errors.New("Missing time format")
 		}
 		return false, r.err
 	}

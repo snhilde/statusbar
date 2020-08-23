@@ -230,7 +230,7 @@ func getURL(client http.Client, lat string, long string) (string, error) {
 	type props struct {
 		// Properties map[string]interface{} `json:"properties"`
 		Properties struct {
-			Forecast string `json: "temperature"`
+			Forecast string `json:"temperature"`
 		} `json:"properties"`
 	}
 
