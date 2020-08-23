@@ -73,6 +73,10 @@ func New(colors ...[3]string) *Routine {
 
 // Update reads the current battery capacity left and calculates a percentage based on it.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle error in New or error reading max capacity.
 	if r.max <= 0 {
 		return false, r.err
@@ -115,6 +119,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String formats the percentage of battery left.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	var c string
 	if r.perc > 25 {
 		c = r.colors.normal
@@ -138,6 +146,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

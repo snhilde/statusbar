@@ -78,6 +78,10 @@ func New(colors ...[3]string) *Routine {
 
 // Update reads the current fan speed in RPM and calculates the percentage of the maximum speed.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle any error encountered in New.
 	if r.fanPath == "" || r.max == 0 {
 		return false, r.err
@@ -95,6 +99,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String prints the current speed in RPM.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	var c string
 
 	perc := (r.speed * 100) / r.max
@@ -115,6 +123,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

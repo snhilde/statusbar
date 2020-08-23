@@ -64,6 +64,10 @@ func New(control string, colors ...[3]string) *Routine {
 
 // Update runs the 'amixer' command and parses the output for mute status and volume percentage.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle error from New.
 	if r.control == "" {
 		if r.err == nil {
@@ -116,6 +120,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String prints either an error, the mute status, or the volume percentage.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.muted {
 		return r.colors.warning + "Vol mute" + colorEnd
 	}
@@ -125,6 +133,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

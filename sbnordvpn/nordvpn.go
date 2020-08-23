@@ -60,6 +60,10 @@ func New(colors ...[3]string) *Routine {
 
 // Update runs the command and captures the output.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	cmd := exec.Command("nordvpn", "status")
 	output, err := cmd.Output()
 	if err != nil {
@@ -77,11 +81,19 @@ func (r *Routine) Update() (bool, error) {
 
 // String formats and prints the current connection status.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	return r.color + r.parsed + colorEnd
 }
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

@@ -66,6 +66,10 @@ func New(format string, colors ...[3]string) *Routine {
 
 // Update updates the routine's current time.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle error in New.
 	if r.formatA == "" || r.formatB == "" {
 		if r.err == nil {
@@ -81,6 +85,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String prints the time in the provided format.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	format := r.formatA
 	if r.time.Second()%2 != 0 {
 		format = r.formatB
@@ -91,6 +99,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

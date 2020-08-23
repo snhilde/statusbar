@@ -88,6 +88,10 @@ func New(paths []string, colors ...[3]string) *Routine {
 // Update gets the amount of used and total disk space and converts them into a human-readable size for each provided
 // filesystem.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle error in New.
 	if len(r.disks) == 0 {
 		return false, r.err
@@ -114,6 +118,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String formats and prints the amounts of disk space for each provided filesystem.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	c := ""
 	b := new(strings.Builder)
 	for i, disk := range r.disks {
@@ -138,6 +146,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

@@ -78,6 +78,10 @@ func New(colors ...[3]string) *Routine {
 // Update reads out the value of each sensor, gets an average of all temperatures, and converts it from milliCelsius to
 // Celsius. If we have trouble reading a particular sensor, then we'll skip it on this pass.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle error in New.
 	if len(r.files) == 0 {
 		return false, r.err
@@ -111,6 +115,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String prints a formatted temperature average in degrees Celsius.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	var c string
 	if r.temp < 75 {
 		c = r.colors.normal
@@ -125,6 +133,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

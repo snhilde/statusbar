@@ -105,6 +105,10 @@ func New(zip string, colors ...[3]string) *Routine {
 
 // Update gets the current hourly temperature.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle any error from New.
 	if r.zip == "" || r.url == "" {
 		if r.err == nil {
@@ -134,6 +138,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String formats and prints the current temperature.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	var s string
 
 	t := time.Now()
@@ -148,6 +156,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

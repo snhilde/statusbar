@@ -61,6 +61,10 @@ func New(colors ...[3]string) *Routine {
 
 // Update calls Sysinfo() and calculates load averages.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle any error encountered in New.
 	if r.err != nil {
 		return true, r.err
@@ -83,6 +87,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String prints the 3 load averages with 2 decimal places of precision.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	var c string
 
 	if r.load1 >= 2 || r.load5 >= 2 || r.load15 >= 2 {
@@ -98,6 +106,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

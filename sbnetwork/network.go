@@ -113,6 +113,10 @@ func New(inames []string, colors ...[3]string) *Routine {
 
 // Update gets the current readings of the rx/tx files for each interface.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle any error from New.
 	if len(r.ilist) == 0 {
 		return false, r.err
@@ -142,6 +146,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String calculates the byte difference for each interface, and formats and prints it.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	var c string
 	var b strings.Builder
 
@@ -170,6 +178,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

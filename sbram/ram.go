@@ -71,6 +71,10 @@ func New(colors ...[3]string) *Routine {
 // missing the amount of cached RAM). Instead, we're going to read out /proc/meminfo and grab the values we need from
 // there. All lines of that file have three fields: field name, value, and unit
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	file, err := ioutil.ReadFile("/proc/meminfo")
 	if err != nil {
 		r.err = errors.New("Error reading file")
@@ -97,6 +101,10 @@ func (r *Routine) Update() (bool, error) {
 
 // String formats and prints the used and total system memory.
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	var color string
 
 	if r.perc < 75 {
@@ -112,6 +120,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}

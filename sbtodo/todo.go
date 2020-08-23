@@ -80,6 +80,10 @@ func New(path string, colors ...[3]string) *Routine {
 
 // Update reads the TODO file again, if it was modified since the last read.
 func (r *Routine) Update() (bool, error) {
+	if r == nil {
+		return false, errors.New("Bad routine")
+	}
+
 	// Handle any error from New.
 	if r.info.Name() == "" {
 		if r.err == nil {
@@ -115,6 +119,10 @@ func (r *Routine) Update() (bool, error) {
 //   3. If one line has content and the next line with content is indented (tabs or spaces), print "line1 -> line2".
 //   4. If two lines have content and both are flush, print "line1 | line2".
 func (r *Routine) String() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	var b strings.Builder
 
 	r.line1 = strings.TrimSpace(r.line1)
@@ -148,6 +156,10 @@ func (r *Routine) String() string {
 
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
+	if r == nil {
+		return "Bad routine"
+	}
+
 	if r.err == nil {
 		r.err = errors.New("Unknown error")
 	}
