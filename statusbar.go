@@ -27,6 +27,9 @@ type RoutineHandler interface {
 
 	// Error formats and returns an error message.
 	Error() string
+
+	// Name returns the display name of the module.
+	Name() string
 }
 
 // routine holds the data for an individual unit on the statusbar.
