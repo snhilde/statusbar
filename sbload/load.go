@@ -60,27 +60,26 @@ func New(colors ...[3]string) *Routine {
 }
 
 // Update calls Sysinfo() and calculates load averages.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	var info syscall.Sysinfo_t
 
-	r.err = syscall.Sysinfo(&info)
-	if r.err != nil {
-		return
+	err := syscall.Sysinfo(&info)
+	if err != nil {
+		r.err = err
+		return true, err
 	}
 
 	// Each load average must be divided by 2^16 to get the same format as /proc/loadavg.
 	r.load1 = float64(info.Loads[0]) / float64(1<<16)
 	r.load5 = float64(info.Loads[1]) / float64(1<<16)
 	r.load15 = float64(info.Loads[2]) / float64(1<<16)
+
+	return true, nil
 }
 
 // String prints the 3 load averages with 2 decimal places of precision.
 func (r *Routine) String() string {
 	var c string
-
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
 
 	if r.load1 >= 2 || r.load5 >= 2 || r.load15 >= 2 {
 		c = r.colors.error
@@ -91,4 +90,18 @@ func (r *Routine) String() string {
 	}
 
 	return fmt.Sprintf("%s%.2f %.2f %.2f%s", c, r.load1, r.load5, r.load15, colorEnd)
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "Load"
 }
