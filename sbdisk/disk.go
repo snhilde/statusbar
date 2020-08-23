@@ -81,13 +81,14 @@ func New(paths []string, colors ...[3]string) *Routine {
 
 // Update gets the amount of used and total disk space and converts them into a human-readable size for each provided
 // filesystem.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	var b syscall.Statfs_t
 
 	for i, disk := range r.disks {
-		r.err = syscall.Statfs(disk.path, &b)
-		if r.err != nil {
-			return
+		err := syscall.Statfs(disk.path, &b)
+		if err != nil {
+			r.err = err
+			return true, err
 		}
 
 		total := b.Blocks * uint64(b.Bsize)
@@ -97,16 +98,14 @@ func (r *Routine) Update() {
 		r.disks[i].used, r.disks[i].usedUnit = shrink(used)
 		r.disks[i].total, r.disks[i].totalUnit = shrink(total)
 	}
+
+	return true, nil
 }
 
 // String formats and prints the amounts of disk space for each provided filesystem.
 func (r *Routine) String() string {
 	var c string
 	var b strings.Builder
-
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
 
 	for i, disk := range r.disks {
 		if disk.perc > 90 {
@@ -126,6 +125,20 @@ func (r *Routine) String() string {
 	}
 
 	return b.String()
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "Disk"
 }
 
 // Shrink iteratively decreases the amount of bytes by a step of 2^10 until human-readable.
