@@ -72,17 +72,17 @@ func New(colors ...[3]string) *Routine {
 }
 
 // Update reads the current battery capacity left and calculates a percentage based on it.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	// Handle error reading max capacity.
 	if r.max < 0 {
-		return
+		return false, r.err
 	}
 
 	// Get current charge and calculate a percentage.
 	now, err := readCharge("/sys/class/power_supply/BAT0/charge_now")
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 
 	r.perc = (now * 100) / r.max
@@ -96,7 +96,7 @@ func (r *Routine) Update() {
 	status, err := ioutil.ReadFile("/sys/class/power_supply/BAT0/status")
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 
 	switch strings.TrimSpace(string(status)) {
@@ -110,16 +110,13 @@ func (r *Routine) Update() {
 		r.status = UNKNOWN
 	}
 
+	return true, nil
 }
 
 // String formats the percentage of battery left.
 func (r *Routine) String() string {
 	var c string
 	var s string
-
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
 
 	if r.perc > 25 {
 		c = r.colors.normal
@@ -140,6 +137,20 @@ func (r *Routine) String() string {
 	}
 
 	return fmt.Sprintf("%s%s BAT%s", c, s, colorEnd)
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "Battery"
 }
 
 // readCharge reads out the value from the file at the provided path.
