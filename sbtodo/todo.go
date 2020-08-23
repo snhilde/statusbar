@@ -79,11 +79,11 @@ func New(path string, colors ...[3]string) *Routine {
 }
 
 // Update reads the TODO file again, if it was modified since the last read.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	newInfo, err := os.Stat(r.path)
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 
 	// If mtime is not newer than what we already have, we can skip reading the file.
@@ -92,13 +92,13 @@ func (r *Routine) Update() {
 	if newMtime > oldMtime {
 		// The file was modified. Let's parse it.
 		if err := r.readFile(); err != nil {
-			// We'll print the error in String().
 			r.err = err
-			return
+			return true, err
 		}
 	}
-
 	r.info = newInfo
+
+	return true, nil
 }
 
 // String formats the first two lines of the file according to these rules:
@@ -108,11 +108,6 @@ func (r *Routine) Update() {
 //   4. If two lines have content and both are flush, print "line1 | line2".
 func (r *Routine) String() string {
 	var b strings.Builder
-
-	// Handle any error we might have received in another stage.
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
 
 	r.line1 = strings.TrimSpace(r.line1)
 	b.WriteString(r.colors.normal)
@@ -141,6 +136,20 @@ func (r *Routine) String() string {
 	b.WriteString(colorEnd)
 
 	return b.String()
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "TODO"
 }
 
 // readFile grabs the first two lines of the TODO file that are not blank.
