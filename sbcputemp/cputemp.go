@@ -76,23 +76,25 @@ func New(colors ...[3]string) *Routine {
 
 // Update reads out the value of each sensor, gets an average of all temperatures, and converts it from milliCelsius to
 // Celsius. If we have trouble reading a particular sensor, then we'll skip it on this pass.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	var n int
 
 	if r.path == "" || len(r.files) == 0 {
-		return
+		return false, r.err
 	}
 
 	r.temp = 0
 	for _, file := range r.files {
 		b, err := ioutil.ReadFile(r.path + file.Name())
 		if err != nil {
-			continue
+			r.err = err
+			return true, err
 		}
 
 		n, err = strconv.Atoi(strings.TrimSpace(string(b)))
 		if err != nil {
-			continue
+			r.err = err
+			return true, err
 		}
 
 		r.temp += n
@@ -103,15 +105,13 @@ func (r *Routine) Update() {
 
 	// Convert to degrees Celsius.
 	r.temp /= 1000
+
+	return true, nil
 }
 
 // String prints a formatted temperature average in degrees Celsius.
 func (r *Routine) String() string {
 	var c string
-
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
 
 	if r.temp < 75 {
 		c = r.colors.normal
@@ -122,6 +122,20 @@ func (r *Routine) String() string {
 	}
 
 	return fmt.Sprintf("%s%v °C%s", c, r.temp, colorEnd)
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "CPU Temp"
 }
 
 // findDir finds the directory that has the temperature readings. It will be the one with the fan speeds,
