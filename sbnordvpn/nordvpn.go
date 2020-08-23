@@ -59,28 +59,39 @@ func New(colors ...[3]string) *Routine {
 }
 
 // Update runs the command and captures the output.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	cmd := exec.Command("nordvpn", "status")
 	output, err := cmd.Output()
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 
-	r.parsed, r.err = r.parseOutput(string(output))
+	r.parseOutput(string(output))
+	return true, r.err
 }
 
 // String formats and prints the current connection status.
 func (r *Routine) String() string {
-	if r.err != nil {
-		return r.colors.error + "NordVPN: " + r.err.Error() + colorEnd
-	}
-
 	return r.color + r.parsed + colorEnd
 }
 
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + "NordVPN: " + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "NordVPN"
+}
+
 // parseOutput parses the command's output.
-func (r *Routine) parseOutput(output string) (string, error) {
+func (r *Routine) parseOutput(output string) {
 	// If there is a connection to the VPN, the command will return this format:
 	//     Status: Connected
 	//     Current server: <server.url>
@@ -113,7 +124,8 @@ func (r *Routine) parseOutput(output string) (string, error) {
 		}
 	}
 	if field == -1 {
-		return "", errors.New(lines[0])
+		r.err = errors.New(lines[0])
+		return
 	}
 
 	switch fields[field+1] {
@@ -122,33 +134,32 @@ func (r *Routine) parseOutput(output string) (string, error) {
 			if strings.HasPrefix(line, "City") {
 				city := strings.Split(line, ":")
 				if len(city) != 2 {
-					return "", errors.New("Error parsing City")
+					r.err = errors.New("Error parsing City")
+					break
 				}
 
-				parsed := "Connected"
+				r.parsed = "Connected"
 				if r.blink {
 					r.blink = false
-					parsed += ": "
+					r.parsed += ": "
 				} else {
 					r.blink = true
-					parsed += "  "
+					r.parsed += "  "
 				}
-				parsed += strings.TrimSpace(city[1])
+				r.parsed += strings.TrimSpace(city[1])
 				r.color = r.colors.normal
-				return parsed, nil
 			}
 		}
 	case "Connecting":
+		r.parsed = "Connecting..."
 		r.color = r.colors.warning
-		return "Connecting...", nil
 	case "Disconnected":
+		r.parsed = "Disconnected"
 		r.color = r.colors.warning
-		return "Disconnected", nil
 	case "Please check your internet connection and try again.":
-		return "", errors.New("Internet Down")
+		r.err = errors.New("Internet Down")
+	default:
+		// If we're here, then we have an unknown error.
+		r.err = errors.New(lines[0])
 	}
-
-	// If we're here, then we have an unknown error.
-	r.color = r.colors.error
-	return "", errors.New(lines[0])
 }
