@@ -65,18 +65,30 @@ func New(format string, colors ...[3]string) *Routine {
 }
 
 // Update updates the routine's current time.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	r.time = time.Now()
+
+	return true, nil
 }
 
 // String prints the time in the provided format.
 func (r *Routine) String() string {
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
-
 	if r.time.Second()%2 == 0 {
 		return r.colors.normal + r.time.Format(r.formatA) + colorEnd
 	}
 	return r.colors.normal + r.time.Format(r.formatB) + colorEnd
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "Time"
 }
