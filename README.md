@@ -13,7 +13,7 @@
 1. [Installation](#installation)
 1. [Usage and Documentation](#usage-and-documentation)
 1. [Modules](#modules)
-1. [Contributing)(#contributing)
+1. [Contributing](#contributing)
 1. [Changelog](#changelog)
 	1. [5.0.0](#500)
 	1. [4.1.2](#412)
