@@ -68,7 +68,6 @@ This repository includes these modules to get up and running quickly:
 | `sbtodo`     | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbtodo)     | TODO list display    |
 | `sbvolume`   | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbvolume)   | Volume percentage    |
 | `sbweather`  | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbweather)  | Weather information  |
-| ------------ | ----------------------------------------------------------------------- | -------------------- |
 
 
 ## Contributing
