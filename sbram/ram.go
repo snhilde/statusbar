@@ -70,46 +70,58 @@ func New(colors ...[3]string) *Routine {
 // it doesn't return the necessary information to calculate the actual amount of RAM in use at the moment (namely, it is
 // missing the amount of cached RAM). Instead, we're going to read out /proc/meminfo and grab the values we need from
 // there. All lines of that file have three fields: field name, value, and unit
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	file, err := ioutil.ReadFile("/proc/meminfo")
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 
 	total, avail, err := parseFile(string(file))
 	if err != nil {
 		r.err = err
-		return
+		return true, err
 	}
 
 	if total == 0 || avail == 0 {
-		r.err = errors.New("Failed to parse out memory fields")
-		return
+		r.err = errors.New("Failed to parse memory fields")
+		return true, r.err
 	}
 
 	r.perc = (total - avail) * 100 / total
 	r.total, r.totalUnit = shrink(total)
 	r.used, r.usedUnit = shrink(total - avail)
+
+	return true, nil
 }
 
 // String formats and prints the used and total system memory.
 func (r *Routine) String() string {
-	var c string
-
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
+	var color string
 
 	if r.perc < 75 {
-		c = r.colors.normal
+		color = r.colors.normal
 	} else if r.perc < 90 {
-		c = r.colors.warning
+		color = r.colors.warning
 	} else {
-		c = r.colors.error
+		color = r.colors.error
 	}
 
-	return fmt.Sprintf("%s%.1f%c/%.1f%c%s", c, r.used, r.usedUnit, r.total, r.totalUnit, colorEnd)
+	return fmt.Sprintf("%s%.1f%c/%.1f%c%s", color, r.used, r.usedUnit, r.total, r.totalUnit, colorEnd)
+}
+
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "RAM"
 }
 
 // parseFile parses the meminfo file.
