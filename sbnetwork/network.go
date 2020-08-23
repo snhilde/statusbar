@@ -63,6 +63,22 @@ func New(inames []string, colors ...[3]string) *Routine {
 	var ilist []string
 	var err error
 
+	// Do a minor sanity check on the color codes.
+	if len(colors) == 1 {
+		for _, color := range colors[0] {
+			if !strings.HasPrefix(color, "#") || len(color) != 7 {
+				r.err = errors.New("Invalid color")
+				return &r
+			}
+		}
+		r.colors.normal = "^c" + colors[0][0] + "^"
+		r.colors.warning = "^c" + colors[0][1] + "^"
+		r.colors.error = "^c" + colors[0][2] + "^"
+	} else {
+		// If a color array wasn't passed in, then we don't want to print this.
+		colorEnd = ""
+	}
+
 	if len(inames) == 0 {
 		// Nothing was passed in. We'll grab the default interfaces.
 		ilist, err = getInterfaces()
@@ -92,55 +108,41 @@ func New(inames []string, colors ...[3]string) *Routine {
 		}
 	}
 
-	// Do a minor sanity check on the color codes.
-	if len(colors) == 1 {
-		for _, color := range colors[0] {
-			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("Invalid color")
-				return &r
-			}
-		}
-		r.colors.normal = "^c" + colors[0][0] + "^"
-		r.colors.warning = "^c" + colors[0][1] + "^"
-		r.colors.error = "^c" + colors[0][2] + "^"
-	} else {
-		// If a color array wasn't passed in, then we don't want to print this.
-		colorEnd = ""
-	}
-
 	return &r
 }
 
 // Update gets the current readings of the rx/tx files for each interface.
-func (r *Routine) Update() {
+func (r *Routine) Update() (bool, error) {
 	for i, iface := range r.ilist {
 		r.ilist[i].oldDown = iface.newDown
 		r.ilist[i].oldUp = iface.newUp
 
 		down, err := readFile(iface.downPath)
 		if err != nil {
-			// r.err = err
+			if r.err == nil {
+				r.err = err
+			}
 			continue
 		}
 		r.ilist[i].newDown = down
 
 		up, err := readFile(iface.upPath)
 		if err != nil {
-			// r.err = err
+			if r.err == nil {
+				r.err = err
+			}
 			continue
 		}
 		r.ilist[i].newUp = up
 	}
+
+	return true, r.err
 }
 
 // String calculates the byte difference for each interface, and formats and prints it.
 func (r *Routine) String() string {
 	var c string
 	var b strings.Builder
-
-	if r.err != nil {
-		return r.colors.error + r.err.Error() + colorEnd
-	}
 
 	for i, iface := range r.ilist {
 		down, downUnit := shrink(iface.newDown - iface.oldDown)
@@ -165,15 +167,28 @@ func (r *Routine) String() string {
 	return b.String()
 }
 
+// Error formats and returns an error message.
+func (r *Routine) Error() string {
+	if r.err == nil {
+		r.err = errors.New("Unknown error")
+	}
+
+	return r.colors.error + r.err.Error() + colorEnd
+}
+
+// Name returns the display name of this module.
+func (r *Routine) Name() string {
+	return "Network"
+}
+
 // getInterfaces finds all network interfaces that are currently active.
 func getInterfaces() ([]string, error) {
-	var inames []string
-
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return nil, err
 	}
 
+	inames := make([]string, 0)
 	for _, iface := range ifaces {
 		if iface.Name == "lo" {
 			// Skip loopback.
