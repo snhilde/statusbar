@@ -14,21 +14,9 @@ current time.
 
 To integrate a custom module into this statusbar framework, the routine's object needs to implement the RoutineHandler
 interface, which includes these methods:
-	// Update updates the routine's information. This is run on a periodic interval according to the time provided.
-	// It returns two arguments: a bool and an error. The bool indicates whether or not the engine should continue to
-	// run the routine. You can think of it as representing the "ok" status. The error is any error encountered during
-	// the process. For example, on a normal run with no error, Update would return (true, nil). On a run with a
-	// non-critical error, Update would return (true, errors.New("Warning message")). On a run with a critical error
-	// where the routine should not be attempted again, Update would return (false, errors.New("Critical error message").
 	Update() (bool, error)
-
-	// String formats and returns the routine's output.
 	String() string
-
-	// Error formats and returns an error message.
 	Error() string
-
-	// Name returns the display name of the module.
 	Name() string
 
 It is suggested that this object be created by New(), which will also initialize any members of the object (if needed).
