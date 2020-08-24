@@ -88,26 +88,27 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	r.temp = 0
+	numRead := 0
 	for _, file := range r.files {
+		// If we can't read a sensor's value, then we won't include it in the average.
 		b, err := ioutil.ReadFile(file)
 		if err != nil {
-			r.err = errors.New("Error reading " + filepath.Base(file))
-			return true, err
+			continue
 		}
 
 		n, err := strconv.Atoi(strings.TrimSpace(string(b)))
 		if err != nil {
-			r.err = errors.New("Error parsing " + filepath.Base(file))
-			return true, err
+			continue
 		}
 
 		r.temp += n
+		numRead++
 	}
 
 	// Get the average temp across all readings.
-	r.temp /= len(r.files)
+	r.temp /= numRead
 
-	// Convert to degrees Celsius.
+	// Convert from milliCelsius to Celsius.
 	r.temp /= 1000
 
 	return true, nil
