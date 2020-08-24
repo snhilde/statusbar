@@ -23,9 +23,6 @@ type Routine struct {
 	// HTTP client to reuse for all requests out.
 	client http.Client
 
-	// User-supplied zip code for where the temperature should reflect.
-	zip string
-
 	// NWS-provided URL for getting the temperature, as found during the init.
 	url string
 
@@ -71,6 +68,7 @@ func New(zip string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
+	// Do some quick checks on the zip code.
 	if len(zip) != 5 {
 		r.err = errors.New("Invalid zip code length")
 		return &r
@@ -81,11 +79,10 @@ func New(zip string, colors ...[3]string) *Routine {
 		r.err = errors.New("Invalid zip code")
 		return &r
 	}
-	r.zip = zip
 
 	// Initialize the routine. First, convert the provided zip code into geographic coordinates. If this fails, then
 	// it's most likely a connectivity problem.
-	lat, long, err := getCoords(r.client, r.zip)
+	lat, long, err := getCoords(r.client, zip)
 	if err != nil {
 		r.err = errors.New("Connection failed")
 		return &r
@@ -110,7 +107,7 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	// Handle any error from New.
-	if r.zip == "" || r.url == "" {
+	if r.url == "" {
 		if r.err == nil {
 			r.err = errors.New("Bad parameters")
 		}
