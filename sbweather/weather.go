@@ -20,11 +20,17 @@ type Routine struct {
 	// Error encountered along the way, if any.
 	err error
 
-	// HTTP client to reuse for all requests out.
-	client http.Client
+	// Whether or not the routine has been initialized yet.
+	initialized bool
+
+	// zip code for localizing the weather, if provided
+	zip string
 
 	// NWS-provided URL for getting the temperature, as found during the init.
 	url string
+
+	// HTTP client to reuse for all requests out.
+	client http.Client
 
 	// Current temperature for the provided zip code.
 	temp int
@@ -43,9 +49,9 @@ type Routine struct {
 	}
 }
 
-// New runs a sanity check on the provided zip code and makes a new routine object. zip is the zip code to use for
-// localizing the weather. colors is an optional triplet of hex color codes for colorizing the output based on these
-// rules:
+// New makes a new routine object. zip is the zip code to use for localizing the weather. If no zip code is provided
+// (i.e., zip is ""), then the module shows the weather at the IP address's location. colors is an optional triplet of hex
+// color codes for colorizing the output based on these rules:
 //   1. Normal color, used for printing the current temperature and forecast.
 //   2. Warning color, currently unused.
 //   3. Error color, used for error messages.
@@ -68,34 +74,7 @@ func New(zip string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
-	// Do some quick checks on the zip code.
-	if len(zip) != 5 {
-		r.err = errors.New("Invalid zip code length")
-		return &r
-	}
-
-	_, err := strconv.Atoi(zip)
-	if err != nil {
-		r.err = errors.New("Invalid zip code")
-		return &r
-	}
-
-	// Initialize the routine. First, convert the provided zip code into geographic coordinates. If this fails, then
-	// it's most likely a connectivity problem.
-	lat, long, err := getCoords(r.client, zip)
-	if err != nil {
-		r.err = errors.New("Connection failed")
-		return &r
-	}
-
-	// Get the URL for the forecast at the geographic coordinates. We don't want to retry this on failure because
-	// there was some problem handling the coordinates.
-	url, err := getURL(r.client, lat, long)
-	if err != nil {
-		r.err = errors.New("No Forecast Data")
-		return &r
-	}
-	r.url = url
+	r.zip = zip
 
 	return &r
 }
@@ -106,12 +85,17 @@ func (r *Routine) Update() (bool, error) {
 		return false, errors.New("Bad routine")
 	}
 
-	// Handle any error from New.
-	if r.url == "" {
-		if r.err == nil {
-			r.err = errors.New("Bad parameters")
+	// See if we need to initialize the routine still. We're doing this here instead of in New so as to not block the
+	// start-up process of other routines.
+	if !r.initialized {
+		// Catch any error from New.
+		if r.err != nil {
+			// We're going to return true so we can try the process again when the connection is back online (assuming
+			// that's the problem).
+			return true, r.err
 		}
-		return false, r.err
+
+		r.init
 	}
 
 	// Get hourly temperature.
@@ -169,9 +153,39 @@ func (r *Routine) Name() string {
 	return "Weather"
 }
 
-// getCoords gets the geographic coordinates for the provided zip code. It should receive a response in this format:
+// init initializes the weather data. If a zip code was specified, then we'll use the geographic coordinates for that
+// area. Otherwise, we'll use the current coordinates of the IP address.
+func (r *Routine) init() {
+	if zip == "" {
+		// Get the coordinates of the IP address.
+		TODO
+		"https://ipapi.co/latlong"
+		40.701500,-70.842200
+	} else {
+		// Convert the provided zip code into geographic coordinates. If this fails, then it's most likely a connectivity
+		// problem.
+		lat, long, err := zipToCoords(r.client, zip)
+		if err != nil {
+			r.err = errors.New("Connection failed")
+			return &r
+		}
+	}
+
+
+	// Get the URL for the forecast at the geographic coordinates. We don't want to retry this on failure because
+	// there was some problem handling the coordinates.
+	url, err := getURL(r.client, lat, long)
+	if err != nil {
+		r.err = errors.New("No Forecast Data")
+		return &r
+	}
+	r.url = url
+
+}
+
+// zipToCoords gets the geographic coordinates for the provided zip code. It should receive a response in this format:
 // {"status":1,"output":[{"zip":"90210","latitude":"34.103131","longitude":"-118.416253"}]}
-func getCoords(client http.Client, zip string) (string, string, error) {
+func zipToCoords(client http.Client, zip string) (string, string, error) {
 	type coords struct {
 		Status int                 `json:"status"`
 		Output []map[string]string `json:"output"`
