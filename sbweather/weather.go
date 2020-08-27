@@ -156,31 +156,59 @@ func (r *Routine) Name() string {
 // init initializes the weather data. If a zip code was specified, then we'll use the geographic coordinates for that
 // area. Otherwise, we'll use the current coordinates of the IP address.
 func (r *Routine) init() {
-	if zip == "" {
-		// Get the coordinates of the IP address.
-		TODO
-		"https://ipapi.co/latlong"
-		40.701500,-70.842200
-	} else {
-		// Convert the provided zip code into geographic coordinates. If this fails, then it's most likely a connectivity
-		// problem.
-		lat, long, err := zipToCoords(r.client, zip)
-		if err != nil {
-			r.err = errors.New("Connection failed")
-			return &r
-		}
-	}
-
+	lat, long, err := getCoords(r.client, r.zip)
 
 	// Get the URL for the forecast at the geographic coordinates. We don't want to retry this on failure because
 	// there was some problem handling the coordinates.
 	url, err := getURL(r.client, lat, long)
 	if err != nil {
-		r.err = errors.New("No Forecast Data")
+		r.err = errors.New("Missing Forecast Data")
 		return &r
 	}
 	r.url = url
 
+}
+
+func getCoords(client http.Client, zip string) (string, string, error) {
+	if zip == "" {
+		// Get the coordinates of the IP address.
+		return ipToCoords(client)
+	}
+
+	// Convert the provided zip code into geographic coordinates.
+	return zipToCoords(client, zip)
+}
+
+// ipToCoords gets the geographic coordinates centered around the IP address. The request returns ASCII data that is not
+// wrapped in any protocol layer. The coordinates will look like this: lat.1234,long.1234
+func ipToCoords(client http.Client) (string, string, error) {
+	url := "https://ipapi.co/latlong"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", "", err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", err
+	}
+
+	if body = "" {
+		return "", "", errors.New("Missing coordinates for IP")
+	}
+
+	coords := strings.Split(body, ",")
+	if len(coords) != 2 {
+		return "", "", errors.New("Invalid coordinates for IP")
+	}
+
+	return coords[0], coords[1], nil
 }
 
 // zipToCoords gets the geographic coordinates for the provided zip code. It should receive a response in this format:
