@@ -244,8 +244,7 @@ func zipToCoords(client http.Client, zip string) (string, string, error) {
 	}
 
 	c := coords{}
-	err = json.Unmarshal(body, &c)
-	if err != nil {
+	if err := json.Unmarshal(body, &c); err != nil {
 		return "", "", err
 	}
 
@@ -298,8 +297,7 @@ func getURL(client http.Client, lat string, long string) (string, error) {
 	}
 
 	p := props{}
-	err = json.Unmarshal(body, &p)
-	if err != nil {
+	if err := json.Unmarshal(body, &p); err != nil {
 		return "", err
 	}
 
@@ -338,8 +336,7 @@ func getTemp(client http.Client, url string) (int, error) {
 	}
 
 	t := temp{}
-	err = json.Unmarshal(body, &t)
-	if err != nil {
+	if err := json.Unmarshal(body, &t); err != nil {
 		return -1, errors.New("Temp: Bad JSON")
 	}
 
@@ -398,8 +395,7 @@ func getForecast(client http.Client, url string) (int, int, error) {
 	// TODO: handle expired grid.
 
 	f := forecast{}
-	err = json.Unmarshal(body, &f)
-	if err != nil {
+	if err := json.Unmarshal(body, &f); err != nil {
 		return -1, -1, errors.New("Forecast: Bad JSON")
 	}
 
