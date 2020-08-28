@@ -165,6 +165,9 @@ func (r *Routine) init() error {
 		return err
 	}
 
+	// Reduce to 4 decimal places of precision.
+	lat, long = reduceCoords(lat, long)
+
 	// Get the URL for the forecast at the geographic coordinates.
 	url, err := getURL(r.client, lat, long)
 	if err != nil {
@@ -175,6 +178,7 @@ func (r *Routine) init() error {
 	return nil
 }
 
+// getCoords is a jumping point for getting the geographic coordinates based on either the provided zip or an IP address.
 func getCoords(client http.Client, zip string) (string, string, error) {
 	if zip == "" {
 		// Get the coordinates of the IP address.
@@ -258,7 +262,6 @@ func zipToCoords(client http.Client, zip string) (string, string, error) {
 		return "", "", errors.New("Received invalid coordinates array")
 	}
 
-	// TODO: reduce to 4 decimal points of precision
 	lat := c.Output[0]["latitude"]
 	long := c.Output[0]["longitude"]
 	if lat == "" || long == "" {
@@ -266,6 +269,31 @@ func zipToCoords(client http.Client, zip string) (string, string, error) {
 	}
 
 	return lat, long, nil
+}
+
+// reduceCoords reduces the provided coordinates to 4 decimal places of precision.
+func reduceCoords(lat, long string) (string, string) {
+	if strings.Count(lat, ".") == 1 {
+		i := strings.Index(lat, ".")
+		l := i + 1 + 4 // +1 to include the decimal, +4 to have up to 4 decimal places of precision
+		if len(lat) < l {
+			l = len(lat)
+		}
+
+		lat = lat[:l]
+	}
+
+	if strings.Count(long, ".") == 1 {
+		i := strings.Index(long, ".")
+		l := i + 1 + 4 // +1 to include the decimal, +4 to have up to 4 decimal places of precision
+		if len(long) < l {
+			l = len(long)
+		}
+
+		long = long[:l]
+	}
+
+	return lat, long
 }
 
 // getURL queries the NWS to determine which URL we should be using for getting the weather forecast.
