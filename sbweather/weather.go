@@ -95,7 +95,11 @@ func (r *Routine) Update() (bool, error) {
 			return true, r.err
 		}
 
-		r.init
+		if err := r.init(); err != nil {
+			r.err = errors.New("Failed to start")
+			return false, err
+		}
+		r.initialized = true
 	}
 
 	// Get hourly temperature.
@@ -155,18 +159,20 @@ func (r *Routine) Name() string {
 
 // init initializes the weather data. If a zip code was specified, then we'll use the geographic coordinates for that
 // area. Otherwise, we'll use the current coordinates of the IP address.
-func (r *Routine) init() {
+func (r *Routine) init() error {
 	lat, long, err := getCoords(r.client, r.zip)
+	if err != nil {
+		return err
+	}
 
-	// Get the URL for the forecast at the geographic coordinates. We don't want to retry this on failure because
-	// there was some problem handling the coordinates.
+	// Get the URL for the forecast at the geographic coordinates.
 	url, err := getURL(r.client, lat, long)
 	if err != nil {
-		r.err = errors.New("Missing Forecast Data")
-		return &r
+		return err
 	}
 	r.url = url
 
+	return nil
 }
 
 func getCoords(client http.Client, zip string) (string, string, error) {
@@ -199,11 +205,11 @@ func ipToCoords(client http.Client) (string, string, error) {
 		return "", "", err
 	}
 
-	if body = "" {
+	if len(body) == 0 {
 		return "", "", errors.New("Missing coordinates for IP")
 	}
 
-	coords := strings.Split(body, ",")
+	coords := strings.Split(string(body), ",")
 	if len(coords) != 2 {
 		return "", "", errors.New("Invalid coordinates for IP")
 	}
