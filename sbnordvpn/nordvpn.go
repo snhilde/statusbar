@@ -64,12 +64,10 @@ func (r *Routine) Update() (bool, error) {
 		return false, errors.New("Bad routine")
 	}
 
+	// If the command is successful but there's an error with nordvpn (like if the internet is down), this will return
+	// an error code. We still want to capture and parse the error message, so we're going to ignore any returned error.
 	cmd := exec.Command("nordvpn", "status")
-	output, err := cmd.Output()
-	if err != nil {
-		r.err = errors.New("Error getting status")
-		return true, err
-	}
+	output, _ := cmd.Output()
 
 	if err := r.parseOutput(string(output)); err != nil {
 		r.err = err
@@ -140,6 +138,10 @@ func (r *Routine) parseOutput(output string) error {
 		}
 	}
 	if field == -1 {
+		// We didn't receive the usual status output.
+		if strings.Contains(lines[0],  "Please check your internet connection") {
+			return errors.New("Internet Down")
+		}
 		return errors.New(lines[0])
 	} else if len(fields) <= field+1 {
 		return errors.New("Bad response")
@@ -151,8 +153,7 @@ func (r *Routine) parseOutput(output string) error {
 			if strings.HasPrefix(line, "City") {
 				city := strings.Split(line, ":")
 				if len(city) != 2 {
-					r.err = errors.New("Error parsing City")
-					break
+					return errors.New("Error parsing City")
 				}
 
 				r.parsed = "Connected"
@@ -173,8 +174,6 @@ func (r *Routine) parseOutput(output string) error {
 	case "Disconnected":
 		r.parsed = "Disconnected"
 		r.color = r.colors.warning
-	case "Please check your internet connection and try again.":
-		return errors.New("Internet Down")
 	default:
 		// If we're here, then we have an unknown error.
 		return errors.New(lines[0])
