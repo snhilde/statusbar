@@ -81,7 +81,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 	var err error
 	if len(inames) == 0 {
 		// Nothing was passed in. We'll grab the default interfaces.
-		ilist, err = getInterfaces()
+		ilist, err = findInterfaces()
 	} else {
 		for _, iname := range inames {
 			// Make sure we have a valid interface name.
@@ -97,7 +97,6 @@ func New(inames []string, colors ...[3]string) *Routine {
 	// Handle any problems that came up, or build up list of interfaces for later use.
 	if err != nil {
 		r.err = err
-		r.ilist = nil
 	} else if len(ilist) == 0 {
 		r.err = errors.New("No interfaces found")
 	} else {
@@ -194,8 +193,8 @@ func (r *Routine) Name() string {
 	return "Network"
 }
 
-// getInterfaces finds all network interfaces that are currently active.
-func getInterfaces() ([]string, error) {
+// findInterfaces finds all network interfaces that are currently active.
+func findInterfaces() ([]string, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return nil, err
