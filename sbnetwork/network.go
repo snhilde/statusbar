@@ -34,12 +34,6 @@ type sbiface struct {
 	// Name of interface.
 	name string
 
-	// Path to rx_bytes file.
-	downPath string
-
-	// Path to tx_bytes file.
-	upPath string
-
 	// Last reading of rx_bytes file.
 	oldDown int
 
@@ -77,34 +71,8 @@ func New(inames []string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
-	var ilist []string
-	var err error
-	if len(inames) == 0 {
-		// Nothing was passed in. We'll grab the default interfaces.
-		ilist, err = findInterfaces()
-	} else {
-		for _, iname := range inames {
-			// Make sure we have a valid interface name.
-			_, err = net.InterfaceByName(iname)
-			if err != nil {
-				err = errors.New(iname + ": " + err.Error())
-				break
-			}
-			ilist = append(ilist, iname)
-		}
-	}
-
-	// Handle any problems that came up, or build up list of interfaces for later use.
-	if err != nil {
-		r.err = err
-	} else if len(ilist) == 0 {
-		r.err = errors.New("No interfaces found")
-	} else {
-		for _, iname := range ilist {
-			downPath := "/sys/class/net/" + iname + "/statistics/rx_bytes"
-			upPath := "/sys/class/net/" + iname + "/statistics/tx_bytes"
-			r.ilist = append(r.ilist, sbiface{name: iname, downPath: downPath, upPath: upPath})
-		}
+	for _, iname := range inames {
+		r.ilist = append(r.ilist, sbiface{name: iname})
 	}
 
 	return &r
@@ -117,22 +85,28 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	// Handle any error from New.
+	// TODO
+
+	var ilist []string
 	if len(r.ilist) == 0 {
-		return false, r.err
-	}
+		// If no interfaces were specified, then we'll grab all the ones currently up. We want to run this process each
+		// loop to catch any changes in interface status as they happen.
+		ilist, err = findInterfaces()
 
 	for i, iface := range r.ilist {
 		r.ilist[i].oldDown = iface.newDown
 		r.ilist[i].oldUp = iface.newUp
 
-		down, err := readFile(iface.downPath)
+		downPath := "/sys/class/net/" + iface.name + "/statistics/rx_bytes"
+		down, err := readFile(downPath)
 		if err != nil {
 			r.err = errors.New("Error reading " + iface.name + " (Down)")
 			return true, err
 		}
 		r.ilist[i].newDown = down
 
-		up, err := readFile(iface.upPath)
+		upPath := "/sys/class/net/" + iface.iname + "/statistics/tx_bytes"
+		up, err := readFile(upPath)
 		if err != nil {
 			r.err = errors.New("Error reading " + iface.name + " (Up)")
 			return true, err
@@ -193,6 +167,39 @@ func (r *Routine) Name() string {
 	return "Network"
 }
 
+// getInterfaces ...
+func getInterfaces(inames string) ([]string, error) {
+	var ilist []string
+	var err error
+
+	if len(inames) == 0 {
+		// Nothing was passed in. We'll grab the default interfaces.
+		ilist, err = findInterfaces()
+	} else {
+		for _, iname := range inames {
+			// Make sure we have a valid interface name.
+			_, err = net.InterfaceByName(iname)
+			if err != nil {
+				err = errors.New(iname + ": " + err.Error())
+				break
+			}
+			ilist = append(ilist, iname)
+		}
+	}
+
+	// Handle any problems that came up, or build up list of interfaces for later use.
+	if err != nil {
+		r.err = err
+	} else if len(ilist) == 0 {
+		r.err = errors.New("No interfaces found")
+	} else {
+		for _, iname := range ilist {
+			r.ilist = append(r.ilist, sbiface{name: iname})
+		}
+	}
+
+}
+
 // findInterfaces finds all network interfaces that are currently active.
 func findInterfaces() ([]string, error) {
 	ifaces, err := net.Interfaces()
@@ -200,7 +207,7 @@ func findInterfaces() ([]string, error) {
 		return nil, err
 	}
 
-	inames := make([]string, 0)
+	var inames []string
 	for _, iface := range ifaces {
 		if iface.Name == "lo" {
 			// Skip loopback.
