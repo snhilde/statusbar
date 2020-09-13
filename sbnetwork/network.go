@@ -18,8 +18,17 @@ type Routine struct {
 	// Error encountered along the way, if any.
 	err error
 
-	// List of interfaces.
-	ilist []sbiface
+	// true if New hit an error.
+	newFailed bool
+
+	// List of user-supplied interfaces to monitor. If nothing was supplied, we'll grab the interfaces currently up.
+	givenNames []string
+
+	// List of interfaces names that we want to display on the statusbar.
+	printNames []string
+
+	// Cache of data for every interface monitored.
+	cache map[string]sbiface
 
 	// Trio of user-provided colors for displaying various states.
 	colors struct {
@@ -31,9 +40,6 @@ type Routine struct {
 
 // sbiface groups different pieces of information for a single interface.
 type sbiface struct {
-	// Name of interface.
-	name string
-
 	// Last reading of rx_bytes file.
 	oldDown int
 
@@ -60,6 +66,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
 				r.err = errors.New("Invalid color")
+				r.newFailed = true
 				return &r
 			}
 		}
@@ -71,9 +78,19 @@ func New(inames []string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
-	for _, iname := range inames {
-		r.ilist = append(r.ilist, sbiface{name: iname})
+	if len(inames) > 0 {
+		// Make sure they are valid interfaces.
+		for _, iname := range inames {
+			if _, err := net.InterfaceByName(iname); err != nil {
+				r.err = errors.New(iname + ": " + err.Error())
+				r.newFailed = true
+				break
+			}
+			r.givenNames = append(r.givenNames, iname)
+		}
 	}
+
+	r.cache = make(map[string]sbiface)
 
 	return &r
 }
@@ -85,33 +102,51 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	// Handle any error from New.
-	// TODO
+	if r.newFailed {
+		return false, r.err
+	}
 
-	var ilist []string
-	if len(r.ilist) == 0 {
+	// Get the interfaces that we want to monitor on this loop.
+	r.printNames = r.givenNames
+	if len(r.printNames) == 0 {
 		// If no interfaces were specified, then we'll grab all the ones currently up. We want to run this process each
-		// loop to catch any changes in interface status as they happen.
-		ilist, err = findInterfaces()
+		// loop to catch any changes in interface statuses as they happen.
+		is, err := findInterfaces()
+		if err != nil {
+			r.err = errors.New("Error finding interfaces")
+			return true, err
+		}
+		r.printNames = is
+	}
+	if len(r.printNames) == 0 {
+		r.err = errors.New("No interfaces up")
+		return true, r.err
+	}
 
-	for i, iface := range r.ilist {
-		r.ilist[i].oldDown = iface.newDown
-		r.ilist[i].oldUp = iface.newUp
+	// Get the new data for each monitored interface.
+	for _, iname := range r.printNames {
+		iface := r.cache[iname]
 
-		downPath := "/sys/class/net/" + iface.name + "/statistics/rx_bytes"
+		iface.oldDown = iface.newDown
+		iface.oldUp = iface.newUp
+
+		downPath := "/sys/class/net/" + iname + "/statistics/rx_bytes"
 		down, err := readFile(downPath)
 		if err != nil {
-			r.err = errors.New("Error reading " + iface.name + " (Down)")
+			r.err = errors.New("Error reading " + iname + " (Down)")
 			return true, err
 		}
-		r.ilist[i].newDown = down
+		iface.newDown = down
 
-		upPath := "/sys/class/net/" + iface.iname + "/statistics/tx_bytes"
+		upPath := "/sys/class/net/" + iname + "/statistics/tx_bytes"
 		up, err := readFile(upPath)
 		if err != nil {
-			r.err = errors.New("Error reading " + iface.name + " (Up)")
+			r.err = errors.New("Error reading " + iname + " (Up)")
 			return true, err
 		}
-		r.ilist[i].newUp = up
+		iface.newUp = up
+
+		r.cache[iname] = iface
 	}
 
 	return true, nil
@@ -125,8 +160,12 @@ func (r *Routine) String() string {
 
 	var c string
 	var b strings.Builder
+	for _, iname := range r.printNames {
+		iface, ok := r.cache[iname]
+		if !ok {
+			continue
+		}
 
-	for i, iface := range r.ilist {
 		down, downUnit := shrink(iface.newDown - iface.oldDown)
 		up, upUnit := shrink(iface.newUp - iface.oldUp)
 
@@ -138,11 +177,11 @@ func (r *Routine) String() string {
 			c = r.colors.error
 		}
 
-		if i > 0 {
+		if b.Len() > 0 {
 			b.WriteString(", ")
 		}
 		b.WriteString(c)
-		fmt.Fprintf(&b, "%s: %4v%c↓|%4v%c↑", iface.name, down, downUnit, up, upUnit)
+		fmt.Fprintf(&b, "%s: %4v%c↓|%4v%c↑", iname, down, downUnit, up, upUnit)
 		b.WriteString(colorEnd)
 	}
 
@@ -165,39 +204,6 @@ func (r *Routine) Error() string {
 // Name returns the display name of this module.
 func (r *Routine) Name() string {
 	return "Network"
-}
-
-// getInterfaces ...
-func getInterfaces(inames string) ([]string, error) {
-	var ilist []string
-	var err error
-
-	if len(inames) == 0 {
-		// Nothing was passed in. We'll grab the default interfaces.
-		ilist, err = findInterfaces()
-	} else {
-		for _, iname := range inames {
-			// Make sure we have a valid interface name.
-			_, err = net.InterfaceByName(iname)
-			if err != nil {
-				err = errors.New(iname + ": " + err.Error())
-				break
-			}
-			ilist = append(ilist, iname)
-		}
-	}
-
-	// Handle any problems that came up, or build up list of interfaces for later use.
-	if err != nil {
-		r.err = err
-	} else if len(ilist) == 0 {
-		r.err = errors.New("No interfaces found")
-	} else {
-		for _, iname := range ilist {
-			r.ilist = append(r.ilist, sbiface{name: iname})
-		}
-	}
-
 }
 
 // findInterfaces finds all network interfaces that are currently active.
