@@ -181,7 +181,7 @@ func (r *Routine) String() string {
 			b.WriteString(", ")
 		}
 		b.WriteString(c)
-		fmt.Fprintf(&b, "%s: %4v%c↓|%4v%c↑", iname, down, downUnit, up, upUnit)
+		fmt.Fprintf(&b, "%v: %4v%c↓|%4v%c↑", iname, down, downUnit, up, upUnit)
 		b.WriteString(colorEnd)
 	}
 
