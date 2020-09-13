@@ -18,9 +18,6 @@ type Routine struct {
 	// Error encountered along the way, if any.
 	err error
 
-	// true if New hit an error.
-	newFailed bool
-
 	// List of user-supplied interfaces to monitor. If nothing was supplied, we'll grab the interfaces currently up.
 	givenNames []string
 
@@ -40,6 +37,9 @@ type Routine struct {
 
 // sbiface groups different pieces of information for a single interface.
 type sbiface struct {
+	// Whether the interface is currently up or down.
+	enabled bool
+
 	// Last reading of rx_bytes file.
 	oldDown int
 
@@ -66,7 +66,6 @@ func New(inames []string, colors ...[3]string) *Routine {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
 				r.err = errors.New("Invalid color")
-				r.newFailed = true
 				return &r
 			}
 		}
@@ -78,18 +77,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
-	if len(inames) > 0 {
-		// Make sure they are valid interfaces.
-		for _, iname := range inames {
-			if _, err := net.InterfaceByName(iname); err != nil {
-				r.err = errors.New(iname + ": " + err.Error())
-				r.newFailed = true
-				break
-			}
-			r.givenNames = append(r.givenNames, iname)
-		}
-	}
-
+	r.givenNames = inames
 	r.cache = make(map[string]sbiface)
 
 	return &r
@@ -99,11 +87,6 @@ func New(inames []string, colors ...[3]string) *Routine {
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
 		return false, errors.New("Bad routine")
-	}
-
-	// Handle any error from New.
-	if r.newFailed {
-		return false, r.err
 	}
 
 	// Get the interfaces that we want to monitor on this loop.
@@ -133,19 +116,22 @@ func (r *Routine) Update() (bool, error) {
 		downPath := "/sys/class/net/" + iname + "/statistics/rx_bytes"
 		down, err := readFile(downPath)
 		if err != nil {
-			r.err = errors.New("Error reading " + iname + " (Down)")
-			return true, err
+			iface.enabled = false
+			r.cache[iname] = iface
+			continue
 		}
 		iface.newDown = down
 
 		upPath := "/sys/class/net/" + iname + "/statistics/tx_bytes"
 		up, err := readFile(upPath)
 		if err != nil {
-			r.err = errors.New("Error reading " + iname + " (Up)")
-			return true, err
+			iface.enabled = false
+			r.cache[iname] = iface
+			continue
 		}
 		iface.newUp = up
 
+		iface.enabled = true
 		r.cache[iname] = iface
 	}
 
@@ -166,23 +152,30 @@ func (r *Routine) String() string {
 			continue
 		}
 
-		down, downUnit := shrink(iface.newDown - iface.oldDown)
-		up, upUnit := shrink(iface.newUp - iface.oldUp)
-
-		if downUnit == 'B' || upUnit == 'B' || downUnit == 'K' || upUnit == 'K' {
-			c = r.colors.normal
-		} else if downUnit == 'M' || upUnit == 'M' {
-			c = r.colors.warning
-		} else {
-			c = r.colors.error
-		}
-
 		if b.Len() > 0 {
 			b.WriteString(", ")
 		}
-		b.WriteString(c)
-		fmt.Fprintf(&b, "%v: %4v%c↓|%4v%c↑", iname, down, downUnit, up, upUnit)
-		b.WriteString(colorEnd)
+
+		if iface.enabled {
+			down, downUnit := shrink(iface.newDown - iface.oldDown)
+			up, upUnit := shrink(iface.newUp - iface.oldUp)
+
+			if downUnit == 'B' || upUnit == 'B' || downUnit == 'K' || upUnit == 'K' {
+				c = r.colors.normal
+			} else if downUnit == 'M' || upUnit == 'M' {
+				c = r.colors.warning
+			} else {
+				c = r.colors.error
+			}
+
+			b.WriteString(c)
+			fmt.Fprintf(&b, "%v: %4v%c↓|%4v%c↑", iname, down, downUnit, up, upUnit)
+			b.WriteString(colorEnd)
+		} else {
+			b.WriteString(r.colors.error)
+			fmt.Fprintf(&b, "%v: Down", iname)
+			b.WriteString(colorEnd)
+		}
 	}
 
 	return b.String()
