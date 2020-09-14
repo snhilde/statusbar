@@ -42,14 +42,8 @@ type Routine struct {
 func New(control string, colors ...[3]string) *Routine {
 	var r Routine
 
-	// Do a minor sanity check on the color codes.
-	if len(colors) == 1 {
-		for _, color := range colors[0] {
-			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("Invalid color")
-				return &r
-			}
-		}
+	// Store the color codes. Don't do any validation.
+	if len(colors) > 0 {
 		r.colors.normal = "^c" + colors[0][0] + "^"
 		r.colors.warning = "^c" + colors[0][1] + "^"
 		r.colors.error = "^c" + colors[0][2] + "^"
