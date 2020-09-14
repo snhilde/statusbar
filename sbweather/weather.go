@@ -320,7 +320,7 @@ func getURL(client http.Client, lat string, long string) (string, error) {
 
 	url = p.Properties.Forecast
 	if url == "" {
-		return "", errors.New("Missing temperature URL")
+		return "", errors.New("Bad temperature URL")
 	}
 
 	return url, nil
