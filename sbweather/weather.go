@@ -83,7 +83,7 @@ func (r *Routine) Update() (bool, error) {
 	// start-up process of other routines.
 	if !r.initialized {
 		if err := r.init(); err != nil {
-			r.err = errors.New("Failed to start")
+			r.err = errors.New("Failed to start up")
 			// We're going to return true so we can try the process again when the connection is back online (assuming
 			// that's the problem).
 			return true, err
