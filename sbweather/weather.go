@@ -82,16 +82,11 @@ func (r *Routine) Update() (bool, error) {
 	// See if we need to initialize the routine still. We're doing this here instead of in New so as to not block the
 	// start-up process of other routines.
 	if !r.initialized {
-		// Catch any error from New.
-		if r.err != nil {
-			// We're going to return true so we can try the process again when the connection is back online (assuming
-			// that's the problem).
-			return true, r.err
-		}
-
 		if err := r.init(); err != nil {
 			r.err = errors.New("Failed to start")
-			return false, err
+			// We're going to return true so we can try the process again when the connection is back online (assuming
+			// that's the problem).
+			return true, err
 		}
 		r.initialized = true
 	}
