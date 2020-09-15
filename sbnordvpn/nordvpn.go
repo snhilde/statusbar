@@ -133,7 +133,7 @@ func (r *Routine) parseOutput(output string) error {
 	}
 	if field == -1 {
 		// We didn't receive the usual status output.
-		if strings.Contains(lines[0],  "Please check your internet connection") {
+		if strings.Contains(lines[0], "Please check your internet connection") {
 			return errors.New("Internet Down")
 		}
 		return errors.New(lines[0])
