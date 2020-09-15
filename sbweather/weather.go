@@ -354,7 +354,7 @@ func getTemp(client http.Client, url string) (int, error) {
 
 	t := temp{}
 	if err := json.Unmarshal(body, &t); err != nil {
-		return -1, errors.New("Temp: Bad JSON")
+		return -1, errors.New("Temp: Bad Data")
 	}
 
 	// Get the list of weather readings.
