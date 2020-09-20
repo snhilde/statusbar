@@ -181,7 +181,14 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 		for i, s := range outputs {
 			if len(s) > 0 {
 				b.WriteString(sb.left)
+
+				// Shorten outputs that are longer than 50 characters.
+				if len(s) > 50 {
+					s = s[:46]
+					s += "..."
+				}
 				b.WriteString(s)
+
 				b.WriteString(sb.right)
 				b.WriteByte(' ')
 			}
