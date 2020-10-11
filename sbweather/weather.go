@@ -294,8 +294,8 @@ func reduceCoords(lat, long string) (string, string) {
 // Our value should be here: properties -> forecast.
 func getURL(client http.Client, lat string, long string) (string, error) {
 	type props struct {
-		Status int    `json:"status"`
-		Detail string `json:"detail"`
+		Status     int    `json:"status"`
+		Detail     string `json:"detail"`
 		Properties struct {
 			Forecast string `json:"forecast"`
 		} `json:"properties"`
