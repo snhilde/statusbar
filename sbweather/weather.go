@@ -181,7 +181,12 @@ func getCoords(client http.Client, zip string) (string, string, error) {
 // ipToCoords gets the geographic coordinates centered around the IP address. The request returns ASCII data that is not
 // wrapped in any protocol layer. The coordinates will look like this: lat.1234,long.1234
 func ipToCoords(client http.Client) (string, string, error) {
-	url := "https://ipapi.co/latlong"
+	type coords struct {
+		Lat float32 `json:"lat"`
+		Lon float32 `json:"lon"`
+	}
+
+	url := "http://ip-api.com/json?fields=lat,lon"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", "", err
@@ -198,16 +203,16 @@ func ipToCoords(client http.Client) (string, string, error) {
 		return "", "", err
 	}
 
-	if len(body) == 0 {
-		return "", "", errors.New("Missing coordinates for IP")
+	c := coords{}
+	if err := json.Unmarshal(body, &c); err != nil {
+		return "", "", err
 	}
 
-	coords := strings.Split(string(body), ",")
-	if len(coords) != 2 {
-		return "", "", errors.New("Invalid coordinates for IP")
+	if c.Lat == 0 && c.Lon == 0 {
+		return "", "", errors.New("Failed to find coordinates")
 	}
 
-	return coords[0], coords[1], nil
+	return fmt.Sprintf("%v", c.Lat), fmt.Sprintf("%v", c.Lon), nil
 }
 
 // zipToCoords gets the geographic coordinates for the provided zip code. It should receive a response in this format:
@@ -289,7 +294,6 @@ func reduceCoords(lat, long string) (string, string) {
 // Our value should be here: properties -> forecast.
 func getURL(client http.Client, lat string, long string) (string, error) {
 	type props struct {
-		// Properties map[string]interface{} `json:"properties"`
 		Properties struct {
 			Forecast string `json:"forecast"`
 		} `json:"properties"`
