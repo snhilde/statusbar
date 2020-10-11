@@ -294,6 +294,8 @@ func reduceCoords(lat, long string) (string, string) {
 // Our value should be here: properties -> forecast.
 func getURL(client http.Client, lat string, long string) (string, error) {
 	type props struct {
+		Status int    `json:"status"`
+		Detail string `json:"detail"`
 		Properties struct {
 			Forecast string `json:"forecast"`
 		} `json:"properties"`
@@ -320,6 +322,15 @@ func getURL(client http.Client, lat string, long string) (string, error) {
 	p := props{}
 	if err := json.Unmarshal(body, &p); err != nil {
 		return "", err
+	}
+
+	// Catch some error codes.
+	switch p.Status {
+	// Add other codes here as they come up.
+	case 301:
+		return "", errors.New("Max 4 digits of precision")
+	case 404:
+		return "", errors.New("Invalid location")
 	}
 
 	url = p.Properties.Forecast
