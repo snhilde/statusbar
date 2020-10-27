@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -33,13 +32,13 @@ type Routine struct {
 	client http.Client
 
 	// Current temperature for the provided zip code.
-	temp int
+	temp string
 
 	// Forecast high.
-	high int
+	high string
 
 	// Forecast low.
-	low int
+	low string
 
 	// Trio of user-provided colors for displaying various states.
 	colors struct {
@@ -116,16 +115,45 @@ func (r *Routine) String() string {
 		return "Bad routine"
 	}
 
-	var s string
-
-	t := time.Now()
-	if t.Hour() < 15 {
-		s = "today"
-	} else {
-		s = "tom"
+	// Grab some info on which day's forecast we're reporting.
+	day := "today"
+	if time.Now().Hour() >= 15 {
+		day = "tom"
 	}
 
-	return fmt.Sprintf("%s%v °F (%s: %v/%v)%s", r.colors.normal, r.temp, s, r.high, r.low, colorEnd)
+	// Let's work through the different scenarios where we might or might not have high and low temperature forecasts.
+	haveCurr := r.temp != ""
+	haveHigh := r.high != ""
+	haveLow := r.low != ""
+
+	if haveCurr {
+		if haveHigh {
+			if haveLow {
+				// We know the current temperature as well as the high and low forecasts.
+				return fmt.Sprintf("%s%v °F (%s: %v/%v)%s", r.colors.normal, r.temp, day, r.high, r.low, colorEnd)
+			}
+			// We know the current temperature and the high forecast.
+			return fmt.Sprintf("%s%v °F (%s high: %v)%s", r.colors.normal, r.temp, day, r.high, colorEnd)
+		} else if haveLow {
+			// We know the current temperature and the low forecast.
+			return fmt.Sprintf("%s%v °F (%s low: %v)%s", r.colors.normal, r.temp, day, r.low, colorEnd)
+		}
+		// We know only the current temperature.
+		return fmt.Sprintf("%s%v °F now%s", r.colors.normal, r.temp, colorEnd)
+	} else if haveHigh {
+		if haveLow {
+			// We have the high and low forecasts but no current reading.
+			return fmt.Sprintf("%s%s: %v/%v °F%s", r.colors.normal, day, r.high, r.low, colorEnd)
+		}
+		// We have only the forecasted high.
+		return fmt.Sprintf("%s%s high: %v °F%s", r.colors.normal, day, r.high, colorEnd)
+	} else if haveLow {
+		// We have only the forecasted low.
+		return fmt.Sprintf("%s%s low: %v °F%s", r.colors.normal, day, r.low, colorEnd)
+	}
+
+	// If we're here, then we don't have any weather information at all.
+	return r.colors.warning + "No weather data" + colorEnd
 }
 
 // Error formats and returns an error message.
@@ -343,7 +371,7 @@ func getURL(client http.Client, lat string, long string) (string, error) {
 
 // getTemp gets the current temperature from the NWS database.
 // Our value should be here: properties -> periods -> (latest period) -> temperature.
-func getTemp(client http.Client, url string) (int, error) {
+func getTemp(client http.Client, url string) (string, error) {
 	type temp struct {
 		Properties struct {
 			Periods []interface{} `json:"periods"`
@@ -352,40 +380,40 @@ func getTemp(client http.Client, url string) (int, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return -1, errors.New("Temp: Bad Request")
+		return "", errors.New("Temp: Bad Request")
 	}
 	req.Header.Set("accept", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return -1, errors.New("Temp: Bad Client")
+		return "", errors.New("Temp: Bad Client")
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return -1, errors.New("Temp: Bad Read")
+		return "", errors.New("Temp: Bad Read")
 	}
 
 	t := temp{}
 	if err := json.Unmarshal(body, &t); err != nil {
-		return -1, errors.New("Temp: Bad Data")
+		return "", errors.New("Temp: Bad Data")
 	}
 
 	// Get the list of weather readings.
 	periods := t.Properties.Periods
 	if len(periods) == 0 {
-		return -1, errors.New("Missing hourly temperature periods")
+		return "", errors.New("Missing hourly temperature periods")
 	}
 
 	// Use the most recent reading.
 	latest := periods[0].(map[string]interface{})
 	if len(latest) == 0 {
-		return -1, errors.New("Missing current temperature")
+		return "", errors.New("Missing current temperature")
 	}
 
 	// Get just the temperature reading.
-	return tempConvert(latest["temperature"])
+	return fmt.Sprintf("%v", latest["temperature"]), nil
 }
 
 // getForecast gets the forecasted temperatures from the NWS database.
@@ -393,11 +421,40 @@ func getTemp(client http.Client, url string) (int, error) {
 // We're going to use these rules to determine which day's forecast we want:
 //   1. If it's before 3 pm, we'll use the current day.
 //   2. If it's after 3 pm, we'll display the high/low for the next day.
-func getForecast(client http.Client, url string) (int, int, error) {
+func getForecast(client http.Client, url string) (string, string, error) {
 	type forecast struct {
 		Properties struct {
 			Periods []map[string]interface{} `json:"periods"`
 		} `json:"properties"`
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", "", errors.New("Forecast: Bad Request")
+	}
+	req.Header.Set("accept", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", "", errors.New("Forecast: Bad Client")
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", errors.New("Forecast: Bad Read")
+	}
+	// TODO: handle expired grid.
+
+	f := forecast{}
+	if err := json.Unmarshal(body, &f); err != nil {
+		return "", "", errors.New("Forecast: Bad JSON")
+	}
+
+	// Get the list of forecasts.
+	periods := f.Properties.Periods
+	if len(periods) == 0 {
+		return "", "", errors.New("Missing forecast periods")
 	}
 
 	// If it's before 3pm, we'll use the forecast of the current day.
@@ -406,67 +463,35 @@ func getForecast(client http.Client, url string) (int, int, error) {
 	if t.Hour() >= 15 {
 		t = t.Add(time.Hour * 12)
 	}
-	timeStr := t.Format("2006-01-02T") + "18:00:00"
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return -1, -1, errors.New("Forecast: Bad Request")
-	}
-	req.Header.Set("accept", "application/json")
+	// For the day's high, we want to always look at the first time period that ends at 6:00 pm. If it's after 3:00 pm
+	// for the day already, then we'll look at that time period for the following day.
+	highEnd := t.Format("2006-01-02T") + "18:00:00"
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return -1, -1, errors.New("Forecast: Bad Client")
-	}
-	defer resp.Body.Close()
+	// For the day's low, we want to look at the time perioud that ends at 6:00 am. Like before, this will be shifted
+	// back by a day if the current time is already past 3:00 pm.
+	lowEnd := t.Format("2006-01-02T") + "06:00:00"
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return -1, -1, errors.New("Forecast: Bad Read")
-	}
-	// TODO: handle expired grid.
-
-	f := forecast{}
-	if err := json.Unmarshal(body, &f); err != nil {
-		return -1, -1, errors.New("Forecast: Bad JSON")
-	}
-
-	// Get the list of forecasts.
-	periods := f.Properties.Periods
-	if len(periods) == 0 {
-		return -1, -1, errors.New("Missing forecast periods")
-	}
-
-	// Iterate through the list until we find the forecast for tomorrow.
-	var high int
-	var low int
+	// Iterate through the list until we find the forecast for today/tomorrow.
+	var high string
+	var low string
 	for _, f := range periods {
-		et := f["endTime"].(string)
-		st := f["startTime"].(string)
-		if strings.Contains(et, timeStr) {
+		// This is when this time period ends. The beginning of the time period will advance as the day advances, but
+		// the end will always stay the same.
+		endTime := f["endTime"].(string)
+		if strings.Contains(endTime, highEnd) {
 			// We'll get the high from here.
-			high, _ = tempConvert(f["temperature"])
-		} else if strings.Contains(st, timeStr) {
+			high = fmt.Sprintf("%v", f["temperature"])
+		} else if strings.Contains(endTime, lowEnd) {
 			// We'll get the low from here.
-			low, _ = tempConvert(f["temperature"])
+			low = fmt.Sprintf("%v", f["temperature"])
+		}
 
+		if high != "" && low != "" {
 			// This is all we need from the forecast, so we can exit now.
-			return high, low, nil
+			break
 		}
 	}
 
-	// If we're here, then we didn't find the forecast.
-	return -1, -1, errors.New("Failed to determine forecast")
-}
-
-// tempConvert converts the temperature from either a float or string into an int.
-func tempConvert(val interface{}) (int, error) {
-	switch val.(type) {
-	case float64:
-		return int(val.(float64)), nil
-	case string:
-		return strconv.Atoi(val.(string))
-	}
-
-	return -1, errors.New("Unknown temperature format")
+	return high, low, nil
 }
