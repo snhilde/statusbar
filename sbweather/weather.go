@@ -90,6 +90,11 @@ func (r *Routine) Update() (bool, error) {
 		r.initialized = true
 	}
 
+	// Reset all readings.
+	r.temp = ""
+	r.high = ""
+	r.low = ""
+
 	// Get hourly temperature.
 	temp, err := getTemp(r.client, r.url+"/hourly")
 	if err != nil {
