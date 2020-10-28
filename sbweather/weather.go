@@ -32,13 +32,13 @@ type Routine struct {
 	client http.Client
 
 	// Current temperature for the provided zip code.
-	temp string
+	currTemp string
 
 	// Forecast high.
-	high string
+	highTemp string
 
 	// Forecast low.
-	low string
+	lowTemp string
 
 	// Trio of user-provided colors for displaying various states.
 	colors struct {
@@ -91,9 +91,9 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	// Reset all readings.
-	r.temp = ""
-	r.high = ""
-	r.low = ""
+	r.currTemp = ""
+	r.highTemp = ""
+	r.lowTemp = ""
 
 	// Get hourly temperature.
 	temp, err := getTemp(r.client, r.url+"/hourly")
@@ -101,15 +101,15 @@ func (r *Routine) Update() (bool, error) {
 		r.err = err
 		return true, err
 	}
-	r.temp = temp
+	r.currTemp = temp
 
 	high, low, err := getForecast(r.client, r.url)
 	if err != nil {
 		r.err = err
 		return true, err
 	}
-	r.high = high
-	r.low = low
+	r.highTemp = high
+	r.lowTemp = low
 
 	return true, nil
 }
@@ -127,34 +127,34 @@ func (r *Routine) String() string {
 	}
 
 	// Let's work through the different scenarios where we might or might not have high and low temperature forecasts.
-	haveCurr := r.temp != ""
-	haveHigh := r.high != ""
-	haveLow := r.low != ""
+	haveCurr := r.currTemp != ""
+	haveHigh := r.highTemp != ""
+	haveLow := r.lowTemp != ""
 
 	if haveCurr {
 		if haveHigh {
 			if haveLow {
 				// We know the current temperature as well as the high and low forecasts.
-				return fmt.Sprintf("%s%v °F (%s: %v/%v)%s", r.colors.normal, r.temp, day, r.high, r.low, colorEnd)
+				return fmt.Sprintf("%s%v °F (%s: %v/%v)%s", r.colors.normal, r.currTemp, day, r.highTemp, r.lowTemp, colorEnd)
 			}
 			// We know the current temperature and the high forecast.
-			return fmt.Sprintf("%s%v °F (%s high: %v)%s", r.colors.normal, r.temp, day, r.high, colorEnd)
+			return fmt.Sprintf("%s%v °F (%s high: %v)%s", r.colors.normal, r.currTemp, day, r.highTemp, colorEnd)
 		} else if haveLow {
 			// We know the current temperature and the low forecast.
-			return fmt.Sprintf("%s%v °F (%s low: %v)%s", r.colors.normal, r.temp, day, r.low, colorEnd)
+			return fmt.Sprintf("%s%v °F (%s low: %v)%s", r.colors.normal, r.currTemp, day, r.lowTemp, colorEnd)
 		}
 		// We know only the current temperature.
-		return fmt.Sprintf("%s%v °F now%s", r.colors.normal, r.temp, colorEnd)
+		return fmt.Sprintf("%s%v °F now%s", r.colors.normal, r.currTemp, colorEnd)
 	} else if haveHigh {
 		if haveLow {
 			// We have the high and low forecasts but no current reading.
-			return fmt.Sprintf("%s%s: %v/%v °F%s", r.colors.normal, day, r.high, r.low, colorEnd)
+			return fmt.Sprintf("%s%s: %v/%v °F%s", r.colors.normal, day, r.highTemp, r.lowTemp, colorEnd)
 		}
 		// We have only the forecasted high.
-		return fmt.Sprintf("%s%s high: %v °F%s", r.colors.normal, day, r.high, colorEnd)
+		return fmt.Sprintf("%s%s high: %v °F%s", r.colors.normal, day, r.highTemp, colorEnd)
 	} else if haveLow {
 		// We have only the forecasted low.
-		return fmt.Sprintf("%s%s low: %v °F%s", r.colors.normal, day, r.low, colorEnd)
+		return fmt.Sprintf("%s%s low: %v °F%s", r.colors.normal, day, r.lowTemp, colorEnd)
 	}
 
 	// If we're here, then we don't have any weather information at all.
