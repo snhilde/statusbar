@@ -1,5 +1,5 @@
 /*
-statusbar displays various information on the dwm statusbar.
+Package statusbar displays various information on the dwm statusbar.
 
 The design of this statusbar manager is modular by nature; you create the main process with this package and then
 populate it with only the information you want using individual modules. For example, if you want to show only the time
