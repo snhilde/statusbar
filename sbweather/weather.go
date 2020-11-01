@@ -376,10 +376,14 @@ func getURL(client http.Client, lat string, long string) (string, error) {
 
 // getTemp gets the current temperature from the NWS database.
 // Our value should be here: properties -> periods -> (latest period) -> temperature.
+// If there's an error in the system, it will usually return a "status" element with a value of 500 and an error
+// verbiage in a "title" element. We'll check for that error first and then look for the temperature.
 func getTemp(client http.Client, url string) (string, error) {
 	type temp struct {
+		Status     int    `json:"status"`
+		Title      string `json:"title"`
 		Properties struct {
-			Periods []interface{} `json:"periods"`
+			Periods []map[string]interface{} `json:"periods"`
 		} `json:"properties"`
 	}
 
@@ -405,6 +409,13 @@ func getTemp(client http.Client, url string) (string, error) {
 		return "", errors.New("Temp: Bad Data")
 	}
 
+	if t.Status == 500 {
+		if t.Title != "" {
+			return "", errors.New(t.Title)
+		}
+		return "", errors.New("Temp: Server Error")
+	}
+
 	// Get the list of weather readings.
 	periods := t.Properties.Periods
 	if len(periods) == 0 {
@@ -412,7 +423,7 @@ func getTemp(client http.Client, url string) (string, error) {
 	}
 
 	// Use the most recent reading.
-	latest := periods[0].(map[string]interface{})
+	latest := periods[0]
 	if len(latest) == 0 {
 		return "", errors.New("Missing current temperature")
 	}
