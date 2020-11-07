@@ -53,10 +53,10 @@ type Statusbar struct {
 	routines []routine
 
 	// Delimiter to use for the left side of each routine's output, as set with SetMarkers.
-	left string
+	leftDelim string
 
 	// Delimiter to use for the right side of each routine's output, as set with SetMarkers.
-	right string
+	rightDelim string
 
 	// Index of the interval after which the routines are split, as set with Split.
 	split int
@@ -64,7 +64,7 @@ type Statusbar struct {
 
 // New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
 func New() Statusbar {
-	return Statusbar{left: "[", right: "]", split: -1}
+	return Statusbar{leftDelim: "[", rightDelim: "]", split: -1}
 }
 
 // Append adds a routine to the statusbar's list. Routines are displayed in the order they are added. handler is the
@@ -180,7 +180,7 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 		outputs := <-outputsChan
 		for i, s := range outputs {
 			if len(s) > 0 {
-				b.WriteString(sb.left)
+				b.WriteString(sb.leftDelim)
 
 				// Shorten outputs that are longer than 50 characters.
 				if len(s) > 50 {
@@ -189,7 +189,7 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 				}
 				b.WriteString(s)
 
-				b.WriteString(sb.right)
+				b.WriteString(sb.rightDelim)
 				b.WriteByte(' ')
 			}
 
@@ -217,8 +217,8 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 
 // SetMarkers sets the left and right delimiters around each routine. If not set, these will default to '[' and ']'.
 func (sb *Statusbar) SetMarkers(left string, right string) {
-	sb.left = left
-	sb.right = right
+	sb.leftDelim = left
+	sb.rightDelim = right
 }
 
 // Split splits the statusbar at this point, when using dualstatus patch for dwm. A semicolon (';') is inserted at this
