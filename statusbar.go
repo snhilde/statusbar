@@ -184,8 +184,7 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 
 				// Shorten outputs that are longer than 50 characters.
 				if len(s) > 50 {
-					s = s[:46]
-					s += "..."
+					s = s[:46] + "..."
 				}
 				b.WriteString(s)
 
