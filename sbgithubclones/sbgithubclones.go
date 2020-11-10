@@ -23,7 +23,7 @@ type Routine struct {
 	// Client for sending GET requests.
 	client *http.Client
 
-	// Number of clones today.
+	// Total number of clones today.
 	total int
 
 	// Number of unique clones today.
@@ -38,8 +38,8 @@ type Routine struct {
 }
 
 // New makes a new routine object. owner is the username of the repository's owner. repo is the name of the repository.
-// authUser is the username for authentication (must have push permissions). authToken is the token for authentication.
-// colors is an optional triplet of hex color codes for colorizing the output based on these rules:
+// authUser is the username for authentication (must have push permissions to repo). authToken is the token for
+// authentication. colors is an optional triplet of hex color codes for colorizing the output based on these rules:
 //   1. Normal color, used for normal printing.
 //   2. Warning color, currently unused.
 //   3. Error color, used for printing error messages.
@@ -68,6 +68,7 @@ func New(owner, repo, authUser, authToken string, colors ...[3]string) *Routine 
 	req.SetBasicAuth(authUser, authToken)
 	r.req = req
 
+	// Initialize our client.
 	r.client = &http.Client{}
 
 	// Store the color codes. Don't do any validation.
@@ -83,7 +84,7 @@ func New(owner, repo, authUser, authToken string, colors ...[3]string) *Routine 
 	return &r
 }
 
-// Update checks the current clone count.
+// Update gets the current clone count.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
 		return false, errors.New("Bad routine")
@@ -121,7 +122,8 @@ func (r *Routine) Update() (bool, error) {
 		return true, err
 	}
 
-	// Grab the count for today.
+	// Grab the count for today. If there is no timestamp matching today, then it means there haven't been any clones
+	// so far.
 	now := time.Now().UTC()
 	day := now.Day()
 	for _, count := range c.Counts {
