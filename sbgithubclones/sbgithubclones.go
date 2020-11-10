@@ -17,6 +17,9 @@ type Routine struct {
 	// Error encountered along the way, if any.
 	err error
 
+	// Name of repository.
+	repo string
+
 	// Request with user-supplied information.
 	req *http.Request
 
@@ -45,6 +48,8 @@ type Routine struct {
 //   3. Error color, used for printing error messages.
 func New(owner, repo, authUser, authToken string, colors ...[3]string) *Routine {
 	var r Routine
+
+	r.repo = repo
 
 	// Set up the query.
 	q := url.Values{}
@@ -153,7 +158,7 @@ func (r *Routine) String() string {
 	if r.total != 1 {
 		c += "s"
 	}
-	return fmt.Sprintf("%s%v %s (%v Unique)%s", r.colors.normal, r.total, c, r.unique, colorEnd)
+	return fmt.Sprintf("%s%s: %v %s (%v Unique)%s", r.colors.normal, r.repo, r.total, c, r.unique, colorEnd)
 }
 
 // Error formats and returns an error message.
