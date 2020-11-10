@@ -145,7 +145,15 @@ func (r *Routine) String() string {
 		return "Bad routine"
 	}
 
-	return fmt.Sprintf("%s%v Clones (%v Unique)%s", r.colors.normal, r.total, r.unique, colorEnd)
+	if r.total < 0 {
+		r.total = 0
+	}
+
+	c := "Clone"
+	if r.total != 1 {
+		c += "s"
+	}
+	return fmt.Sprintf("%s%v %s (%v Unique)%s", r.colors.normal, r.total, c, r.unique, colorEnd)
 }
 
 // Error formats and returns an error message.
