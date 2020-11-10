@@ -51,7 +51,7 @@ func New(owner, repo, authUser, authToken string, colors ...[3]string) *Routine 
 	q.Set("per", "day")
 
 	// Set up the URL. We don't need to validate any parameters, because Github will do the error checking for us.
-	url := url.URL{
+	u := url.URL{
 		Scheme:   "https",
 		Host:     "api.github.com",
 		Path:     fmt.Sprintf("repos/%s/%s/traffic/clones", url.PathEscape(owner), url.PathEscape(repo)),
@@ -59,7 +59,7 @@ func New(owner, repo, authUser, authToken string, colors ...[3]string) *Routine 
 	}
 
 	// Set up the request.
-	req, err := http.NewRequest("GET", url.String(), nil)
+	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		r.err = err
 		return &r
