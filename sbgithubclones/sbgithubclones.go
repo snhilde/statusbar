@@ -23,9 +23,6 @@ type Routine struct {
 	// Request with user-supplied information.
 	req *http.Request
 
-	// Client for sending GET requests.
-	client *http.Client
-
 	// Total number of clones today.
 	total int
 
@@ -73,9 +70,6 @@ func New(owner, repo, authUser, authToken string, colors ...[3]string) *Routine 
 	req.SetBasicAuth(authUser, authToken)
 	r.req = req
 
-	// Initialize our client.
-	r.client = &http.Client{}
-
 	// Store the color codes. Don't do any validation.
 	if len(colors) > 0 {
 		r.colors.normal = "^c" + colors[0][0] + "^"
@@ -106,7 +100,7 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	// Send the request.
-	resp, err := r.client.Do(r.req)
+	resp, err := http.DefaultClient.Do(r.req)
 	if err != nil {
 		r.err = err
 		return true, err
