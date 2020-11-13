@@ -484,8 +484,9 @@ func getForecast(client http.Client, url string) (string, string, error) {
 	// for the day already, then we'll look at that time period for the following day.
 	highEnd := t.Format("2006-01-02T") + "18:00:00"
 
-	// For the day's low, we want to look at the time perioud that ends at 6:00 am. Like before, this will be shifted
-	// back by a day if the current time is already past 3:00 pm.
+	// For the day's low, we want to look at the time perioud that ends at 6:00 am on the following day. Like before,
+	// this will be shifted back by a day if the current time is already past 3:00 pm.
+	t = t.AddDate(0, 0, 1)
 	lowEnd := t.Format("2006-01-02T") + "06:00:00"
 
 	// Iterate through the list until we find the forecast for today/tomorrow.
