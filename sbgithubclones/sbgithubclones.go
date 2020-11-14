@@ -12,7 +12,8 @@ import (
 
 var colorEnd = "^d^"
 
-// Routine is the main object for this package. It contains the objects needed to query the current clone count.
+// Routine is the main object for this package. It contains the objects needed to query the current clone count for the
+// day and week.
 type Routine struct {
 	// Error encountered along the way, if any.
 	err error
@@ -167,7 +168,8 @@ func getCount(req *http.Request, daily bool) (int, error) {
 	}
 
 	type CloneCounts struct {
-		Counts []CloneCount `json:"clones"`
+		Message string       `json:"message"`
+		Counts  []CloneCount `json:"clones"`
 	}
 
 	// Get the count.
@@ -187,6 +189,15 @@ func getCount(req *http.Request, daily bool) (int, error) {
 	c := CloneCounts{}
 	if err := json.Unmarshal(body, &c); err != nil {
 		return -1, err
+	}
+
+	// If there's an error message in the response, then something went wrong.
+	if c.Message != "" {
+		if c.Message == "Not Found" {
+			// Let's make this error message a little more obvious.
+			c.Message = "Repository Not Found"
+		}
+		return -1, errors.New(c.Message)
 	}
 
 	// Find the current count for this reporting period.
