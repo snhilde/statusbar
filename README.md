@@ -53,21 +53,22 @@ You can find the complete documentation and usage guidelines at [GoDoc](https://
 
 This repository includes these modules to get up and running quickly:
 
-| Module       | Documentation                                                           | Major usage          |
-| ------------ | ----------------------------------------------------------------------- | -------------------- |
-| `sbbattery`  | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbbattery)  | Battery usage        |
-| `sbcputemp`  | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbcputemp)  | CPU temperature      |
-| `sbcpuusage` | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbcpuusage) | CPU usage            |
-| `sbdisk`     | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbdisk)     | Filesystem usage     |
-| `sbfan`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbfan)      | Fan speed            |
-| `sbload`     | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbload)     | System load averages |
-| `sbnetwork`  | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbnetwork)  | Network usage        |
-| `sbnordvpn`  | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbnordvpn)  | NordVPN status       |
-| `sbram`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbram)      | RAM usage            |
-| `sbtime`     | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbtime)     | Current date/time    |
-| `sbtodo`     | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbtodo)     | TODO list display    |
-| `sbvolume`   | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbvolume)   | Volume percentage    |
-| `sbweather`  | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbweather)  | Weather information  |
+| Module           | Documentation                                                               | Major usage             |
+| ---------------- | --------------------------------------------------------------------------- | ----------------------- |
+| `sbbattery`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbbattery)      | Battery usage           |
+| `sbcputemp`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbcputemp)      | CPU temperature         |
+| `sbcpuusage`     | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbcpuusage)     | CPU usage               |
+| `sbdisk`         | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbdisk)         | Filesystem usage        |
+| `sbfan`          | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbfan)          | Fan speed               |
+| `sbgithubclones` | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbgithubclones) | Github repo clone count |
+| `sbload`         | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbload)         | System load averages    |
+| `sbnetwork`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbnetwork)      | Network usage           |
+| `sbnordvpn`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbnordvpn)      | NordVPN status          |
+| `sbram`          | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbram)          | RAM usage               |
+| `sbtime`         | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbtime)         | Current date/time       |
+| `sbtodo`         | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbtodo)         | TODO list display       |
+| `sbvolume`       | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbvolume)       | Volume percentage       |
+| `sbweather`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbweather)      | Weather information     |
 
 
 ## Contributing
