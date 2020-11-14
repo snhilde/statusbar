@@ -93,7 +93,6 @@ func (r *Routine) Update() (bool, error) {
 	}
 	r.weekCount = week
 
-
 	return true, nil
 }
 
@@ -110,11 +109,7 @@ func (r *Routine) String() string {
 		r.weekCount = 0
 	}
 
-	c := "Clone"
-	if r.dayCount != 1 {
-		c += "s"
-	}
-	return fmt.Sprintf("%s%s: %v %s (%v this week)%s", r.colors.normal, r.repo, r.dayCount, c, r.weekCount, colorEnd)
+	return fmt.Sprintf("%s%s: %v/%v Clones%s", r.colors.normal, r.repo, r.dayCount, r.weekCount, colorEnd)
 }
 
 // Error formats and returns an error message.
@@ -188,7 +183,7 @@ func getCount(req *http.Request, daily bool) (int, error) {
 		return -1, err
 	}
 
-	// Parse the json.
+	// Parse the JSON doc.
 	c := CloneCounts{}
 	if err := json.Unmarshal(body, &c); err != nil {
 		return -1, err
@@ -204,10 +199,8 @@ func getCount(req *http.Request, daily bool) (int, error) {
 		}
 	}
 
-	if daily {
-		return -1, errors.New("Missing daily count")
-	}
-	return -1, errors.New("Missing weekly count")
+	// If we didn't find a matching timestamp, then that means there haven't been any clones for this time period.
+	return 0, nil
 }
 
 // getDay determines which day we need to use when looking for the current clone count. For the daily count, we use the
@@ -215,14 +208,14 @@ func getCount(req *http.Request, daily bool) (int, error) {
 func getDay(daily bool) int {
 	now := time.Now()
 	if !daily {
-		// Set the current day to the most recent Monday. Note: The first day is Sunday, which is indexed at 0.
+		// Set the current day to the most recent Monday. Note: The first weekday is Sunday, which is indexed at 0.
 		dayOfWeek := int(now.Weekday())
 		if dayOfWeek == 0 {
 			// For Sunday, go back six days.
-			now.AddDate(0, 0, -6)
+			now = now.AddDate(0, 0, -6)
 		} else {
 			// For all other days, this goes back the correct number of days to get to Monday.
-			now.AddDate(0, 0, 1 - dayOfWeek)
+			now = now.AddDate(0, 0, 1 - dayOfWeek)
 		}
 	}
 
