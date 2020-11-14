@@ -22,11 +22,11 @@ type Routine struct {
 	repo string
 
 	// Requests to get the daily and weekly counts.
-	reqDay *http.Request
+	reqDay  *http.Request
 	reqWeek *http.Request
 
 	// Total number of clones today and this week.
-	dayCount int
+	dayCount  int
 	weekCount int
 
 	// Trio of user-provided colors for displaying various states.
@@ -226,7 +226,7 @@ func getDay(daily bool) int {
 			now = now.AddDate(0, 0, -6)
 		} else {
 			// For all other days, this goes back the correct number of days to get to Monday.
-			now = now.AddDate(0, 0, 1 - dayOfWeek)
+			now = now.AddDate(0, 0, 1-dayOfWeek)
 		}
 	}
 
