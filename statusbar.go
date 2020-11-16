@@ -184,7 +184,13 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 
 				// Shorten outputs that are longer than 50 characters.
 				if len(s) > 50 {
+					// If the output ends with the color terminator, then we need to make sure to keep that so the color
+					// doesn't bleed onto the delimiter and beyond.
+					hasColor := strings.HasSuffix(s, "^d^")
 					s = s[:46] + "..."
+					if hasColor {
+						s += "^d^"
+					}
 				}
 				b.WriteString(s)
 
