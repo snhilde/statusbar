@@ -21,6 +21,9 @@ type Routine struct {
 	// Name of repository.
 	repo string
 
+	// Client used to make the requests.
+	client *http.Client
+
 	// Requests to get the daily and weekly counts.
 	reqDay  *http.Request
 	reqWeek *http.Request
@@ -47,6 +50,11 @@ func New(owner, repo, authUser, authToken string, colors ...[3]string) *Routine 
 	var r Routine
 
 	r.repo = repo
+
+	// Set up our client with a timeout of 30 seconds (the default client does not have a timeout).
+	r.client = &http.Client{
+		Timeout: 30 * time.Second,
+	}
 
 	day, err := buildRequest(owner, repo, authUser, authToken, true)
 	if err != nil {
@@ -80,14 +88,14 @@ func (r *Routine) Update() (bool, error) {
 		return false, errors.New("Bad routine")
 	}
 
-	day, err := getCount(r.reqDay, true)
+	day, err := getCount(r.client, r.reqDay, true)
 	if err != nil {
 		r.err = err
 		return true, err
 	}
 	r.dayCount = day
 
-	week, err := getCount(r.reqWeek, false)
+	week, err := getCount(r.client, r.reqWeek, false)
 	if err != nil {
 		r.err = err
 		return true, err
@@ -161,7 +169,7 @@ func buildRequest(owner, repo, authUser, authToken string, daily bool) (*http.Re
 }
 
 // getCount queries Github for the current clone count for either the day or week.
-func getCount(req *http.Request, daily bool) (int, error) {
+func getCount(client *http.Client, req *http.Request, daily bool) (int, error) {
 	type CloneCount struct {
 		Timestamp string `json:"timestamp"`
 		Count     int    `json:"count"`
@@ -173,7 +181,7 @@ func getCount(req *http.Request, daily bool) (int, error) {
 	}
 
 	// Get the count.
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return -1, err
 	}
