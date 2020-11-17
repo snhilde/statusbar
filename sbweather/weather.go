@@ -29,7 +29,7 @@ type Routine struct {
 	url string
 
 	// HTTP client to reuse for all requests out.
-	client http.Client
+	client *http.Client
 
 	// Current temperature for the provided zip code.
 	currTemp string
@@ -57,6 +57,13 @@ type Routine struct {
 func New(zip string, colors ...[3]string) *Routine {
 	var r Routine
 
+	// Set up our client with a timeout of 30 seconds (the default client does not have a timeout).
+	r.client = &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	r.zip = zip
+
 	// Store the color codes. Don't do any validation.
 	if len(colors) > 0 {
 		r.colors.normal = "^c" + colors[0][0] + "^"
@@ -66,8 +73,6 @@ func New(zip string, colors ...[3]string) *Routine {
 		// If a color array wasn't passed in, then we don't want to print this.
 		colorEnd = ""
 	}
-
-	r.zip = zip
 
 	return &r
 }
@@ -201,7 +206,7 @@ func (r *Routine) init() error {
 }
 
 // getCoords is a jumping point for getting the geographic coordinates based on either the provided zip or an IP address.
-func getCoords(client http.Client, zip string) (string, string, error) {
+func getCoords(client *http.Client, zip string) (string, string, error) {
 	if zip == "" {
 		// Get the coordinates of the IP address.
 		return ipToCoords(client)
@@ -213,7 +218,7 @@ func getCoords(client http.Client, zip string) (string, string, error) {
 
 // ipToCoords gets the geographic coordinates centered around the IP address. The request returns ASCII data that is not
 // wrapped in any protocol layer. The coordinates will look like this: lat.1234,long.1234
-func ipToCoords(client http.Client) (string, string, error) {
+func ipToCoords(client *http.Client) (string, string, error) {
 	type coords struct {
 		Lat float32 `json:"lat"`
 		Lon float32 `json:"lon"`
@@ -250,7 +255,7 @@ func ipToCoords(client http.Client) (string, string, error) {
 
 // zipToCoords gets the geographic coordinates for the provided zip code. It should receive a response in this format:
 // {"status":1,"output":[{"zip":"90210","latitude":"34.103131","longitude":"-118.416253"}]}
-func zipToCoords(client http.Client, zip string) (string, string, error) {
+func zipToCoords(client *http.Client, zip string) (string, string, error) {
 	type coords struct {
 		Status int                 `json:"status"`
 		Output []map[string]string `json:"output"`
@@ -325,7 +330,7 @@ func reduceCoords(lat, long string) (string, string) {
 
 // getURL queries the NWS to determine which URL we should be using for getting the weather forecast.
 // Our value should be here: properties -> forecast.
-func getURL(client http.Client, lat string, long string) (string, error) {
+func getURL(client *http.Client, lat string, long string) (string, error) {
 	type props struct {
 		Status     int    `json:"status"`
 		Detail     string `json:"detail"`
@@ -378,7 +383,7 @@ func getURL(client http.Client, lat string, long string) (string, error) {
 // Our value should be here: properties -> periods -> (latest period) -> temperature.
 // If there's an error in the system, it will usually return a "status" element with a value of 500 and an error
 // verbiage in a "title" element. We'll check for that error first and then look for the temperature.
-func getTemp(client http.Client, url string) (string, error) {
+func getTemp(client *http.Client, url string) (string, error) {
 	type temp struct {
 		Status     int    `json:"status"`
 		Title      string `json:"title"`
@@ -437,7 +442,7 @@ func getTemp(client http.Client, url string) (string, error) {
 // We're going to use these rules to determine which day's forecast we want:
 //   1. If it's before 3 pm, we'll use the current day.
 //   2. If it's after 3 pm, we'll display the high/low for the next day.
-func getForecast(client http.Client, url string) (string, string, error) {
+func getForecast(client *http.Client, url string) (string, string, error) {
 	type forecast struct {
 		Properties struct {
 			Periods []map[string]interface{} `json:"periods"`
