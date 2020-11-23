@@ -29,8 +29,8 @@ type Routine struct {
 	reqWeek *http.Request
 
 	// Total number of clones today and this week.
-	dayCount  int
-	weekCount int
+	dayCount  string
+	weekCount string
 
 	// Trio of user-provided colors for displaying various states.
 	colors struct {
@@ -111,14 +111,14 @@ func (r *Routine) String() string {
 		return "Bad routine"
 	}
 
-	if r.dayCount < 0 {
-		r.dayCount = 0
+	if r.dayCount == "" {
+		r.dayCount = "-"
 	}
-	if r.weekCount < 0 {
-		r.weekCount = 0
+	if r.weekCount == "" {
+		r.weekCount = "-"
 	}
 
-	return fmt.Sprintf("%s%s: %v/%v Clones%s", r.colors.normal, r.repo, r.dayCount, r.weekCount, colorEnd)
+	return fmt.Sprintf("%s%s: %s/%s Clones%s", r.colors.normal, r.repo, r.dayCount, r.weekCount, colorEnd)
 }
 
 // Error formats and returns an error message.
@@ -169,7 +169,7 @@ func buildRequest(owner, repo, authUser, authToken string, daily bool) (*http.Re
 }
 
 // getCount queries Github for the current clone count for either the day or week.
-func getCount(client *http.Client, req *http.Request, daily bool) (int, error) {
+func getCount(client *http.Client, req *http.Request, daily bool) (string, error) {
 	type CloneCount struct {
 		Timestamp string `json:"timestamp"`
 		Count     int    `json:"count"`
@@ -183,20 +183,20 @@ func getCount(client *http.Client, req *http.Request, daily bool) (int, error) {
 	// Get the count.
 	resp, err := client.Do(req)
 	if err != nil {
-		return -1, err
+		return "-", err
 	}
 	defer resp.Body.Close()
 
 	// Pull out the response data.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return -1, err
+		return "-", err
 	}
 
 	// Parse the JSON doc.
 	c := CloneCounts{}
 	if err := json.Unmarshal(body, &c); err != nil {
-		return -1, err
+		return "-", err
 	}
 
 	// If there's an error message in the response, then something went wrong.
@@ -205,7 +205,7 @@ func getCount(client *http.Client, req *http.Request, daily bool) (int, error) {
 			// Let's make this error message a little more obvious.
 			c.Message = "Repository Not Found"
 		}
-		return -1, errors.New(c.Message)
+		return "-", errors.New(c.Message)
 	}
 
 	// Find the current count for this reporting period.
@@ -213,13 +213,13 @@ func getCount(client *http.Client, req *http.Request, daily bool) (int, error) {
 	for _, count := range c.Counts {
 		if t, err := time.Parse("2006-01-02T00:00:00Z", count.Timestamp); err == nil {
 			if t.Day() == day {
-				return count.Count, nil
+				return fmt.Sprintf("%v", count.Count), nil
 			}
 		}
 	}
 
 	// If we didn't find a matching timestamp, then that means there haven't been any clones for this time period.
-	return 0, nil
+	return "-", nil
 }
 
 // getDay determines which day we need to use when looking for the current clone count. For the daily count, we use the
