@@ -105,7 +105,8 @@ func (r *Routine) Update() (bool, error) {
 	return true, nil
 }
 
-// String prints the current clone count for the day and week.
+// String prints the current clone count for the day and week. If no count is returned, this displays "-" for that time
+// period.
 func (r *Routine) String() string {
 	if r == nil {
 		return "Bad routine"
