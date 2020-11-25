@@ -444,6 +444,7 @@ func getTemp(client *http.Client, url string) (string, error) {
 //   2. If it's after 3 pm, we'll display the high/low for the next day.
 func getForecast(client *http.Client, url string) (string, string, error) {
 	type forecast struct {
+		Title      string `json:"title"`
 		Properties struct {
 			Periods []map[string]interface{} `json:"periods"`
 		} `json:"properties"`
@@ -475,6 +476,9 @@ func getForecast(client *http.Client, url string) (string, string, error) {
 	// Get the list of forecasts.
 	periods := f.Properties.Periods
 	if len(periods) == 0 {
+		if f.Title != "" {
+			return "", "", errors.New(f.Title)
+		}
 		return "", "", errors.New("Missing forecast periods")
 	}
 
