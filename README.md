@@ -5,7 +5,7 @@
 
 
 # statusbar
-`statusbar` formats and displays information for the [`dwm`](https://dwm.suckless.org/) statusbar.
+`statusbar` formats and displays information on the [`dwm`](https://dwm.suckless.org/) statusbar.
 
 
 ## Table of Contents

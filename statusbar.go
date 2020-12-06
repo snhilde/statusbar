@@ -1,3 +1,4 @@
+// Package statusbar formats and displays information on the dwm statusbar by managing modular data routines.
 package statusbar
 
 // #cgo pkg-config: x11
