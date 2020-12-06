@@ -1,3 +1,4 @@
+// Package sbgithubclones displays the daily and weekly clone count for a Github repository.
 package sbgithubclones
 
 import (
