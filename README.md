@@ -1,6 +1,6 @@
 ![Version Badge](https://img.shields.io/badge/Version-5.0.0-informational)
 ![Maintenance Badge](https://img.shields.io/badge/Maintained-yes-success)
-[![GoDoc reference example](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/snhilde/statusbar)
+[![PkgGoDev Doc](https://pkg.go.dev/badge/github.com/snhilde/statusbar)](https://pkg.go.dev/github.com/snhilde/statusbar)
 [![GoReportCard example](https://goreportcard.com/badge/github.com/snhilde/statusbar)](https://goreportcard.com/report/github.com/snhilde/statusbar)
 
 
@@ -41,34 +41,34 @@ That will also pull in the repository's modules for quick activation.
 
 ## Usage and Documentation
 To get up and running with this package, follow these steps:
-1. [Create a new statusbar object.](https://godoc.org/github.com/snhilde/statusbar#New)
-1. [Add routines to the statusbar.](https://godoc.org/github.com/snhilde/statusbar#Statusbar.Append)
-1. [Run the engine.](https://godoc.org/github.com/snhilde/statusbar#Statusbar.Run)
+1. [Create a new statusbar object.](https://pkg.go.dev/github.com/snhilde/statusbar#New)
+1. [Add routines to the statusbar.](https://pkg.go.dev/github.com/snhilde/statusbar#Statusbar.Append)
+1. [Run the engine.](https://pkg.go.dev/github.com/snhilde/statusbar#Statusbar.Run)
 
-You can find the complete documentation and usage guidelines at [GoDoc](https://godoc.org/github.com/snhilde/statusbar). The docs also include an example detailing the steps above.
+You can find the complete documentation and usage guidelines at [pkg.go.dev](https://pkg.go.dev/github.com/snhilde/statusbar). The docs also include an example detailing the steps above.
 
 
 ## Modules
-`statusbar` is modular by design, and it's simple to build and integrate modules; you only have to implement [a few methods](https://godoc.org/github.com/snhilde/statusbar#RoutineHandler).
+`statusbar` is modular by design, and it's simple to build and integrate modules; you only have to implement [a few methods](https://pkg.go.dev/github.com/snhilde/statusbar#RoutineHandler).
 
 This repository includes these modules to get up and running quickly:
 
-| Module           | Documentation                                                               | Major usage             |
-| ---------------- | --------------------------------------------------------------------------- | ----------------------- |
-| `sbbattery`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbbattery)      | Battery usage           |
-| `sbcputemp`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbcputemp)      | CPU temperature         |
-| `sbcpuusage`     | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbcpuusage)     | CPU usage               |
-| `sbdisk`         | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbdisk)         | Filesystem usage        |
-| `sbfan`          | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbfan)          | Fan speed               |
-| `sbgithubclones` | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbgithubclones) | Github repo clone count |
-| `sbload`         | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbload)         | System load averages    |
-| `sbnetwork`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbnetwork)      | Network usage           |
-| `sbnordvpn`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbnordvpn)      | NordVPN status          |
-| `sbram`          | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbram)          | RAM usage               |
-| `sbtime`         | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbtime)         | Current date/time       |
-| `sbtodo`         | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbtodo)         | TODO list display       |
-| `sbvolume`       | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbvolume)       | Volume percentage       |
-| `sbweather`      | [GoDoc docs](https://godoc.org/github.com/snhilde/statusbar/sbweather)      | Weather information     |
+| Module           | Documentation                                                                  | Major usage             |
+| ---------------- | ------------------------------------------------------------------------------ | ----------------------- |
+| `sbbattery`      | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbbattery)      | Battery usage           |
+| `sbcputemp`      | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbcputemp)      | CPU temperature         |
+| `sbcpuusage`     | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbcpuusage)     | CPU usage               |
+| `sbdisk`         | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbdisk)         | Filesystem usage        |
+| `sbfan`          | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbfan)          | Fan speed               |
+| `sbgithubclones` | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbgithubclones) | Github repo clone count |
+| `sbload`         | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbload)         | System load averages    |
+| `sbnetwork`      | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbnetwork)      | Network usage           |
+| `sbnordvpn`      | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbnordvpn)      | NordVPN status          |
+| `sbram`          | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbram)          | RAM usage               |
+| `sbtime`         | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbtime)         | Current date/time       |
+| `sbtodo`         | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbtodo)         | TODO list display       |
+| `sbvolume`       | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbvolume)       | Volume percentage       |
+| `sbweather`      | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbweather)      | Weather information     |
 
 
 ## Contributing
