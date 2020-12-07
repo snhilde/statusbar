@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -46,6 +47,9 @@ type routine struct {
 
 	// Time in seconds to wait between each run.
 	interval time.Duration
+
+	// Name of package that implements this routine.
+	pkgName string
 }
 
 // Statusbar is the main type for this package. It holds information about the bar as a whole.
@@ -73,7 +77,18 @@ func New() Statusbar {
 func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 	// Convert the given number into proper seconds.
 	s := time.Duration(seconds) * time.Second
-	r := routine{handler, s}
+	r := routine{rh: handler, interval: s}
+
+	// TypeOf returns "*{pkgName}.Routine", like "*sbbattery.Routine". We want to capture only the package name.
+	refType := reflect.TypeOf(handler).String()
+	if fields := strings.Split(refType, "."); len(fields) == 2 {
+		r.pkgName = strings.TrimPrefix(fields[0], "*")
+	} else {
+		if refType == "" {
+			refType = "unknown"
+		}
+		logError("Failed to determine package name (%s)", refType)
+	}
 
 	sb.routines = append(sb.routines, r)
 }
