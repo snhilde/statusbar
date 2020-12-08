@@ -50,6 +50,12 @@ type routine struct {
 
 	// Name of package that implements this routine.
 	pkgName string
+
+	// Channel to use for signaling manual update.
+	update chan struct{}
+
+	// Channel to use for signaling stop.
+	stop chan struct{}
 }
 
 // Statusbar is the main type for this package. It holds information about the bar as a whole.
@@ -105,15 +111,24 @@ func (sb *Statusbar) Run() {
 	outputsChan := make(chan []string, 1)
 	outputsChan <- outputs
 
-	// Channel used to indicate everything is done
-	finished := make(chan routine)
+	// Set up a channel used to indicate everything is done. This must have a buffer large enough for every channel to
+	// send on without blocking.
+	finished := make(chan routine, len(sb.routines))
 
-	for i, r := range sb.routines {
-		go runRoutine(r, i, outputsChan, finished)
+	for i := range sb.routines {
+		// Set up the update and stop channels. We'll use a buffer size of 1 so the engine doesn't block sending on them.
+		sb.routines[i].update = make(chan struct{}, 1)
+		sb.routines[i].stop = make(chan struct{}, 1)
+
+		// Run the routine.
+		go runRoutine(sb.routines[i], i, outputsChan, finished)
 	}
 
 	// Launch a goroutine to build and print the master string.
 	go setBar(outputsChan, *sb)
+
+	// Spin up the ReST listener. This will continue to run until this process stops (when all routines stop).
+	go listen(sb.routines)
 
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
@@ -173,8 +188,19 @@ func runRoutine(r routine, i int, outputsChan chan []string, finished chan<- rou
 			}
 		}
 
-		// Put the routine to sleep for the given time.
-		time.Sleep(interval - time.Since(start))
+		// Wait until either a signal is received from the engine or the time elapses for another update to run.
+		select {
+		case <-r.update:
+			// Update now.
+			break
+		case <-r.stop:
+			// Stop the routine.
+			finished <- r
+			return
+		case <-time.After(interval - time.Since(start)):
+			// Time elapsed. Run another update loop.
+			break
+		}
 	}
 
 	// Send on the finished channel to signify that we're stopping this routine.
