@@ -7,7 +7,7 @@ package statusbar
 import "C"
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"reflect"
@@ -93,7 +93,7 @@ func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 		if refType == "" {
 			refType = "unknown"
 		}
-		logError("Failed to determine package name (%s)", refType)
+		log.Printf("Failed to determine package name (%s)", refType)
 	}
 
 	sb.routines = append(sb.routines, r)
@@ -133,10 +133,10 @@ func (sb *Statusbar) Run() {
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
 		r := <-finished
-		logError("%v: Routine stopped", r.rh.Name())
+		log.Printf("%v: Routine stopped", r.rh.Name())
 	}
 
-	logError("All routines have stopped")
+	log.Printf("All routines have stopped")
 }
 
 // runRoutine runs a routine in a non-terminating loop.
@@ -155,7 +155,7 @@ func runRoutine(r routine, i int, outputsChan chan []string, finished chan<- rou
 			output = handler.String()
 		} else {
 			output = handler.Error()
-			logError("%v: %v", handler.Name(), err.Error())
+			log.Printf("%v: %v", handler.Name(), err.Error())
 		}
 		outputs := <-outputsChan
 		outputs[i] = output
@@ -276,15 +276,6 @@ func (sb *Statusbar) Split() {
 	sb.split = len(sb.routines) - 1
 }
 
-// logError prints the formatted message to stderr.
-func logError(format string, a ...interface{}) {
-	// Add a timestamp and a newline to our message.
-	format = "(%v) " + format + "\n"
-	items := append([]interface{}{time.Now()}, a...)
-
-	fmt.Fprintf(os.Stderr, format, items...)
-}
-
 // handleSignal clears the statusbar if the program receives an interrupt signal.
 func (sb *Statusbar) handleSignal() {
 	c := make(chan os.Signal, 1)
@@ -298,7 +289,7 @@ func (sb *Statusbar) handleSignal() {
 
 	// Wait until we receive an interrupt signal.
 	<-c
-	logError("Received interrupt")
+	log.Printf("Received interrupt")
 
 	dpy := C.XOpenDisplay(nil)
 	root := C.XDefaultRootWindow(dpy)

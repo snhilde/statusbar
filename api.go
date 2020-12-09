@@ -3,6 +3,7 @@ package statusbar
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -26,7 +27,7 @@ func listen(rs []routine) {
 	if err == nil {
 		err = errors.New("REST API down")
 	}
-	logError(err.Error())
+	log.Printf(err.Error())
 }
 
 func handleRest(w http.ResponseWriter, r *http.Request) {
