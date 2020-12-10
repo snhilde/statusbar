@@ -3,6 +3,7 @@ package statusbar
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 )
@@ -31,24 +32,34 @@ func listen(rs []routine) {
 }
 
 func handleRest(w http.ResponseWriter, r *http.Request) {
+	var resp string
 	switch r.Method {
 	case "GET":
-		handleGet(w, r)
+		resp = handleGet(r)
 	case "PUT":
-		handlePut(w, r)
+		resp = handlePut(r)
 	case "DELETE":
-		handleDelete(w, r)
+		resp = handleDelete(r)
 	default:
-		e := json.NewEncoder(w)
-		e.Encode(failure{"Invalid method"})
+		b, err := json.Marshal(failure{"Invalid method"})
+		if err != nil {
+			resp = "Error: " + err.Error()
+		} else {
+			resp = string(b)
+		}
 	}
+
+	io.WriteString(w, resp)
 }
 
-func handleGet(w http.ResponseWriter, r *http.Request) {
+func handleGet(r *http.Request) string {
+	return "GET"
 }
 
-func handlePut(w http.ResponseWriter, r *http.Request) {
+func handlePut(r *http.Request) string {
+	return "PUT"
 }
 
-func handleDelete(w http.ResponseWriter, r *http.Request) {
+func handleDelete(r *http.Request) string {
+	return "DELETE"
 }
