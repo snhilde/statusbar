@@ -127,8 +127,10 @@ func (sb *Statusbar) Run() {
 	// Launch a goroutine to build and print the master string.
 	go setBar(outputsChan, *sb)
 
-	// Spin up the ReST listener. This will continue to run until this process stops (when all routines stop).
-	go listen(sb.routines)
+	// Start up the REST API. This will continue to run until this process stops (when all routines stop).
+	rest := NewRestApi()
+	rest.SetRoutines(sb.routines...)
+	go rest.Run()
 
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
