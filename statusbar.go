@@ -49,7 +49,7 @@ type routine struct {
 	interval time.Duration
 
 	// Name of package that implements this routine.
-	pkgName string
+	pkg string
 
 	// Channel to use for signaling manual update.
 	update chan struct{}
@@ -85,10 +85,10 @@ func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 	s := time.Duration(seconds) * time.Second
 	r := routine{rh: handler, interval: s}
 
-	// TypeOf returns "*{pkgName}.Routine", like "*sbbattery.Routine". We want to capture only the package name.
+	// TypeOf returns "*{pkg}.Routine", like "*sbbattery.Routine". We want to capture only the package name.
 	refType := reflect.TypeOf(handler).String()
 	if fields := strings.Split(refType, "."); len(fields) == 2 {
-		r.pkgName = strings.TrimPrefix(fields[0], "*")
+		r.pkg = strings.TrimPrefix(fields[0], "*")
 	} else {
 		if refType == "" {
 			refType = "unknown"
