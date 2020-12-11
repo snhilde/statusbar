@@ -57,61 +57,62 @@ func (r *RestApi) buildV1() {
 		v1 := r.engine.Group("/rest/v1")
 
 		// GET routes
-		v1.GET("/routines/", func(c *gin.Context) { r.getRoutineAll(c) })
-		v1.GET("/routines/:routine/", func(c *gin.Context) { r.getRoutine(c) })
+		v1.GET("/routines", func(c *gin.Context) { r.getRoutineAll(c) })
+		v1.GET("/routines/:routine", func(c *gin.Context) { r.getRoutine(c) })
 
 		// PUT routes
-		v1.PUT("/routines/refresh/", func(c *gin.Context) { r.putRefreshAll(c) })
-		v1.PUT("/routines/:routine/refresh/", func(c *gin.Context) { r.putRefresh(c) })
+		v1.PUT("/routines/refresh", func(c *gin.Context) { r.putRefreshAll(c) })
+		v1.PUT("/routines/refresh/:routine", func(c *gin.Context) { r.putRefresh(c) })
 
 		// PATCH routes
-		v1.PATCH("/routines/:routine/", func(c *gin.Context) { r.patchRoutine(c) })
+		v1.PATCH("/routines/:routine", func(c *gin.Context) { r.patchRoutine(c) })
 
 		// DELETE routes
-		v1.DELETE("/routines/", func(c *gin.Context) { r.deleteRoutineAll(c) })
-		v1.DELETE("/routines/:routine/", func(c *gin.Context) { r.deleteRoutine(c) })
+		v1.DELETE("/routines", func(c *gin.Context) { r.deleteRoutineAll(c) })
+		v1.DELETE("/routines/:routine", func(c *gin.Context) { r.deleteRoutine(c) })
 	}
 }
 
 
-// GET /routines/
+// GET /routines
 // getRoutineAll responds with information about the statusbar and all the routines (active and inactive).
 func (r *RestApi) getRoutineAll(c *gin.Context) {
-	log.Printf("GET /routines/")
+	log.Printf("GET /routines")
 }
 
-// GET /routines/:routine/
+// GET /routines/:routine
 // getRoutine responds with information about all the specified routine.
 func (r *RestApi) getRoutine(c *gin.Context) {
-	log.Printf("GET /routines/:routine/")
+	log.Printf("GET /routines/:routine")
+	log.Printf("routine: %s", c.Param("routine"))
 }
 
-// PUT /routines/refresh/
+// PUT /routines/refresh
 // putRefreshAll refreshes all active routines.
 func (r *RestApi) putRefreshAll(c *gin.Context) {
-	log.Printf("PUT /routines/refresh/")
+	log.Printf("PUT /routines/refresh")
 }
 
-// PUT /routines/:routine/refresh/
+// PUT /routines/refresh/:routine
 // putRefresh refreshes the specified routine.
 func (r *RestApi) putRefresh(c *gin.Context) {
-	log.Printf("PUT /routines/:routine/refresh/")
+	log.Printf("PUT /routines/refresh/:routine")
 }
 
-// PATCH /routines/:routine/
+// PATCH /routines/:routine
 // patchRoutine updates the specified routine's data. Currently, this only updates the interval time.
 func (r *RestApi) patchRoutine(c *gin.Context) {
-	log.Printf("PATCH /routines/:routine/")
+	log.Printf("PATCH /routines/:routine")
 }
 
-// DELETE /routines/
+// DELETE /routines
 // deleteRoutineAll stops the stasusbar.
 func (r *RestApi) deleteRoutineAll(c *gin.Context) {
-	log.Printf("DELETE /routines/")
+	log.Printf("DELETE /routines")
 }
 
-// DELETE /routines/:routine/
+// DELETE /routines/:routine
 // deleteRoutine stops the specified routine.
 func (r *RestApi) deleteRoutine(c *gin.Context) {
-	log.Printf("DELETE /routines/:routine/")
+	log.Printf("DELETE /routines/:routine")
 }
