@@ -51,25 +51,25 @@ func (r *RestApi) SetRoutines(routines ...routine) {
 	}
 }
 
-// buildV1 builds out the mappings for REST API v1.
+// buildV1 builds out the mappings for REST API v1 with this prefix: /rest/v1
 func (r *RestApi) buildV1() {
 	if r != nil && r.engine != nil {
 		v1 := r.engine.Group("/rest/v1")
 
 		// GET routes
-		v1.GET("/routines/", func(c *gin.Context) { rest.getRoutineAll(c) })
-		v1.GET("/routines/:routine/", func(c *gin.Context) { rest.getRoutine(c) })
+		v1.GET("/routines/", func(c *gin.Context) { r.getRoutineAll(c) })
+		v1.GET("/routines/:routine/", func(c *gin.Context) { r.getRoutine(c) })
 
 		// PUT routes
-		v1.PUT("/routines/refresh/", func(c *gin.Context) { rest.putRefreshAll(c) })
-		v1.PUT("/routines/:routine/refresh/", func(c *gin.Context) { rest.putRefresh(c) })
+		v1.PUT("/routines/refresh/", func(c *gin.Context) { r.putRefreshAll(c) })
+		v1.PUT("/routines/:routine/refresh/", func(c *gin.Context) { r.putRefresh(c) })
 
 		// PATCH routes
-		v1.PATCH("/routines/:routine/", func(c *gin.Context) { rest.patchRoutine(c) })
+		v1.PATCH("/routines/:routine/", func(c *gin.Context) { r.patchRoutine(c) })
 
 		// DELETE routes
-		v1.DELETE("/routines/", func(c *gin.Context) { rest.deleteRoutineAll(c) })
-		v1.DELETE("/routines/:routine/", func(c *gin.Context) { rest.deleteRoutine(c) })
+		v1.DELETE("/routines/", func(c *gin.Context) { r.deleteRoutineAll(c) })
+		v1.DELETE("/routines/:routine/", func(c *gin.Context) { r.deleteRoutine(c) })
 	}
 }
 
