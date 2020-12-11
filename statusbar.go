@@ -17,15 +17,14 @@ import (
 
 // RoutineHandler allows information monitors (commonly called routines) to be linked in.
 type RoutineHandler interface {
-	// Update updates the routine's information. This is run on a periodic interval according to the time provided. It
-	// returns two arguments: a bool and an error. The bool indicates whether or not the engine should continue to run
-	// the routine. You can think of it as representing the "ok" status. The error is any error encountered during the
-	// process. For example, on a normal run with no error, Update would return (true, nil). On a run with a
-	// non-critical error, Update would return (true, errors.New("Warning message")). On a run with a critical error
-	// where the routine should be stopped, Update would return (false, errors.New("Critical error message"). The
-	// returned error will be logged to stderr. Generally, the error returned from Update should be detailed and
-	// specific for debugging the routine, while the error returned from Error should be shorter, more concise, and more
-	// general.
+	// Update updates the routine's information. This is run on a periodic interval according to the time provided when
+	// adding the routine to the statusbar engine. It returns two arguments: a bool and an error. The bool indicates
+	// whether or not the engine should continue to run the routine. You can think of it as representing the "ok"
+	// status. The error is any error encountered during the process. For example, on a normal run with no error, Update
+	// would return (true, nil). On a run with a non-critical error, Update would return (true, error). On a run with a
+	// critical error where the routine should be stopped, Update would return (false, error). The returned error will
+	// be logged to stderr. Generally, the error returned from Update should be detailed and specific for debugging the
+	// routine, while the error returned from Error should be shorter, more concise, and more general.
 	Update() (bool, error)
 
 	// String formats and returns the routine's output.
@@ -40,28 +39,10 @@ type RoutineHandler interface {
 	Name() string
 }
 
-// routine holds the data for an individual unit on the statusbar.
-type routine struct {
-	// Routine object that handles running the actual process.
-	rh RoutineHandler
-
-	// Time in seconds to wait between each run.
-	interval time.Duration
-
-	// Name of package that implements this routine.
-	pkg string
-
-	// Channel to use for signaling manual update.
-	update chan struct{}
-
-	// Channel to use for signaling stop.
-	stop chan struct{}
-}
-
 // Statusbar is the main type for this package. It holds information about the bar as a whole.
 type Statusbar struct {
 	// List of routines, in the order they were added.
-	routines []routine
+	routines []*routine
 
 	// Delimiter to use for the left side of each routine's output, as set with SetMarkers.
 	leftDelim string
@@ -69,7 +50,7 @@ type Statusbar struct {
 	// Delimiter to use for the right side of each routine's output, as set with SetMarkers.
 	rightDelim string
 
-	// Index of the interval after which the routines are split, as set with Split.
+	// Index of the routine after which the routines are split, as set with Split.
 	split int
 }
 
@@ -82,13 +63,17 @@ func New() Statusbar {
 // RoutineHandler module. seconds is the amount of time between each run of the routine.
 func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 	// Convert the given number into proper seconds.
-	s := time.Duration(seconds) * time.Second
-	r := routine{rh: handler, interval: s}
+	r := newRoutine()
+	r.setHandler(handler)
+	r.setInterval(seconds)
 
-	// TypeOf returns "*{pkg}.Routine", like "*sbbattery.Routine". We want to capture only the package name.
+	// Get the package name of the module that is implementing this RoutineHandler. We are going to use this to match
+	// the routine's name for the API. TypeOf returns "*{package}.Routine", like "*sbbattery.Routine". We want to
+	// capture only the package name.
 	refType := reflect.TypeOf(handler).String()
 	if fields := strings.Split(refType, "."); len(fields) == 2 {
-		r.pkg = strings.TrimPrefix(fields[0], "*")
+		module := strings.TrimPrefix(fields[0], "*")
+		r.setModuleName(module)
 	} else {
 		if refType == "" {
 			refType = "unknown"
@@ -113,100 +98,37 @@ func (sb *Statusbar) Run() {
 
 	// Set up a channel used to indicate everything is done. This must have a buffer large enough for every channel to
 	// send on without blocking.
-	finished := make(chan routine, len(sb.routines))
+	finished := make(chan *routine, len(sb.routines))
 
-	for i := range sb.routines {
-		// Set up the update and stop channels. We'll use a buffer size of 1 so the engine doesn't block sending on them.
-		sb.routines[i].update = make(chan struct{}, 1)
-		sb.routines[i].stop = make(chan struct{}, 1)
-
-		// Run the routine.
-		go runRoutine(sb.routines[i], i, outputsChan, finished)
+	// Run each routine.
+	for i, v := range sb.routines {
+		go v.run(i, outputsChan, finished)
 	}
 
 	// Launch a goroutine to build and print the master string.
 	go setBar(outputsChan, *sb)
 
-	// Start up the REST API. This will continue to run until this process stops (when all routines stop).
-	rest := NewRestApi()
-	rest.SetRoutines(sb.routines...)
-	go rest.Run()
-
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
 		r := <-finished
-		log.Printf("%v: Routine stopped", r.rh.Name())
+		log.Printf("%v: Routine stopped", r.displayName())
 	}
 
 	log.Printf("All routines have stopped")
 }
 
-// runRoutine runs a routine in a non-terminating loop.
-func runRoutine(r routine, i int, outputsChan chan []string, finished chan<- routine) {
-	handler := r.rh
-	for {
-		// Start the clock.
-		start := time.Now()
+// SetMarkers sets the left and right delimiters around each routine. If not set, these will default to '[' and ']'.
+func (sb *Statusbar) SetMarkers(left string, right string) {
+	sb.leftDelim = left
+	sb.rightDelim = right
+}
 
-		// Update the routine's data.
-		ok, err := handler.Update()
-
-		// Get the routine's output and store it in the master output slice.
-		var output string
-		if err == nil {
-			output = handler.String()
-		} else {
-			output = handler.Error()
-			log.Printf("%v: %v", handler.Name(), err.Error())
-		}
-		outputs := <-outputsChan
-		outputs[i] = output
-		outputsChan <- outputs
-
-		// If the routine reported a critical error, then we'll break out of the loop now.
-		if !ok {
-			break
-		}
-
-		// If the interval was set to only run once, then we can close the routine now.
-		if r.interval == 0 {
-			break
-		}
-
-		interval := r.interval
-		if err != nil {
-			// If the routine reported an error, then we'll give the process a little time to cool down before trying again.
-			s := r.interval.Seconds()
-			switch {
-			case s < 60:
-				// For routines with intervals up to 1 minute, sleep for 5 seconds.
-				interval = 5 * time.Second
-			case s < 60*15:
-				// For routines with intervals up to 15 minutes, sleep for 1 minute.
-				interval = 60 * time.Second
-			default:
-				// For routines with intervals longer than 15 minutes, sleep for 5 minutes.
-				interval = 60 * 5 * time.Second
-			}
-		}
-
-		// Wait until either a signal is received from the engine or the time elapses for another update to run.
-		select {
-		case <-r.update:
-			// Update now.
-			break
-		case <-r.stop:
-			// Stop the routine.
-			finished <- r
-			return
-		case <-time.After(interval - time.Since(start)):
-			// Time elapsed. Run another update loop.
-			break
-		}
-	}
-
-	// Send on the finished channel to signify that we're stopping this routine.
-	finished <- r
+// Split splits the statusbar at this point, when using dualstatus patch for dwm. A semicolon (';') is inserted at this
+// point in the routine list, which signals to dualstatus to split the statusbar at this point. Before this is called,
+// the routines already added are displayed on the top bar. After this is called, all subsequently added routines are
+// displayed on the bottom bar.
+func (sb *Statusbar) Split() {
+	sb.split = len(sb.routines) - 1
 }
 
 // setBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any changes
@@ -262,20 +184,6 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 		// Put the routine to sleep for the rest of the half second.
 		time.Sleep((time.Second / 2) - time.Since(start))
 	}
-}
-
-// SetMarkers sets the left and right delimiters around each routine. If not set, these will default to '[' and ']'.
-func (sb *Statusbar) SetMarkers(left string, right string) {
-	sb.leftDelim = left
-	sb.rightDelim = right
-}
-
-// Split splits the statusbar at this point, when using dualstatus patch for dwm. A semicolon (';') is inserted at this
-// point in the routine list, which signals to dualstatus to split the statusbar at this point. Before this is called,
-// the routines already added are displayed on the top bar. After this is called, all subsequently added routines are
-// displayed on the bottom bar.
-func (sb *Statusbar) Split() {
-	sb.split = len(sb.routines) - 1
 }
 
 // handleSignal clears the statusbar if the program receives an interrupt signal.
