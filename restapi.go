@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 // RestApi holds the information about the REST API instance.
@@ -78,42 +77,73 @@ func (r *RestApi) buildV1() {
 // GET /routines
 // handleGetRoutineAll responds with information about the statusbar and all the routines (active and inactive).
 func (r *RestApi) handleGetRoutineAll(c *gin.Context) {
-	log.Printf("GET /routines")
 }
 
 // GET /routines/:routine
 // handleGetRoutine responds with information about all the specified routine.
 func (r *RestApi) handleGetRoutine(c *gin.Context) {
-	log.Printf("GET /routines/:routine")
-	log.Printf("routine: %s", c.Param("routine"))
+	_, err := getRoutine(r.routines, c.Param("routine"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 }
 
 // PUT /routines/refresh
 // handlePutRefreshAll refreshes all active routines.
 func (r *RestApi) handlePutRefreshAll(c *gin.Context) {
-	log.Printf("PUT /routines/refresh")
 }
 
 // PUT /routines/refresh/:routine
 // handlePutRefresh refreshes the specified routine.
 func (r *RestApi) handlePutRefresh(c *gin.Context) {
-	log.Printf("PUT /routines/refresh/:routine")
+	_, err := getRoutine(r.routines, c.Param("routine"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 }
 
 // PATCH /routines/:routine
 // handlePatchRoutine updates the specified routine's data. Currently, this only updates the interval time.
 func (r *RestApi) handlePatchRoutine(c *gin.Context) {
-	log.Printf("PATCH /routines/:routine")
+	_, err := getRoutine(r.routines, c.Param("routine"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 }
 
 // DELETE /routines
 // handleDeleteRoutineAll stops the stasusbar.
 func (r *RestApi) handleDeleteRoutineAll(c *gin.Context) {
-	log.Printf("DELETE /routines")
 }
 
 // DELETE /routines/:routine
 // deleteRoutine stops the specified routine.
 func (r *RestApi) handleDeleteRoutine(c *gin.Context) {
-	log.Printf("DELETE /routines/:routine")
+	_, err := getRoutine(r.routines, c.Param("routine"))
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+}
+
+// getRoutine gets the specified routine from the list of routines.
+func getRoutine(routines []routine, pkg string) (routine, error) {
+	for _, v := range routines {
+		if pkg == v.pkg {
+			return v, nil
+		}
+	}
+
+	return routine{}, errors.New("Invalid routine")
 }
