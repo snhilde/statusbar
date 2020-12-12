@@ -108,6 +108,11 @@ func (sb *Statusbar) Run() {
 	// Launch a goroutine to build and print the master string.
 	go setBar(outputsChan, *sb)
 
+	// Start up the REST API.
+	rest := newRestApi()
+	rest.setRoutines(sb.routines...)
+	go rest.run()
+
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
 		r := <-finished
