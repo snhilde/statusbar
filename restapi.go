@@ -1,3 +1,4 @@
+// This file holds the logic concerning the structuring and running of the REST API using the gin framework.
 package statusbar
 
 import (
@@ -6,20 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RestApi holds the information about the REST API instance.
-type RestApi struct {
+// restApi holds the information about the REST API instance.
+type restApi struct {
 	engine   *gin.Engine
 	port     int
-	routines []routine
+	routines []*routine
 }
 
-// NewRestApi builds out a new REST API instance that is ready to be run. By default, the REST API listens on port 3991.
+// New builds out a new REST API instance that is ready to be run. By default, the REST API listens on port 3991.
 // You can change this value with SetPort. The default gin engine has a logger and recovery logic baked in.
-func NewRestApi() *RestApi {
-	rest := new(RestApi)
+func newRestApi() *restApi {
+	rest := new(restApi)
 
 	// Use a default port of 3991.
-	rest.SetPort(3991)
+	rest.setPort(3991)
 
 	// Set up a new gin engine.
 	rest.engine = gin.Default()
@@ -30,29 +31,35 @@ func NewRestApi() *RestApi {
 	return rest
 }
 
-func (r *RestApi) Run() {
+// run runs the REST API engine.
+func (r *restApi) run() {
 	if r != nil && r.engine != nil {
 		port := fmt.Sprintf(":%d", r.port)
 		r.engine.Run(port)
 	}
 }
 
-// SetPort sets the port. If not specified before calling Run, the port defaults to 3991.
-func (r *RestApi) SetPort(port int) {
+// stop stops the REST API engine.
+func (r *restApi) stop() {
+	// https://github.com/gin-gonic/gin#graceful-shutdown-or-restart
+}
+
+// setPort sets the port. If not specified before calling Run, the port defaults to 3991.
+func (r *restApi) setPort(port int) {
 	if r != nil {
 		r.port = port
 	}
 }
 
-// SetRoutines sets the routines that the REST API is layered on top of.
-func (r *RestApi) SetRoutines(routines ...routine) {
+// setRoutines sets the routines that the REST API is layered on top of.
+func (r *restApi) setRoutines(routines ...*routine) {
 	if r != nil {
 		r.routines = routines
 	}
 }
 
 // buildV1 builds out the mappings for REST API v1 with this prefix: /rest/v1
-func (r *RestApi) buildV1() {
+func (r *restApi) buildV1() {
 	if r != nil && r.engine != nil {
 		v1 := r.engine.Group("/rest/v1")
 
@@ -76,12 +83,12 @@ func (r *RestApi) buildV1() {
 
 // GET /routines
 // handleGetRoutineAll responds with information about the statusbar and all the routines (active and inactive).
-func (r *RestApi) handleGetRoutineAll(c *gin.Context) {
+func (r *restApi) handleGetRoutineAll(c *gin.Context) {
 }
 
 // GET /routines/:routine
 // handleGetRoutine responds with information about all the specified routine.
-func (r *RestApi) handleGetRoutine(c *gin.Context) {
+func (r *restApi) handleGetRoutine(c *gin.Context) {
 	_, err := getRoutine(r.routines, c.Param("routine"))
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -93,12 +100,12 @@ func (r *RestApi) handleGetRoutine(c *gin.Context) {
 
 // PUT /routines/refresh
 // handlePutRefreshAll refreshes all active routines.
-func (r *RestApi) handlePutRefreshAll(c *gin.Context) {
+func (r *restApi) handlePutRefreshAll(c *gin.Context) {
 }
 
 // PUT /routines/refresh/:routine
 // handlePutRefresh refreshes the specified routine.
-func (r *RestApi) handlePutRefresh(c *gin.Context) {
+func (r *restApi) handlePutRefresh(c *gin.Context) {
 	_, err := getRoutine(r.routines, c.Param("routine"))
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -110,7 +117,7 @@ func (r *RestApi) handlePutRefresh(c *gin.Context) {
 
 // PATCH /routines/:routine
 // handlePatchRoutine updates the specified routine's data. Currently, this only updates the interval time.
-func (r *RestApi) handlePatchRoutine(c *gin.Context) {
+func (r *restApi) handlePatchRoutine(c *gin.Context) {
 	_, err := getRoutine(r.routines, c.Param("routine"))
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -122,12 +129,12 @@ func (r *RestApi) handlePatchRoutine(c *gin.Context) {
 
 // DELETE /routines
 // handleDeleteRoutineAll stops the stasusbar.
-func (r *RestApi) handleDeleteRoutineAll(c *gin.Context) {
+func (r *restApi) handleDeleteRoutineAll(c *gin.Context) {
 }
 
 // DELETE /routines/:routine
 // deleteRoutine stops the specified routine.
-func (r *RestApi) handleDeleteRoutine(c *gin.Context) {
+func (r *restApi) handleDeleteRoutine(c *gin.Context) {
 	_, err := getRoutine(r.routines, c.Param("routine"))
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -138,12 +145,12 @@ func (r *RestApi) handleDeleteRoutine(c *gin.Context) {
 }
 
 // getRoutine gets the specified routine from the list of routines.
-func getRoutine(routines []routine, pkg string) (routine, error) {
+func getRoutine(routines []*routine, name string) (*routine, error) {
 	for _, v := range routines {
-		if pkg == v.pkg {
+		if name == v.moduleName() {
 			return v, nil
 		}
 	}
 
-	return routine{}, errors.New("Invalid routine")
+	return nil, errors.New("Invalid routine")
 }
