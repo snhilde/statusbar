@@ -26,29 +26,37 @@ type endpoint struct {
 // endpointMap is a mapping of endpoints for a specific group.
 type endpointMap []endpoint
 
+var generalEndpoints = endpointMap{
+	// GET routes
+	{ http.MethodGet,    "/ping",                      (*restApi).handleGetPing,
+		"DESC" },
+	{ http.MethodGet,    "/endpoints",                 (*restApi).handleGetEndpoints,
+		"DESC" },
+}
+
 // Map of endpoints for actions involving routines
 var routineEndpoints = endpointMap{
 	// GET routes
 	{ http.MethodGet,    "/routines",                  (*restApi).handleGetRoutineAll,
-	  "DESC" },
+		"DESC" },
 	{ http.MethodGet,    "/routines/:routine",         (*restApi).handleGetRoutine,
-	  "DESC" },
+		"DESC" },
 
 	// PUT routes
 	{ http.MethodPut,    "/routines/refresh",          (*restApi).handlePutRefreshAll,
-	  "DESC" },
+		"DESC" },
 	{ http.MethodPut,    "/routines/refresh/:routine", (*restApi).handlePutRefresh,
-	  "DESC" },
+		"DESC" },
 
 	// PATCH routes
 	{ http.MethodPatch,  "/routines/:routine",         (*restApi).handlePatchRoutine,
-	  "DESC" },
+		"DESC" },
 
 	// DELETE routes
 	{ http.MethodDelete, "/routines",                  (*restApi).handleDeleteRoutineAll,
-	  "DESC" },
+		"DESC" },
 	{ http.MethodDelete, "/routines/:routine",         (*restApi).handleDeleteRoutine,
-	  "DESC" },
+		"DESC" },
 }
 
 // New builds out a new REST API instance that is ready to be run. By default, the REST API listens on port 3991.
@@ -101,11 +109,11 @@ func (r *restApi) buildV1() {
 		v1 := r.engine.Group("/rest/v1")
 		maps := []endpointMap{}
 
+		// Build the mapping for the REST API endpoints.
+		maps = append(maps, generalEndpoints)
+
 		// Build the mapping for the routine endpoints.
 		maps = append(maps, routineEndpoints)
-
-		// Build the mapping for the REST API endpoints.
-		// maps = append(maps, restEndpoints)
 
 		for _, m := range maps {
 			for _, route := range m {
@@ -144,6 +152,17 @@ func (r *restApi) buildV1() {
 			}
 		}
 	}
+}
+
+
+// GET /ping
+// handleGetPing responds to a ping request with "pong".
+func (r *restApi) handleGetPing(c *gin.Context) {
+}
+
+// GET /endpoints
+// handleGetEndpoints returns a JSON object of all possible v1 endpoints and their descriptions.
+func (r *restApi) handleGetEndpoints(c *gin.Context) {
 }
 
 
