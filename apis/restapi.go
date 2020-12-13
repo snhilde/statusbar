@@ -158,11 +158,19 @@ func (r *restApi) buildV1() {
 // GET /ping
 // handleGetPing responds to a ping request with "pong".
 func (r *restApi) handleGetPing(c *gin.Context) {
+	c.String(200, "pong")
 }
 
 // GET /endpoints
 // handleGetEndpoints returns a JSON object of all possible v1 endpoints and their descriptions.
 func (r *restApi) handleGetEndpoints(c *gin.Context) {
+	type endpoints struct {
+		Method string `json:"method"`
+		URL    string `json:"url"`
+		Desc   string `json:"description"`
+	}
+	maps := []endpointMap{generalEndpoints, routineEndpoints}
+	c.JSON(200, maps)
 }
 
 
