@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 // restApi holds the information about the REST API instance.
@@ -14,8 +15,44 @@ type restApi struct {
 	routines []*routine
 }
 
+// endpoint represents an endpoint on the REST API.
+type endpoint struct {
+	method  string
+	url     string
+	handler func(*restApi, *gin.Context)
+	desc    string
+}
+
+// endpointMap is a mapping of endpoints for a specific group.
+type endpointMap []endpoint
+
+// Map of endpoints for actions involving routines
+var routineEndpoints = endpointMap{
+	// GET routes
+	{ http.MethodGet,    "/routines",                  (*restApi).handleGetRoutineAll,
+	  "DESC" },
+	{ http.MethodGet,    "/routines/:routine",         (*restApi).handleGetRoutine,
+	  "DESC" },
+
+	// PUT routes
+	{ http.MethodPut,    "/routines/refresh",          (*restApi).handlePutRefreshAll,
+	  "DESC" },
+	{ http.MethodPut,    "/routines/refresh/:routine", (*restApi).handlePutRefresh,
+	  "DESC" },
+
+	// PATCH routes
+	{ http.MethodPatch,  "/routines/:routine",         (*restApi).handlePatchRoutine,
+	  "DESC" },
+
+	// DELETE routes
+	{ http.MethodDelete, "/routines",                  (*restApi).handleDeleteRoutineAll,
+	  "DESC" },
+	{ http.MethodDelete, "/routines/:routine",         (*restApi).handleDeleteRoutine,
+	  "DESC" },
+}
+
 // New builds out a new REST API instance that is ready to be run. By default, the REST API listens on port 3991.
-// You can change this value with SetPort. The default gin engine has a logger and recovery logic baked in.
+// You can change this value with setPort. The default gin engine has recovery logic and a logger baked in.
 func newRestApi() *restApi {
 	rest := new(restApi)
 
@@ -62,21 +99,50 @@ func (r *restApi) setRoutines(routines ...*routine) {
 func (r *restApi) buildV1() {
 	if r != nil && r.engine != nil {
 		v1 := r.engine.Group("/rest/v1")
+		maps := []endpointMap{}
 
-		// GET routes
-		v1.GET("/routines", func(c *gin.Context) { r.handleGetRoutineAll(c) })
-		v1.GET("/routines/:routine", func(c *gin.Context) { r.handleGetRoutine(c) })
+		// Build the mapping for the routine endpoints.
+		maps = append(maps, routineEndpoints)
 
-		// PUT routes
-		v1.PUT("/routines/refresh", func(c *gin.Context) { r.handlePutRefreshAll(c) })
-		v1.PUT("/routines/refresh/:routine", func(c *gin.Context) { r.handlePutRefresh(c) })
+		// Build the mapping for the REST API endpoints.
+		// maps = append(maps, restEndpoints)
 
-		// PATCH routes
-		v1.PATCH("/routines/:routine", func(c *gin.Context) { r.handlePatchRoutine(c) })
-
-		// DELETE routes
-		v1.DELETE("/routines", func(c *gin.Context) { r.handleDeleteRoutineAll(c) })
-		v1.DELETE("/routines/:routine", func(c *gin.Context) { r.handleDeleteRoutine(c) })
+		for _, m := range maps {
+			for _, route := range m {
+				// We have to copy the function pointer to make sure the closures below use the correct *restApi method.
+				handler := route.handler
+				switch route.method {
+				case http.MethodGet:
+					v1.GET(route.url, func(c *gin.Context) {
+						handler(r, c)
+					})
+				case http.MethodHead:
+					v1.HEAD(route.url, func(c *gin.Context) {
+						handler(r, c)
+					})
+				case http.MethodPost:
+					v1.POST(route.url, func(c *gin.Context) {
+						handler(r, c)
+					})
+				case http.MethodPut:
+					v1.PUT(route.url, func(c *gin.Context) {
+						handler(r, c)
+					})
+				case http.MethodPatch:
+					v1.PATCH(route.url, func(c *gin.Context) {
+						handler(r, c)
+					})
+				case http.MethodDelete:
+					v1.DELETE(route.url, func(c *gin.Context) {
+						handler(r, c)
+					})
+				case http.MethodOptions:
+					v1.OPTIONS(route.url, func(c *gin.Context) {
+						handler(r, c)
+					})
+				}
+			}
+		}
 	}
 }
 
@@ -146,9 +212,9 @@ func (r *restApi) handleDeleteRoutine(c *gin.Context) {
 
 // getRoutine gets the specified routine from the list of routines.
 func getRoutine(routines []*routine, name string) (*routine, error) {
-	for _, v := range routines {
-		if name == v.moduleName() {
-			return v, nil
+	for _, routine := range routines {
+		if name == routine.moduleName() {
+			return routine, nil
 		}
 	}
 
