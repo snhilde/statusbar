@@ -116,6 +116,9 @@ func (r *Routine) Update() (bool, error) {
 	r.highTemp = high
 	r.lowTemp = low
 
+	// Sanity check the high and low temps against the current temp.
+	r.checkTemps()
+
 	return true, nil
 }
 
@@ -203,6 +206,41 @@ func (r *Routine) init() error {
 	r.url = url
 
 	return nil
+}
+
+// checkTemps checks that the current temperature is not outside the bounds of the high and low for the day.
+func (r *Routine) checkTemps() {
+	// We only want to check this for the current day's forecast.
+	t := time.Now()
+	if t.Hour() >= 15 {
+		return
+	}
+
+	if r.currTemp == "" {
+		return
+	}
+
+	curr, err := strconv.Atoi(r.currTemp)
+	if err != nil {
+		return
+	}
+
+	if r.highTemp != "" {
+		if high, err := strconv.Atoi(r.highTemp); err == nil {
+			if curr > high {
+				r.highTemp = r.currTemp
+				return
+			}
+		}
+	}
+
+	if r.lowTemp != "" {
+		if low, err := strconv.Atoi(r.lowTemp); err == nil {
+			if curr < low {
+				r.lowTemp = r.currTemp
+			}
+		}
+	}
 }
 
 // getCoords is a jumping point for getting the geographic coordinates based on either the provided zip or an IP address.
