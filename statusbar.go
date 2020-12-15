@@ -52,6 +52,9 @@ type Statusbar struct {
 
 	// Index of the routine after which the routines are split, as set with Split.
 	split int
+
+	// Whether or not to enable and run the APIs.
+	apiEnabled bool
 }
 
 // New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
@@ -108,10 +111,18 @@ func (sb *Statusbar) Run() {
 	// Launch a goroutine to build and print the master string.
 	go setBar(outputsChan, *sb)
 
-	// Start up the REST API.
-	rest := newRestApi()
-	rest.setRoutines(sb.routines...)
-	go rest.run()
+	// If enabled, build and run the APIs in their own goroutine.
+	if sb.apiEnabled {
+		go func() {
+			// Spin up REST API v1.
+			r := restapi.NewEngine()
+			if err := r.Build(sb, "restv1.json"); err != nil {
+				log.Printf("Error build REST API v1: %s", err.Error())
+			} else {
+				r.Run(8080)
+			}
+		}()
+	}
 
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
@@ -134,6 +145,12 @@ func (sb *Statusbar) SetMarkers(left string, right string) {
 // displayed on the bottom bar.
 func (sb *Statusbar) Split() {
 	sb.split = len(sb.routines) - 1
+}
+
+// EnableAPI enables the engine to run the APIs on port port. These can be used to interact with the statusbar and its routines while
+// they are running.
+func (sb *Statusbar) EnableAPI(port int) {
+	sb.apiEnabled = true
 }
 
 // setBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any changes
