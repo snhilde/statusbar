@@ -88,7 +88,8 @@ func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 	sb.routines = append(sb.routines, r)
 }
 
-// Run spins up all the routines and displays them on the statusbar.
+// Run spins up all the routines and displays them on the statusbar. If the APIs are enabled, this also runs the API
+// engines.
 func (sb *Statusbar) Run() {
 	// Add a signal handler so we can clear the statusbar if the program goes down.
 	go sb.handleSignal()
