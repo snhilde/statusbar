@@ -7,6 +7,7 @@ package statusbar
 import "C"
 
 import (
+	"github.com/snhilde/statusbar/restapi"
 	"log"
 	"os"
 	"os/signal"
@@ -113,15 +114,7 @@ func (sb *Statusbar) Run() {
 
 	// If enabled, build and run the APIs in their own goroutine.
 	if sb.apiEnabled {
-		go func() {
-			// Spin up REST API v1.
-			r := restapi.NewEngine()
-			if err := r.Build(sb, "restv1.json"); err != nil {
-				log.Printf("Error build REST API v1: %s", err.Error())
-			} else {
-				r.Run(8080)
-			}
-		}()
+		go runAPIs(sb)
 	}
 
 	// Keep running until every routine stops.
@@ -230,4 +223,18 @@ func (sb *Statusbar) handleSignal() {
 
 	// Stop the program.
 	p.Kill()
+}
+
+// runAPIs runs the various APIs and their versions using the callback methods implemented by handler. New APIs/versions
+// should be added here.
+func runAPIs(handler interface{}) {
+	// Begin with the REST API.
+	r := restapi.NewEngine()
+
+	// Spin up REST API v1.
+	if err := r.AddSpec("api_specs/restv1.json", handler); err != nil {
+		log.Printf("Error build REST API v1: %s", err.Error())
+	} else {
+		r.Run(3939)
+	}
 }
