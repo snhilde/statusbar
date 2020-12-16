@@ -1,4 +1,5 @@
 // This file holds the business logic for a routine object.
+
 package statusbar
 
 import (
