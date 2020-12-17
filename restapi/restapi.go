@@ -17,14 +17,18 @@ type Engine struct {
 	engine *gin.Engine
 }
 
-// Params is a map of REST path parameters to their values. For example, if a path is specified as "/weather/:day" in the
-// specs and a client hits the endpoint "/weather/sunday", then Params["day"] = "sunday".
+// Params is a map of REST path parameters to their values. For example, if a path is specified as "/weather/:day" in
+// the specs and a client hits the endpoint "/weather/sunday", then Params["day"] = "sunday".
 type Params map[string]string
 
-// HandlerFunc is the function definition that handlers must use to define a route's callback. For example, let's say the JSON
-// spec has an endpoint for "/users/list" with a registered callback of "ListAllUsers". Whatever handler object is
-// passed in with AddSpec would then need to implement ListAllUsers(Params, *http.Request) (int, string). AddSpec will
-// return an error if the handler object does not implement a method with that exact name and definition.
+// HandlerFunc is the function definition that handlers must use to define a route's callback. For example, let's say
+// the JSON spec has an endpoint for "/users/list" with a registered callback of "ListAllUsers". The handler object
+// passed in with AddSpec or AddSpecFile would then need to implement
+// ListAllUsers(Endpoint, Params, *http.Request) (int, string). AddSpec and AddSpecFile return an error if the handler
+// object does not implement a method with that exact name and definition.
+//
+// Endpoint is the endpoint as defined in the specification. Params is a map of Gin URL params. *http.Request is the
+// data as sent in the request. The method returns the HTTP response code and a string of response data.
 type HandlerFunc func(Endpoint, Params, *http.Request) (int, string)
 
 // RestSpec is the data model for the REST API specification. To implement the REST API, you build out a JSON object
