@@ -234,7 +234,7 @@ func runAPIs(handler interface{}) {
 
 	// Spin up REST API v1.
 	if err := r.AddSpec("api_specs/restv1.json", handler); err != nil {
-		log.Printf("Error build REST API v1: %s", err.Error())
+		log.Printf("Error building REST API v1: %s", err.Error())
 	} else {
 		r.Run(3939)
 	}
