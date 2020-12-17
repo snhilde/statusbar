@@ -233,7 +233,7 @@ func runAPIs(handler interface{}) {
 	r := restapi.NewEngine()
 
 	// Spin up REST API v1.
-	if err := r.AddSpec("api_specs/restv1.json", handler); err != nil {
+	if err := r.AddSpecFile("api_specs/restv1.json", handler); err != nil {
 		log.Printf("Error building REST API v1: %s", err.Error())
 	} else {
 		r.Run(3939)
