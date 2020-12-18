@@ -18,6 +18,9 @@ type routine struct {
 	// Time in seconds to wait between each run
 	interval time.Duration
 
+	// Timer that is started when the routine is started. This is used to measure the routine's uptime.
+	startTime time.Time
+
 	// Channel to use for signaling manual update
 	updateChan chan struct{}
 
@@ -42,6 +45,9 @@ func (r *routine) run(index int, outputsChan chan []string, finished chan<- *rou
 	if r == nil {
 		return
 	}
+
+	// Start the uptime clock.
+	r.startTime = time.Now()
 
 	for {
 		// Start the clock.
@@ -115,11 +121,28 @@ func (r *routine) setHandler(handler RoutineHandler) {
 	}
 }
 
+// interval returns the routine's interval in seconds.
+func (r *routine) interval() int {
+	if r != nil {
+		return int(r.interval.Seconds())
+	}
+	return 0
+}
+
 // setInterval sets the routine's interval in seconds.
 func (r *routine) setInterval(interval int) {
 	if r != nil {
 		r.interval = time.Duration(interval) * time.Second
 	}
+}
+
+// uptime returns the time in seconds denoting how long the routine has been running.
+func (r *routine) uptime() int {
+	if r != nil {
+		t := time.Since(r.startTime)
+		return int(t.Seconds())
+	}
+	return 0
 }
 
 // displayName returns the routine's display name.
