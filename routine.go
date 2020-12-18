@@ -15,6 +15,9 @@ type routine struct {
 	// Name of routine
 	name string
 
+	// Whether or not the routine is currently active and up.
+	isActive bool
+
 	// Time in seconds to wait between each run
 	interval time.Duration
 
@@ -48,6 +51,7 @@ func (r *routine) run(index int, outputsChan chan []string, finished chan<- *rou
 
 	// Start the uptime clock.
 	r.startTime = time.Now()
+	r.isActive = true
 
 	for {
 		// Start the clock.
@@ -99,16 +103,19 @@ func (r *routine) run(index int, outputsChan chan []string, finished chan<- *rou
 		select {
 		case <-r.updateChan:
 			// Update now.
-			break
 		case <-r.stopChan:
 			// Stop the routine.
-			finished <- r
-			return
+			r.isActive = false
 		case <-time.After(interval - time.Since(start)):
 			// Time elapsed. Run another update loop.
+		}
+
+		if !r.isActive {
 			break
 		}
 	}
+
+	r.isActive = false
 
 	// Send on the finished channel to signify that we're stopping this routine.
 	finished <- r
@@ -134,6 +141,14 @@ func (r *routine) setInterval(interval int) {
 	if r != nil {
 		r.interval = time.Duration(interval) * time.Second
 	}
+}
+
+// active returns whether or not the routine is currently up.
+func (r *routine) active() bool {
+	if r != nil {
+		return r.isActive
+	}
+	return false
 }
 
 // uptime returns the time in seconds denoting how long the routine has been running.
@@ -181,6 +196,5 @@ func (r *routine) stop() {
 	// Stop the routine by sending an empty struct on its stop channel.
 	if r != nil && r.stopChan != nil {
 		r.stopChan <- struct{}{}
-
 	}
 }
