@@ -54,6 +54,9 @@ type Statusbar struct {
 	// Index of the routine after which the routines are split, as set with Split.
 	split int
 
+	// Timer that is started when the statusbar is started. This is used to measure the statusbar's uptime.
+	startTime time.Time
+
 	// Whether or not to enable and run the APIs.
 	apiEnabled bool
 }
@@ -91,6 +94,9 @@ func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 // Run spins up all the routines and displays them on the statusbar. If the APIs are enabled, this also runs the API
 // engines.
 func (sb *Statusbar) Run() {
+	// Start the uptime clock.
+	sb.startTime = time.Now()
+
 	// Add a signal handler so we can clear the statusbar if the program goes down.
 	go sb.handleSignal()
 
@@ -139,6 +145,12 @@ func (sb *Statusbar) SetMarkers(left string, right string) {
 // displayed on the bottom bar.
 func (sb *Statusbar) Split() {
 	sb.split = len(sb.routines) - 1
+}
+
+// Uptime returns the time in seconds denoting how long the statusbar has been running.
+func (sb *Statusbar) Uptime() int {
+	t := time.Since(sb.startTime)
+	return int(t.Seconds())
 }
 
 // EnableAPI enables the engine to run the APIs on port port. These can be used to interact with the statusbar and its routines while
