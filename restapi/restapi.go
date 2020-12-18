@@ -25,7 +25,8 @@ type Params map[string]string
 // the JSON spec has an endpoint for "/users/list" with a registered callback of "ListAllUsers". The handler object
 // passed in with AddSpec or AddSpecFile would then need to implement
 // ListAllUsers(Endpoint, Params, *http.Request) (int, string). AddSpec and AddSpecFile return an error if the handler
-// object does not implement a method with that exact name and definition.
+// object does not implement a method with that exact name and definition. The method must be exported (capitalized) for
+// it to be visible to the engine.
 //
 // Endpoint is the endpoint as defined in the specification. Params is a map of Gin URL params. *http.Request is the
 // data as sent in the request. The method returns the HTTP response code and a string of response data.
@@ -95,7 +96,7 @@ func NewEngine() Engine {
 // specification must be JSON-encoded using the template defined in RestSpec.
 func (e *Engine) AddSpecFile(path string, handler interface{}) error {
 	if e == nil || e.engine == nil {
-		return fmt.Errorf("Invalid Engine")
+		return fmt.Errorf("invalid Engine")
 	}
 
 	// Open file at path.
@@ -117,7 +118,7 @@ func (e *Engine) AddSpecFile(path string, handler interface{}) error {
 // AddSpec adds the enpoints in the specification to Engine's routes.
 func (e *Engine) AddSpec(spec RestSpec, handler interface{}) error {
 	if e == nil || e.engine == nil {
-		return fmt.Errorf("Invalid Engine")
+		return fmt.Errorf("invalid Engine")
 	}
 
 	engine := e.engine
@@ -132,13 +133,13 @@ func (e *Engine) AddSpec(spec RestSpec, handler interface{}) error {
 	for _, table := range spec.Tables {
 		for _, endpoint := range table.Endpoints {
 			if endpoint.Callback == "" {
-				return fmt.Errorf("Missing callback for %s", endpoint.URL)
+				return fmt.Errorf("missing callback for %s", endpoint.URL)
 			}
 
 			// Figure out which of the handler's methods we need to set as this endpoint's handler.
 			handler := handlerType.MethodByName(endpoint.Callback)
 			if handler == (reflect.Value{}) {
-				return fmt.Errorf("Handler does not implement %s", endpoint.Callback)
+				return fmt.Errorf("handler does not implement %s", endpoint.Callback)
 			}
 
 			// Type assert the callback method back to the correct definition.
