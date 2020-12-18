@@ -19,7 +19,7 @@ type routine struct {
 	isActive bool
 
 	// Time in seconds to wait between each run
-	interval time.Duration
+	intervalTime time.Duration
 
 	// Timer that is started when the routine is started. This is used to measure the routine's uptime.
 	startTime time.Time
@@ -78,14 +78,14 @@ func (r *routine) run(index int, outputsChan chan []string, finished chan<- *rou
 		}
 
 		// If the interval was set to only run once, then we can close the routine now.
-		if r.interval == 0 {
+		if r.intervalTime == 0 {
 			break
 		}
 
-		interval := r.interval
+		interval := r.intervalTime
 		// If the routine reported an error, then we'll give the process a little time to cool down before trying again.
 		if err != nil {
-			seconds := r.interval / time.Second
+			seconds := r.intervalTime / time.Second
 			switch {
 			// For routines with intervals up to 1 minute, sleep for 5 seconds.
 			case seconds < 60:
@@ -131,7 +131,7 @@ func (r *routine) setHandler(handler RoutineHandler) {
 // interval returns the routine's interval in seconds.
 func (r *routine) interval() int {
 	if r != nil {
-		return int(r.interval.Seconds())
+		return int(r.intervalTime.Seconds())
 	}
 	return 0
 }
@@ -139,7 +139,7 @@ func (r *routine) interval() int {
 // setInterval sets the routine's interval in seconds.
 func (r *routine) setInterval(interval int) {
 	if r != nil {
-		r.interval = time.Duration(interval) * time.Second
+		r.intervalTime = time.Duration(interval) * time.Second
 	}
 }
 
