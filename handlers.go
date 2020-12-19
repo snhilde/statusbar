@@ -76,12 +76,11 @@ func (a apiHandler) HandleGetEndpoints(endpoint restapi.Endpoint, params restapi
 // HandleGetRoutineAll responds with information about all the routines (active and inactive).
 // endpoint: GET /routines
 func (a apiHandler) HandleGetRoutineAll(endpoint restapi.Endpoint, params restapi.Params, request *http.Request) (int, string) {
-	infos := make([]map[string]routineInfo, 0)
+	infos := make(map[string]routineInfo, 0)
 	for _, routine := range a.routines {
-		r := map[string]routineInfo {
-			routine.moduleName(): getRoutineInfo(routine),
-		}
-		infos = append(infos, r)
+		name := routine.moduleName()
+		info := getRoutineInfo(routine)
+		infos[name] = info
 	}
 
 	return 200, encodePair("routines", infos)
