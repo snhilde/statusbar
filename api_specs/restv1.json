@@ -109,7 +109,7 @@
 				{
 					"method": "PATCH",
 					"url": "/routines/:routine",
-					"description": "Update the specified routine's settings.",
+					"description": "Modify the specified routine's settings.",
 					"request": {
 						"interval": {
 							"type": "number",
