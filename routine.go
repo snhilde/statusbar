@@ -151,9 +151,10 @@ func (r *routine) active() bool {
 	return false
 }
 
-// uptime returns the time in seconds denoting how long the routine has been running.
+// uptime returns the time in seconds denoting how long the routine has been running. If the routine is not active, this
+// returns 0.
 func (r *routine) uptime() int {
-	if r != nil {
+	if r != nil && r.isActive {
 		t := time.Since(r.startTime)
 		return int(t.Seconds())
 	}
