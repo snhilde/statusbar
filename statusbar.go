@@ -121,7 +121,7 @@ func (sb *Statusbar) Run() {
 
 	// If enabled, build and run the APIs in their own goroutine.
 	if sb.apiEnabled {
-		go runAPIs(sb)
+		go sb.runAPIs()
 	}
 
 	// Keep running until every routine stops.
@@ -240,12 +240,12 @@ func (sb *Statusbar) handleSignal() {
 
 // runAPIs runs the various APIs and their versions using the callback methods implemented by handler. New APIs/versions
 // should be added here.
-func runAPIs(handler interface{}) {
+func (sb *Statusbar) runAPIs() {
 	// Begin with the REST API.
 	r := restapi.NewEngine()
 
-	// Spin up REST API v1.
-	if err := r.AddSpecFile("api_specs/restv1.json", handler); err != nil {
+	// Spin up REST API v1. Use an apiHandler to wrap the statusbar object for convenience (see type definition).
+	if err := r.AddSpecFile("api_specs/restv1.json", apiHandler{sb}); err != nil {
 		log.Printf("Error building REST API v1: %s", err.Error())
 	} else {
 		r.Run(3939)
