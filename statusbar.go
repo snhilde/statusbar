@@ -57,8 +57,8 @@ type Statusbar struct {
 	// Timer that is started when the statusbar is started. This is used to measure the statusbar's uptime.
 	startTime time.Time
 
-	// The port to run the APIs on. If this is 0, the APIS do not run.
-	port int
+	// The port to run the REST API on. If this is 0, the engine does not run.
+	restPort int
 }
 
 // New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
@@ -120,9 +120,7 @@ func (sb *Statusbar) Run() {
 	go setBar(outputsChan, *sb)
 
 	// If enabled, build and run the APIs in their own goroutine.
-	if sb.port > 0 {
-		go sb.runAPIs()
-	}
+	go sb.runAPIs()
 
 	// Keep running until every routine stops.
 	for i := 0; i < len(sb.routines); i++ {
@@ -153,10 +151,10 @@ func (sb *Statusbar) Uptime() int {
 	return int(t.Seconds())
 }
 
-// EnableAPI enables the engine to run the APIs on port port. These can be used to interact with the statusbar and its
-// routines while they are running.
-func (sb *Statusbar) EnableAPI(port int) {
-	sb.port = port
+// EnableRESTAPI enables the engine to run the REST API on port port. These can be used to interact with the statusbar
+// and its routines while they are running.
+func (sb *Statusbar) EnableRESTAPI(port int) {
+	sb.restPort = port
 }
 
 // setBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any changes
@@ -241,13 +239,15 @@ func (sb *Statusbar) handleSignal() {
 // runAPIs runs the various APIs and their versions using the callback methods implemented by handler. New APIs/versions
 // should be added here.
 func (sb *Statusbar) runAPIs() {
-	// Begin with the REST API.
-	r := restapi.NewEngine()
+	if sb.restPort > 0 {
+		// Begin with the REST API.
+		r := restapi.NewEngine()
 
-	// Spin up REST API v1. Use an apiHandler to wrap the statusbar object for convenience (see type definition).
-	if err := r.AddSpecFile("api_specs/restv1.json", apiHandler{sb}); err != nil {
-		log.Printf("Error building REST API v1: %s", err.Error())
-	} else {
-		r.Run(sb.port)
+		// Spin up REST API v1. Use an apiHandler to wrap the statusbar object for convenience (see type definition).
+		if err := r.AddSpecFile("api_specs/restv1.json", apiHandler{sb}); err != nil {
+			log.Printf("Error building REST API v1: %s", err.Error())
+		} else {
+			r.Run(sb.restPort)
+		}
 	}
 }
