@@ -15,6 +15,8 @@
 1. [Modules](#modules)
 1. [Contributing](#contributing)
 1. [Changelog](#changelog)
+	1. [5.1.1](#511)
+	1. [5.1.0](#510)
 	1. [5.0.0](#500)
 	1. [4.1.2](#412)
 	1. [4.1.1](#411)
@@ -73,11 +75,19 @@ This repository includes these modules to get up and running quickly:
 
 ## Contributing
 If you find a bug, please submit a pull request.
-If you think their could be an improvement, please submit an issue or a pull request with the recommended change.
-Contributions of new modules are also very welcome.
+If you think there could be an improvement, please open an issue or submit a pull request with the recommended change.
+Contributions and new modules are always welcome.
 
 
 ## Changelog
+### 5.1.1
+* Migrated documentation to GoDocs to PkgGoDev Doc
+
+### 5.1.0
+* Added sbgithubclones module to track daily and weekly clone counts for a given repository.
+* Engine will now truncate module outputs that are longer than 50 characters.
+* Various module enhancements.
+
 ### 5.0.0
 * **API Break**: Changed repository from `statusbar4` to `statusbar`.
 * **API Break**: Redefined `RoutineHandler`'s method `Update()` to `Update() (bool, error)`.
