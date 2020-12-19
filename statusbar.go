@@ -57,8 +57,8 @@ type Statusbar struct {
 	// Timer that is started when the statusbar is started. This is used to measure the statusbar's uptime.
 	startTime time.Time
 
-	// Whether or not to enable and run the APIs.
-	apiEnabled bool
+	// The port to run the APIs on. If this is 0, the APIS do not run.
+	port int
 }
 
 // New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
@@ -120,7 +120,7 @@ func (sb *Statusbar) Run() {
 	go setBar(outputsChan, *sb)
 
 	// If enabled, build and run the APIs in their own goroutine.
-	if sb.apiEnabled {
+	if sb.port > 0 {
 		go sb.runAPIs()
 	}
 
@@ -153,10 +153,10 @@ func (sb *Statusbar) Uptime() int {
 	return int(t.Seconds())
 }
 
-// EnableAPI enables the engine to run the APIs on port port. These can be used to interact with the statusbar and its routines while
-// they are running.
+// EnableAPI enables the engine to run the APIs on port port. These can be used to interact with the statusbar and its
+// routines while they are running.
 func (sb *Statusbar) EnableAPI(port int) {
-	sb.apiEnabled = true
+	sb.port = port
 }
 
 // setBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any changes
@@ -248,6 +248,6 @@ func (sb *Statusbar) runAPIs() {
 	if err := r.AddSpecFile("api_specs/restv1.json", apiHandler{sb}); err != nil {
 		log.Printf("Error building REST API v1: %s", err.Error())
 	} else {
-		r.Run(3939)
+		r.Run(sb.port)
 	}
 }
