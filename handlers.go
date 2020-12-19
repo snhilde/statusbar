@@ -145,6 +145,10 @@ func (a apiHandler) HandlePatchRoutine(endpoint restapi.Endpoint, params restapi
 		return 400, encodePair("error", err.Error())
 	}
 
+	if len(body) == 0 {
+		return 400, encodePair("error", "missing request body")
+	}
+
 	info := routineInfo{}
 	if err := json.Unmarshal(body, &info); err != nil {
 		return 400, encodePair("error", err.Error())
