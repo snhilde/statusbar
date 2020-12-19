@@ -43,8 +43,8 @@
 					"url": "/routines",
 					"description": "Get a list of information about all routines.",
 					"response": {
-						"routines": [
-							{
+						"routines": {
+							"routineName": {
 								"name": {
 									"type": "string",
 									"description": "Routine's name"
@@ -62,7 +62,7 @@
 									"description": "Whether or not routine is currently active"
 								}
 							}
-						]
+						}
 					},
 					"callback": "HandleGetRoutineAll"
 				},
@@ -71,21 +71,23 @@
 					"url": "/routines/:routine",
 					"description": "Get information about the specified routine.",
 					"response": {
-						"name": {
-							"type": "string",
-							"description": "Routine's name"
-						},
-						"uptime": {
-							"type": "number",
-							"description": "Routine's uptime, in seconds"
-						},
-						"interval": {
-							"type": "number",
-							"description": "Routine's update interval, in seconds"
-						},
-						"active": {
-							"type": "boolean",
-							"description": "Whether or not routine is currently active"
+						"routineName": {
+							"name": {
+								"type": "string",
+								"description": "Routine's name"
+							},
+							"uptime": {
+								"type": "number",
+								"description": "Routine's uptime, in seconds"
+							},
+							"interval": {
+								"type": "number",
+								"description": "Routine's update interval, in seconds"
+							},
+							"active": {
+								"type": "boolean",
+								"description": "Whether or not routine is currently active"
+							}
 						}
 					},
 					"callback": "HandleGetRoutine"
