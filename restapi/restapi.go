@@ -156,7 +156,17 @@ func (e *Engine) AddSpec(spec RestSpec, handler interface{}) error {
 				}
 
 				code, output := f(endpoint, params, c.Request)
-				c.String(int(code), output)
+				if code >= 400 && code < 600 {
+					c.Error(fmt.Errorf(output))
+				}
+				if output == "" {
+					c.Status(code)
+				} else {
+					if json.Valid([]byte(output)) {
+						c.Header("Content-Type", "application/json")
+					}
+					c.String(int(code), output)
+				}
 			})
 		}
 	}
