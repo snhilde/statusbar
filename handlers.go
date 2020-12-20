@@ -105,7 +105,7 @@ func (a apiHandler) HandlePutRefreshAll(endpoint restapi.Endpoint, params restap
 			select {
 			case routine.updateChan <- struct{}{}:
 			default:
-				return 400, encodePair("error", "failure")
+				return 500, encodePair("error", "failure")
 			}
 		}
 	}
@@ -125,7 +125,7 @@ func (a apiHandler) HandlePutRefresh(endpoint restapi.Endpoint, params restapi.P
 		select {
 		case routine.updateChan <- struct{}{}:
 		default:
-			return 400, encodePair("error", "failure")
+			return 500, encodePair("error", "failure")
 		}
 	}
 
@@ -161,6 +161,7 @@ func (a apiHandler) HandlePatchRoutine(endpoint restapi.Endpoint, params restapi
 		select {
 		case routine.updateChan <- struct{}{}:
 		default:
+			return 500, encodePair("error", "failure")
 		}
 	}
 
@@ -175,7 +176,7 @@ func (a apiHandler) HandleDeleteRoutineAll(endpoint restapi.Endpoint, params res
 			select {
 			case routine.stopChan <- struct{}{}:
 			default:
-				return 400, encodePair("error", "failure")
+				return 500, encodePair("error", "failure")
 			}
 		}
 	}
@@ -195,7 +196,7 @@ func (a apiHandler) HandleDeleteRoutine(endpoint restapi.Endpoint, params restap
 		select {
 		case routine.stopChan <- struct{}{}:
 		default:
-			return 400, encodePair("error", "failure")
+			return 500, encodePair("error", "failure")
 		}
 	}
 
