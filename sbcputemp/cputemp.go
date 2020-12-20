@@ -3,7 +3,6 @@
 package sbcputemp
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -73,7 +72,7 @@ func New(colors ...[3]string) *Routine {
 // Celsius. If we have trouble reading a particular sensor, then we'll skip it on this pass.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// Handle error in New.
@@ -111,7 +110,7 @@ func (r *Routine) Update() (bool, error) {
 // String prints a formatted temperature average in degrees Celsius.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	var c string
@@ -129,11 +128,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd
@@ -171,7 +170,7 @@ func findDir() (string, error) {
 	}
 
 	// If we made it here, then we didn't find anything.
-	return "", errors.New("No fan file")
+	return "", fmt.Errorf("no fan file")
 }
 
 // findFiles goes through the given path and builds a list of files that contain a temperature reading. These files will
@@ -194,7 +193,7 @@ func findFiles(path string) ([]string, error) {
 
 	// Make sure we found something.
 	if len(b) == 0 {
-		return nil, errors.New("No temperature files")
+		return nil, fmt.Errorf("no temperature files")
 	}
 
 	return b, nil

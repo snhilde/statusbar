@@ -4,7 +4,6 @@ package sbweather
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -81,14 +80,14 @@ func New(zip string, colors ...[3]string) *Routine {
 // Update gets the current hourly temperature.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// See if we need to initialize the routine still. We're doing this here instead of in New so as to not block the
 	// start-up process of other routines.
 	if !r.initialized {
 		if err := r.init(); err != nil {
-			r.err = errors.New("Failed to start up")
+			r.err = fmt.Errorf("failed to start up")
 			// We're going to return true so we can try the process again when the connection is back online (assuming
 			// that's the problem).
 			return true, err
@@ -126,7 +125,7 @@ func (r *Routine) Update() (bool, error) {
 // String formats and prints the current temperature.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	// Grab some info on which day's forecast we're reporting.
@@ -173,11 +172,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd
@@ -286,7 +285,7 @@ func ipToCoords(client *http.Client) (string, string, error) {
 	}
 
 	if c.Lat == 0 && c.Lon == 0 {
-		return "", "", errors.New("Failed to find coordinates")
+		return "", "", fmt.Errorf("failed to find coordinates")
 	}
 
 	return fmt.Sprintf("%v", c.Lat), fmt.Sprintf("%v", c.Lon), nil
@@ -325,18 +324,18 @@ func zipToCoords(client *http.Client, zip string) (string, string, error) {
 
 	// Make sure the status is good.
 	if c.Status != 1 {
-		return "", "", errors.New("Coordinates request failed")
+		return "", "", fmt.Errorf("coordinates request failed")
 	}
 
 	// Make sure we got back just one dictionary.
 	if len(c.Output) != 1 {
-		return "", "", errors.New("Received invalid coordinates array")
+		return "", "", fmt.Errorf("received invalid coordinates array")
 	}
 
 	lat := c.Output[0]["latitude"]
 	long := c.Output[0]["longitude"]
 	if lat == "" || long == "" {
-		return "", "", errors.New("Missing coordinates in response")
+		return "", "", fmt.Errorf("missing coordinates in response")
 	}
 
 	return lat, long, nil
@@ -405,14 +404,14 @@ func getURL(client *http.Client, lat string, long string) (string, error) {
 	switch p.Status {
 	// Add other codes here as they come up.
 	case 301:
-		return "", errors.New("Max 4 digits of precision")
+		return "", fmt.Errorf("max 4 digits of precision")
 	case 404:
-		return "", errors.New("Invalid location")
+		return "", fmt.Errorf("invalid location")
 	}
 
 	url = p.Properties.Forecast
 	if url == "" {
-		return "", errors.New("Bad temperature URL")
+		return "", fmt.Errorf("bad temperature URL")
 	}
 
 	return url, nil
@@ -433,43 +432,43 @@ func getTemp(client *http.Client, url string) (string, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", errors.New("Temp: Bad Request")
+		return "", fmt.Errorf("temp: bad request")
 	}
 	req.Header.Set("accept", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", errors.New("Temp: Bad Client")
+		return "", fmt.Errorf("temp: bad client")
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", errors.New("Temp: Bad Read")
+		return "", fmt.Errorf("temp: bad read")
 	}
 
 	t := temp{}
 	if err := json.Unmarshal(body, &t); err != nil {
-		return "", errors.New("Temp: Bad Data")
+		return "", fmt.Errorf("temp: bad data")
 	}
 
 	if t.Status == 500 {
 		if t.Title != "" {
-			return "", errors.New(t.Title)
+			return "", fmt.Errorf(t.Title)
 		}
-		return "", errors.New("Temp: Server Error")
+		return "", fmt.Errorf("temp: server error")
 	}
 
 	// Get the list of weather readings.
 	periods := t.Properties.Periods
 	if len(periods) == 0 {
-		return "", errors.New("Missing hourly temperature periods")
+		return "", fmt.Errorf("missing hourly temperature periods")
 	}
 
 	// Use the most recent reading.
 	latest := periods[0]
 	if len(latest) == 0 {
-		return "", errors.New("Missing current temperature")
+		return "", fmt.Errorf("missing current temperature")
 	}
 
 	// Get just the temperature reading.
@@ -491,34 +490,34 @@ func getForecast(client *http.Client, url string) (string, string, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", "", errors.New("Forecast: Bad Request")
+		return "", "", fmt.Errorf("forecast: bad request")
 	}
 	req.Header.Set("accept", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", "", errors.New("Forecast: Bad Client")
+		return "", "", fmt.Errorf("forecast: bad client")
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", "", errors.New("Forecast: Bad Read")
+		return "", "", fmt.Errorf("forecast: bad read")
 	}
 	// TODO: handle expired grid.
 
 	f := forecast{}
 	if err := json.Unmarshal(body, &f); err != nil {
-		return "", "", errors.New("Forecast: Bad JSON")
+		return "", "", fmt.Errorf("forecast: bad JSON")
 	}
 
 	// Get the list of forecasts.
 	periods := f.Properties.Periods
 	if len(periods) == 0 {
 		if f.Title != "" {
-			return "", "", errors.New(f.Title)
+			return "", "", fmt.Errorf(f.Title)
 		}
-		return "", "", errors.New("Missing forecast periods")
+		return "", "", fmt.Errorf("missing forecast periods")
 	}
 
 	// If it's before 3pm, we'll use the forecast of the current day.

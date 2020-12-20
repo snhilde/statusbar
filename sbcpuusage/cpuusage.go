@@ -3,7 +3,6 @@ package sbcpuusage
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -82,7 +81,7 @@ func New(colors ...[3]string) *Routine {
 // currently being used.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// Handle error in New.
@@ -124,7 +123,7 @@ func (r *Routine) Update() (bool, error) {
 // String prints the formatted CPU percentage.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	var c string
@@ -143,11 +142,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd
@@ -174,14 +173,14 @@ func numThreads() (int, error) {
 		if strings.HasPrefix(line, "Thread(s) per core") {
 			fields := strings.Fields(line)
 			if len(fields) != 4 {
-				return -1, errors.New("Invalid fields")
+				return -1, fmt.Errorf("invalid fields")
 			}
 			return strconv.Atoi(fields[3])
 		}
 	}
 
 	// If we made it this far, then we didn't find anything.
-	return -1, errors.New("Failed to find number of threads")
+	return -1, fmt.Errorf("failed to find number of threads")
 }
 
 // readStats opens /proc/stat and reads out the CPU stats from the first line.

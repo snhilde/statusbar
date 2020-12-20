@@ -3,7 +3,6 @@ package sbgithubclones
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -86,7 +85,7 @@ func New(owner, repo, authUser, authToken string, colors ...[3]string) *Routine 
 // Update gets the current clone count.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	day, err := getCount(r.client, r.reqDay, true)
@@ -110,7 +109,7 @@ func (r *Routine) Update() (bool, error) {
 // period.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.dayCount == "" {
@@ -126,11 +125,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd
@@ -203,11 +202,11 @@ func getCount(client *http.Client, req *http.Request, daily bool) (string, error
 
 	// If there's an error message in the response, then something went wrong.
 	if c.Message != "" {
-		if c.Message == "Not Found" {
+		if c.Message == "not found" {
 			// Let's make this error message a little more obvious.
-			c.Message = "Repository Not Found"
+			c.Message = "repository not found"
 		}
-		return "-", errors.New(c.Message)
+		return "-", fmt.Errorf(c.Message)
 	}
 
 	// Find the current count for this reporting period.

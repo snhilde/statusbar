@@ -2,7 +2,6 @@
 package sbload
 
 import (
-	"errors"
 	"fmt"
 	"syscall"
 )
@@ -55,7 +54,7 @@ func New(colors ...[3]string) *Routine {
 // Update calls Sysinfo() and calculates load averages.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// Handle any error encountered in New.
@@ -66,7 +65,7 @@ func (r *Routine) Update() (bool, error) {
 	var info syscall.Sysinfo_t
 	err := syscall.Sysinfo(&info)
 	if err != nil {
-		r.err = errors.New("Error getting stats")
+		r.err = fmt.Errorf("error getting stats")
 		return true, err
 	}
 
@@ -81,7 +80,7 @@ func (r *Routine) Update() (bool, error) {
 // String prints the 3 load averages with 2 decimal places of precision.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	var c string
@@ -100,11 +99,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	s := r.colors.error + r.err.Error() + colorEnd

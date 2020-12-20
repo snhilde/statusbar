@@ -2,7 +2,6 @@
 package sbtodo
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -64,7 +63,7 @@ func New(path string, colors ...[3]string) *Routine {
 	}
 
 	if err := r.readFile(); err != nil {
-		r.err = errors.New("Error reading file")
+		r.err = fmt.Errorf("error reading file")
 		return &r
 	}
 
@@ -75,20 +74,20 @@ func New(path string, colors ...[3]string) *Routine {
 // Update reads the TODO file again, if it was modified since the last read.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// Handle any error from New.
 	if r.info.Name() == "" {
 		if r.err == nil {
-			r.err = errors.New("Invalid file")
+			r.err = fmt.Errorf("invalid file")
 		}
 		return false, r.err
 	}
 
 	newInfo, err := os.Stat(r.path)
 	if err != nil {
-		r.err = errors.New("Error getting file stats")
+		r.err = fmt.Errorf("error getting file stats")
 		return true, err
 	}
 
@@ -98,7 +97,7 @@ func (r *Routine) Update() (bool, error) {
 	if newMtime > oldMtime {
 		// The file was modified. Let's parse it.
 		if err := r.readFile(); err != nil {
-			r.err = errors.New("Error reading file")
+			r.err = fmt.Errorf("error reading file")
 			return true, err
 		}
 	}
@@ -114,7 +113,7 @@ func (r *Routine) Update() (bool, error) {
 //   4. If two lines have content and both are flush, print "line1 | line2".
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	var b strings.Builder
@@ -151,11 +150,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd

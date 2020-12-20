@@ -2,7 +2,6 @@
 package sbfan
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -73,7 +72,7 @@ func New(colors ...[3]string) *Routine {
 // Update reads the current fan speed in RPM and calculates the percentage of the maximum speed.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// Handle any error encountered in New.
@@ -83,7 +82,7 @@ func (r *Routine) Update() (bool, error) {
 
 	speed, err := readSpeed(r.fanPath)
 	if err != nil {
-		r.err = errors.New("Error reading speed")
+		r.err = fmt.Errorf("error reading speed")
 		return true, err
 	}
 
@@ -94,7 +93,7 @@ func (r *Routine) Update() (bool, error) {
 // String prints the current speed in RPM.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	var c string
@@ -118,11 +117,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd
@@ -179,7 +178,7 @@ func findFiles() (string, string, error) {
 	}
 
 	// If we made it here, then we didn't find anything.
-	return "", "", errors.New("No fan file")
+	return "", "", fmt.Errorf("no fan file")
 }
 
 // readSpeed reads the value of the provided file. The value will be a speed in RPM.

@@ -3,7 +3,6 @@
 package sbnetwork
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -80,7 +79,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 // Update gets the current readings of the rx/tx files for each interface.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// Get the interfaces that we want to monitor on this loop.
@@ -90,13 +89,13 @@ func (r *Routine) Update() (bool, error) {
 		// loop to catch any changes in interface statuses as they happen.
 		is, err := findInterfaces()
 		if err != nil {
-			r.err = errors.New("Error finding interfaces")
+			r.err = fmt.Errorf("error finding interfaces")
 			return true, err
 		}
 		r.printNames = is
 	}
 	if len(r.printNames) == 0 {
-		r.err = errors.New("No interfaces up")
+		r.err = fmt.Errorf("no interfaces up")
 		return true, r.err
 	}
 
@@ -135,7 +134,7 @@ func (r *Routine) Update() (bool, error) {
 // String calculates the byte difference for each interface, and formats and prints it.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	var c string
@@ -178,11 +177,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd

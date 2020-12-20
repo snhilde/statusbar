@@ -2,7 +2,6 @@
 package sbnordvpn
 
 import (
-	"errors"
 	"os/exec"
 	"strings"
 )
@@ -55,7 +54,7 @@ func New(colors ...[3]string) *Routine {
 // Update runs the command and captures the output.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// If the command is successful but there's an error with nordvpn (like if the internet is down), this will return
@@ -74,7 +73,7 @@ func (r *Routine) Update() (bool, error) {
 // String formats and prints the current connection status.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	return r.color + r.parsed + colorEnd
@@ -83,11 +82,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd
@@ -134,11 +133,11 @@ func (r *Routine) parseOutput(output string) error {
 	if field == -1 {
 		// We didn't receive the usual status output.
 		if strings.Contains(lines[0], "Please check your internet connection") {
-			return errors.New("Internet Down")
+			return fmt.Errorf("internet down")
 		}
-		return errors.New(lines[0])
+		return fmt.Errorf(lines[0])
 	} else if len(fields) <= field+1 {
-		return errors.New("Bad response")
+		return fmt.Errorf("bad response")
 	}
 
 	if fields[field+1] == "Connected" {
@@ -146,7 +145,7 @@ func (r *Routine) parseOutput(output string) error {
 			if strings.HasPrefix(line, "City") {
 				city := strings.Split(line, ":")
 				if len(city) != 2 {
-					return errors.New("Error parsing City")
+					return fmt.Errorf("error parsing City")
 				}
 
 				r.parsed = "Connected"

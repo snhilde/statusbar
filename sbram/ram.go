@@ -2,7 +2,6 @@
 package sbram
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -66,12 +65,12 @@ func New(colors ...[3]string) *Routine {
 // there. All lines of that file have three fields: field name, value, and unit
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	file, err := ioutil.ReadFile("/proc/meminfo")
 	if err != nil {
-		r.err = errors.New("Error reading file")
+		r.err = fmt.Errorf("error reading file")
 		return true, err
 	}
 
@@ -82,7 +81,7 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	if total == 0 || avail == 0 {
-		r.err = errors.New("Failed to parse memory fields")
+		r.err = fmt.Errorf("failed to parse memory fields")
 		return true, r.err
 	}
 
@@ -96,7 +95,7 @@ func (r *Routine) Update() (bool, error) {
 // String formats and prints the used and total system memory.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	var color string
@@ -115,11 +114,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd
@@ -141,21 +140,21 @@ func parseFile(output string) (int, int, error) {
 		if strings.HasPrefix(line, "MemTotal") {
 			fields := strings.Fields(line)
 			if len(fields) != 3 {
-				return 0, 0, errors.New("Invalid MemTotal fields")
+				return 0, 0, fmt.Errorf("invalid MemTotal fields")
 			}
 			total, err = strconv.Atoi(fields[1])
 			if err != nil {
-				return 0, 0, errors.New("Error parsing MemTotal fields")
+				return 0, 0, fmt.Errorf("error parsing MemTotal fields")
 			}
 
 		} else if strings.HasPrefix(line, "MemAvailable") {
 			fields := strings.Fields(line)
 			if len(fields) != 3 {
-				return 0, 0, errors.New("Invalid MemAvailable fields")
+				return 0, 0, fmt.Errorf("invalid MemAvailable fields")
 			}
 			avail, err = strconv.Atoi(fields[1])
 			if err != nil {
-				return 0, 0, errors.New("Error parsing MemAvailable fields")
+				return 0, 0, fmt.Errorf("error parsing MemAvailable fields")
 			}
 		}
 	}

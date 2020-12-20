@@ -2,7 +2,6 @@
 package sbvolume
 
 import (
-	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -59,13 +58,13 @@ func New(control string, colors ...[3]string) *Routine {
 // Update runs the 'amixer' command and parses the output for mute status and volume percentage.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// Handle error from New.
 	if r.control == "" {
 		if r.err == nil {
-			r.err = errors.New("Invalid control")
+			r.err = fmt.Errorf("invalid control")
 		}
 		return false, r.err
 	}
@@ -76,7 +75,7 @@ func (r *Routine) Update() (bool, error) {
 	cmd := exec.Command("amixer", "get", r.control)
 	out, err := cmd.Output()
 	if err != nil {
-		r.err = errors.New("Error getting volume")
+		r.err = fmt.Errorf("error getting volume")
 		return true, err
 	}
 
@@ -94,7 +93,7 @@ func (r *Routine) Update() (bool, error) {
 					s := strings.TrimRight(field, "%")
 					vol, err := strconv.Atoi(s)
 					if err != nil {
-						r.err = errors.New("Error parsing volume")
+						r.err = fmt.Errorf("error parsing volume")
 						return true, err
 					}
 					// Ensure that the volume is a multiple of 10 (so it looks nicer).
@@ -106,7 +105,7 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	if r.vol < 0 {
-		r.err = errors.New("No volume found")
+		r.err = fmt.Errorf("no volume found")
 	}
 
 	return true, nil
@@ -115,7 +114,7 @@ func (r *Routine) Update() (bool, error) {
 // String prints either an error, the mute status, or the volume percentage.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.muted {
@@ -128,11 +127,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd

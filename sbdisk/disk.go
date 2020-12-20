@@ -2,7 +2,6 @@
 package sbdisk
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"syscall"
@@ -57,7 +56,7 @@ func New(paths []string, colors ...[3]string) *Routine {
 	var r Routine
 
 	if len(paths) == 0 {
-		r.err = errors.New("No paths provided")
+		r.err = fmt.Errorf("no paths provided")
 		return &r
 	}
 
@@ -83,7 +82,7 @@ func New(paths []string, colors ...[3]string) *Routine {
 // filesystem.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// Handle error in New.
@@ -95,7 +94,7 @@ func (r *Routine) Update() (bool, error) {
 		var b syscall.Statfs_t
 		err := syscall.Statfs(disk.path, &b)
 		if err != nil {
-			r.err = errors.New("Error checking stats")
+			r.err = fmt.Errorf("error checking stats")
 			return true, err
 		}
 
@@ -113,7 +112,7 @@ func (r *Routine) Update() (bool, error) {
 // String formats and prints the amounts of disk space for each provided filesystem.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	c := ""
@@ -141,11 +140,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd

@@ -2,7 +2,6 @@
 package sbtime
 
 import (
-	"errors"
 	"strings"
 	"time"
 )
@@ -61,13 +60,13 @@ func New(format string, colors ...[3]string) *Routine {
 // Update updates the routine's current time.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
-		return false, errors.New("Bad routine")
+		return false, fmt.Errorf("bad routine")
 	}
 
 	// Handle error in New.
 	if r.formatA == "" || r.formatB == "" {
 		if r.err == nil {
-			r.err = errors.New("Missing time format")
+			r.err = fmt.Errorf("missing time format")
 		}
 		return false, r.err
 	}
@@ -80,7 +79,7 @@ func (r *Routine) Update() (bool, error) {
 // String prints the time in the provided format.
 func (r *Routine) String() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	format := r.formatA
@@ -94,11 +93,11 @@ func (r *Routine) String() string {
 // Error formats and returns an error message.
 func (r *Routine) Error() string {
 	if r == nil {
-		return "Bad routine"
+		return "bad routine"
 	}
 
 	if r.err == nil {
-		r.err = errors.New("Unknown error")
+		r.err = fmt.Errorf("unknown error")
 	}
 
 	return r.colors.error + r.err.Error() + colorEnd
