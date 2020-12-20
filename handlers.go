@@ -149,12 +149,15 @@ func (a apiHandler) HandlePatchRoutine(endpoint restapi.Endpoint, params restapi
 		return 400, encodePair("error", "missing request body")
 	}
 
-	info := routineInfo{}
+	// Set the default interval to -1 so we know if a new interval was passed in or not.
+	info := routineInfo{Interval: -1}
 	if err := json.Unmarshal(body, &info); err != nil {
 		return 400, encodePair("error", err.Error())
 	}
 
-	routine.setInterval(info.Interval)
+	if info.Interval >= 0 {
+		routine.setInterval(info.Interval)
+	}
 
 	// Let's also trigger an update in case the interval time is now up.
 	if routine.isActive {
