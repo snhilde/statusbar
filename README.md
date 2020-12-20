@@ -3,6 +3,7 @@
 [![PkgGoDev Doc](https://pkg.go.dev/badge/github.com/snhilde/statusbar)](https://pkg.go.dev/github.com/snhilde/statusbar)
 [![GoReportCard example](https://goreportcard.com/badge/github.com/snhilde/statusbar)](https://goreportcard.com/report/github.com/snhilde/statusbar)
 
+<span class="bg-blue text-white rounded-1 px-2 py-1" style="text-transform: uppercase">get</span>
 
 # statusbar
 `statusbar` formats and displays information on the [`dwm`](https://dwm.suckless.org/) statusbar.
