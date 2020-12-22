@@ -1,4 +1,7 @@
 // Package restapi implements a REST API engine using the Gin routing framework.
+//
+// To begin, you need to build out the model using the RestApi type. You either spec it out in a JSON file, or you build
+// it directly in go. You then import it using AddSpec or AddSpecFile
 package restapi
 
 import (
@@ -18,7 +21,7 @@ type Engine struct {
 }
 
 // Params is a map of REST path parameters to their values. For example, if a path is specified as "/weather/:day" in
-// the specs and a client hits the endpoint "/weather/sunday", then Params["day"] = "sunday".
+// the specs and a client hits the endpoint "/weather/sunday", then params["day"] = "sunday".
 type Params map[string]string
 
 // HandlerFunc is the function definition that handlers must use to define a route's callback. For example, let's say
@@ -92,29 +95,6 @@ func NewEngine() Engine {
 	return Engine{gin.Default()}
 }
 
-// AddSpecFile reads the REST API specification in the file at path and adds it to Engine's routes. The
-// specification must be JSON-encoded using the template defined in RestSpec.
-func (e *Engine) AddSpecFile(path string, handler interface{}) error {
-	if e == nil || e.engine == nil {
-		return fmt.Errorf("invalid Engine")
-	}
-
-	// Open file at path.
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-
-	// Unmarshal JSON in file.
-	spec := RestSpec{}
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&spec); err != nil && err != io.EOF {
-		return err
-	}
-
-	return e.AddSpec(spec, handler)
-}
-
 // AddSpec adds the enpoints in the specification to Engine's routes.
 func (e *Engine) AddSpec(spec RestSpec, handler interface{}) error {
 	if e == nil || e.engine == nil {
@@ -172,6 +152,36 @@ func (e *Engine) AddSpec(spec RestSpec, handler interface{}) error {
 	}
 
 	return nil
+}
+
+// AddSpecFile reads the REST API specification in the file at path and adds it to Engine's routes. The
+// specification must be JSON-encoded using the template defined in RestSpec.
+func (e *Engine) AddSpecFile(path string, handler interface{}) error {
+	if e == nil || e.engine == nil {
+		return fmt.Errorf("invalid Engine")
+	}
+
+	// Open file at path.
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshal JSON in file and add the endpoints.
+	return e.AddSpecReader(file, handler)
+}
+
+// AddSpecReader reads the REST API specification in r and adds it to Engine's routes. The specification must be
+// JSON-encoded using the template defined in RestSpec.
+func (e *Engine) AddSpecReader(r io.Reader, handler interface{}) error {
+	// Unmarshal JSON in reader.
+	spec := RestSpec{}
+	decoder := json.NewDecoder(r)
+	if err := decoder.Decode(&spec); err != nil && err != io.EOF {
+		return err
+	}
+
+	return e.AddSpec(spec, handler)
 }
 
 // Run runs the API engine and listens on port.
