@@ -1,3 +1,8 @@
+// This file contains the JSON implementation (v1) of the RestAPI spec.
+
+package apispecs
+
+var RESTV1 = `
 {
 	"name": "REST API",
 	"prefix": "/rest/v1",
@@ -135,3 +140,4 @@
 		}
 	]
 }
+`
