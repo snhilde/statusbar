@@ -7,6 +7,7 @@ package statusbar
 import "C"
 
 import (
+	"github.com/snhilde/statusbar/apispecs"
 	"github.com/snhilde/statusbar/restapi"
 	"log"
 	"os"
@@ -244,7 +245,8 @@ func (sb *Statusbar) runAPIs() {
 		r := restapi.NewEngine()
 
 		// Spin up REST API v1. Use an apiHandler to wrap the statusbar object for convenience (see type definition).
-		if err := r.AddSpecFile("api_specs/restv1.json", apiHandler{sb}); err != nil {
+		s := strings.NewReader(apispecs.RESTV1)
+		if err := r.AddSpecReader(s, apiHandler{sb}); err != nil {
 			log.Printf("Error building REST API v1: %s", err.Error())
 		} else {
 			r.Run(sb.restPort)
