@@ -61,6 +61,9 @@ type Statusbar struct {
 
 	// The port to run the REST API on. If this is 0, the engine does not run.
 	restPort int
+
+	// REST API engine.
+	restEngine *restapi.Engine
 }
 
 // New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
@@ -234,6 +237,15 @@ func (sb *Statusbar) handleSignal() {
 	C.XStoreName(dpy, root, C.CString("Statusbar stopped"))
 	C.XSync(dpy, 1)
 
+	// Shutdown the API engine (if running).
+	if sb.restEngine != nil {
+		if err := sb.restEngine.Stop(); err == nil {
+			log.Printf("Stopped REST API engine")
+		} else {
+			log.Printf("Error stopping REST API engine: %s", err.Error())
+		}
+	}
+
 	// Stop the program.
 	p.Kill()
 }
@@ -249,8 +261,11 @@ func (sb *Statusbar) runAPIs() {
 		s := strings.NewReader(apispecs.RESTV1)
 		if err := r.AddSpecReader(s, apiHandler{sb}); err != nil {
 			log.Printf("Error building REST API v1: %s", err.Error())
+			sb.restEngine = nil
 		} else {
-			r.Run(sb.restPort)
+			// Now that everything looks good, we can save this engine and start it up.
+			sb.restEngine = r
+			sb.restEngine.Run(sb.restPort)
 		}
 	}
 }
