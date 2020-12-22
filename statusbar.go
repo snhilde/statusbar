@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"reflect"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -216,7 +217,7 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 // handleSignal clears the statusbar if the program receives an interrupt signal.
 func (sb *Statusbar) handleSignal() {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	pid := os.Getpid()
 	p, err := os.FindProcess(pid)
