@@ -1,3 +1,5 @@
+// +build go1.8
+
 // Package restapi implements a REST API engine using the Gin routing framework.
 //
 // The basic premise of this package is that you set up the routing table with the provided specification and then build
@@ -14,6 +16,7 @@
 package restapi
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -21,12 +24,14 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"time"
 )
 
 // Engine is the main type for this package. It handles building and running all versions of the REST API according to
 // the specifications provided.
 type Engine struct {
 	engine *gin.Engine
+	server *http.Server
 }
 
 // Params is a map of REST path parameters to their values. For example, if a path is specified as "/weather/:day" in
@@ -99,8 +104,11 @@ type Endpoint struct {
 }
 
 // NewEngine creates a new Engine using Gin's default engine, which includes fault handling and logging.
-func NewEngine() Engine {
-	return Engine{gin.Default()}
+func NewEngine() *Engine {
+	e := new(Engine)
+	e.engine = gin.Default()
+
+	return e
 }
 
 // AddSpec adds the enpoints in the specification to Engine's routes.
@@ -192,10 +200,29 @@ func (e *Engine) AddSpecReader(r io.Reader, handler interface{}) error {
 	return e.AddSpec(spec, handler)
 }
 
-// Run runs the API engine and listens on port.
+// Run runs the API engine in a new goroutine and listens on the designated port.
 func (e *Engine) Run(port int) {
-	if e != nil && e.engine != nil {
-		p := fmt.Sprintf(":%d", port)
-		e.engine.Run(p)
+	if e != nil && e.engine != nil && e.server == nil {
+		// We need to create a new server on every call to Run because a server cannot be reused after a call to Stop.
+		e.server = new(http.Server)
+		e.server.Handler = e.engine
+		e.server.Addr = fmt.Sprintf(":%d", port)
+
+		go e.server.ListenAndServe()
 	}
+}
+
+// Stop stops the API engine.
+func (e *Engine) Stop() error {
+	if e == nil || e.server == nil {
+		return fmt.Errorf("invalid server")
+	}
+
+	// Give the engine 5 seconds to close out any connections.
+	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+	defer cancel()
+
+	err := e.server.Shutdown(ctx)
+	e.server = nil
+	return err
 }
