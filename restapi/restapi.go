@@ -1,7 +1,16 @@
 // Package restapi implements a REST API engine using the Gin routing framework.
 //
-// To begin, you need to build out the model using the RestApi type. You either spec it out in a JSON file, or you build
-// it directly in go. You then import it using AddSpec or AddSpecFile
+// The basic premise of this package is that you set up the routing table with the provided specification and then build
+// the endpoints directly with a single call. With everything ready to go, you then run the engine.
+//
+// The most important step is building the REST API spec. You can do this by structuring up a JSON object and importing
+// that directly or by using an unmarshaled structure.
+//
+// To begin, review the notes on RestSpec and craft your implementation, making sure that every Endpoint's Callback
+// implements HandlerFunc. Next, create a new Engine and import the specification using the appropriate AddSpec* helper
+// (AddSpec to add a RestSpec structure directly, AddSpecFile to import a file containing the JSON representation of the
+// spec, or AddSpecReader to use an io.Reader that wraps the JSON object for the spec). Finally, run the engine with
+// Run. The Gin engine now handles the REST API routing, mapping URLs to Callbacks.
 package restapi
 
 import (
@@ -25,18 +34,17 @@ type Engine struct {
 type Params map[string]string
 
 // HandlerFunc is the function definition that handlers must use to define a route's callback. For example, let's say
-// the JSON spec has an endpoint for "/users/list" with a registered callback of "ListAllUsers". The handler object
-// passed in with AddSpec or AddSpecFile would then need to implement
-// ListAllUsers(Endpoint, Params, *http.Request) (int, string). AddSpec and AddSpecFile return an error if the handler
-// object does not implement a method with that exact name and definition. The method must be exported (capitalized) for
-// it to be visible to the engine.
+// the RestSpec specification has an Endpoint with a URL of "/users/list" and a Callback of "ListAllUsers". The handler
+// object passed in with AddSpec* would then need to implement ListAllUsers(Endpoint, Params, *http.Request) (int, string).
+// AddSpec* returns an error if the handler object does not implement a method with that exact name and definition. The
+// method must be exported (capitalized) for it to be visible to the engine.
 //
 // Endpoint is the endpoint as defined in the specification. Params is a map of Gin URL params. *http.Request is the
 // data as sent in the request. The method returns the HTTP response code and a string of response data.
 type HandlerFunc func(Endpoint, Params, *http.Request) (int, string)
 
 // RestSpec is the data model for the REST API specification. To implement the REST API, you build out a JSON object
-// following this model and import it using AddSpec or AddSpecFile.
+// following this model and import it using an AddSpec* helper.
 type RestSpec struct {
 	// Name of the API.
 	Name string `json:"name"`
@@ -66,7 +74,7 @@ type Table struct {
 	Endpoints []Endpoint `json:"endpoints"`
 }
 
-// Endpoint holds the information needed to build an endpoint, including its url, description, and request/response
+// Endpoint holds the information needed to build an endpoint, including its URL, description, and request/response
 // parameters.
 type Endpoint struct {
 	// HTTP method for this endpoint, e.g. "GET" or "POST".
