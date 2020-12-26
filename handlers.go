@@ -101,7 +101,7 @@ func (a apiHandler) HandleGetRoutine(endpoint restapi.Endpoint, params restapi.P
 // endpoint: PUT /routines
 func (a apiHandler) HandlePutRoutineAll(endpoint restapi.Endpoint, params restapi.Params, request *http.Request) (int, string) {
 	for _, routine := range a.routines {
-		if routine.isActive {
+		if routine.isActive() {
 			select {
 			case routine.updateChan <- struct{}{}:
 			default:
@@ -121,7 +121,7 @@ func (a apiHandler) HandlePutRoutine(endpoint restapi.Endpoint, params restapi.P
 		return 400, encodePair("error", err.Error())
 	}
 
-	if routine.isActive {
+	if routine.isActive() {
 		select {
 		case routine.updateChan <- struct{}{}:
 		default:
@@ -160,7 +160,7 @@ func (a apiHandler) HandlePatchRoutine(endpoint restapi.Endpoint, params restapi
 	}
 
 	// Let's also trigger an update in case the interval time is now up.
-	if routine.isActive {
+	if routine.isActive() {
 		select {
 		case routine.updateChan <- struct{}{}:
 		default:
@@ -175,10 +175,8 @@ func (a apiHandler) HandlePatchRoutine(endpoint restapi.Endpoint, params restapi
 // endpoint: DELETE /routines
 func (a apiHandler) HandleDeleteRoutineAll(endpoint restapi.Endpoint, params restapi.Params, request *http.Request) (int, string) {
 	for _, routine := range a.routines {
-		if routine.isActive {
-			select {
-			case routine.stopChan <- struct{}{}:
-			default:
+		if routine.isActive() {
+			if !routine.stop(5) {
 				return 500, encodePair("error", "failure")
 			}
 		}
@@ -195,10 +193,8 @@ func (a apiHandler) HandleDeleteRoutine(endpoint restapi.Endpoint, params restap
 		return 400, encodePair("error", err.Error())
 	}
 
-	if routine.isActive {
-		select {
-		case routine.stopChan <- struct{}{}:
-		default:
+	if routine.isActive() {
+		if !routine.stop(5) {
 			return 500, encodePair("error", "failure")
 		}
 	}
@@ -234,7 +230,7 @@ func getRoutineInfo(r *routine) routineInfo {
 			Name:     r.displayName(),
 			Uptime:   r.uptime(),
 			Interval: r.interval(),
-			Active:   r.active(),
+			Active:   r.isActive(),
 		}
 	}
 	return routineInfo{}
