@@ -192,10 +192,18 @@ func (r *routine) update() {
 	}
 }
 
-// stop stops the routine.
-func (r *routine) stop() {
+// stop attempts to stop the routine by sending on the stop channel. It blocks on sending no longer than timeout
+// seconds. stop returns true if the send is successful, otherwise false.
+func (r *routine) stop(timeout int) bool {
 	// Stop the routine by sending an empty struct on its stop channel.
 	if r != nil && r.stopChan != nil {
-		r.stopChan <- struct{}{}
+		select {
+		case r.stopChan <- struct{}{}:
+			return true
+		case <-time.After(time.Duration(timeout) * time.Second):
+			return false
+		}
 	}
+
+	return false
 }
