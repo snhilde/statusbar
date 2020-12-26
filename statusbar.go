@@ -231,11 +231,6 @@ func (sb *Statusbar) handleSignal() {
 	<-c
 	log.Printf("Received interrupt")
 
-	dpy := C.XOpenDisplay(nil)
-	root := C.XDefaultRootWindow(dpy)
-	C.XStoreName(dpy, root, C.CString("Statusbar stopped"))
-	C.XSync(dpy, 1)
-
 	// Shutdown the API engine (if running).
 	if sb.restEngine != nil {
 		if err := sb.restEngine.Stop(); err == nil {
@@ -244,6 +239,11 @@ func (sb *Statusbar) handleSignal() {
 			log.Printf("Error stopping REST API engine: %s", err.Error())
 		}
 	}
+
+	dpy := C.XOpenDisplay(nil)
+	root := C.XDefaultRootWindow(dpy)
+	C.XStoreName(dpy, root, C.CString("Statusbar stopped"))
+	C.XSync(dpy, 1)
 
 	// Stop the program.
 	p.Kill()
