@@ -65,6 +65,12 @@ type Statusbar struct {
 	restEngine *restapi.Engine
 }
 
+var (
+	// These are used for printing onto dwm's statusbar.
+	dpy  = C.XOpenDisplay(nil)
+	root = C.XDefaultRootWindow(dpy)
+)
+
 // New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
 func New() Statusbar {
 	return Statusbar{leftDelim: "[", rightDelim: "]", split: -1}
@@ -121,18 +127,40 @@ func (sb *Statusbar) Run() {
 	}
 
 	// Launch a goroutine to build and print the master string.
-	go setBar(outputsChan, *sb)
+	go buildBar(outputsChan, *sb)
 
 	// If enabled, build and run the APIs in their own goroutine.
 	go sb.runAPIs()
 
 	// Keep running until every routine stops.
-	for i := 0; i < len(sb.routines); i++ {
+	for range sb.routines {
 		r := <-finished
 		log.Printf("%v: Routine stopped", r.displayName())
 	}
-
 	log.Printf("All routines have stopped")
+
+	setBar("Statusbar stopped")
+}
+
+// Stop stops a running Statusbar.
+func (sb *Statusbar) Stop() {
+	if sb == nil {
+		return
+	}
+
+	// Shut down the API engine(s) (if running).
+	sb.stopAPIs()
+
+	// Give each routine up to 5 seconds to shut down. This has to happen last in the shut down process, because Run
+	// will stop when all routines are stopped, thereby cutting off all other processes.
+	for _, r := range sb.routines {
+		// Make sure the anonymous function closes over the correct routine.
+		go func(r *routine) {
+			if !r.stop(5) {
+				log.Printf("Failed to stop %s", r.moduleName())
+			}
+		}(r)
+	}
 }
 
 // SetMarkers sets the left and right delimiters around each routine. If not set, these will default to '[' and ']'.
@@ -161,12 +189,9 @@ func (sb *Statusbar) EnableRESTAPI(port int) {
 	sb.restPort = port
 }
 
-// setBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any changes
-// that run every second.
-func setBar(outputsChan chan []string, sb Statusbar) {
-	dpy := C.XOpenDisplay(nil)
-	root := C.XDefaultRootWindow(dpy)
-
+// buildBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any
+// changes that run every second (the minimum time).
+func buildBar(outputsChan chan []string, sb Statusbar) {
 	for {
 		// Start the clock.
 		start := time.Now()
@@ -208,12 +233,18 @@ func setBar(outputsChan chan []string, sb Statusbar) {
 		}
 
 		// Send the master output to the statusbar.
-		C.XStoreName(dpy, root, C.CString(s))
-		C.XSync(dpy, 1)
+		setBar(s)
 
 		// Put the routine to sleep for the rest of the half second.
 		time.Sleep((time.Second / 2) - time.Since(start))
 	}
+}
+
+// setBar prints s to the statusbar.
+func setBar(s string) {
+	c := C.CString(s)
+	C.XStoreName(dpy, root, c)
+	C.XSync(dpy, 1)
 }
 
 // handleSignal clears the statusbar if the program receives an interrupt signal.
@@ -221,32 +252,11 @@ func (sb *Statusbar) handleSignal() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	pid := os.Getpid()
-	p, err := os.FindProcess(pid)
-	if err != nil {
-		return
-	}
-
 	// Wait until we receive an interrupt signal.
 	<-c
 	log.Printf("Received interrupt")
 
-	// Shutdown the API engine (if running).
-	if sb.restEngine != nil {
-		if err := sb.restEngine.Stop(); err == nil {
-			log.Printf("Stopped REST API engine")
-		} else {
-			log.Printf("Error stopping REST API engine: %s", err.Error())
-		}
-	}
-
-	dpy := C.XOpenDisplay(nil)
-	root := C.XDefaultRootWindow(dpy)
-	C.XStoreName(dpy, root, C.CString("Statusbar stopped"))
-	C.XSync(dpy, 1)
-
-	// Stop the program.
-	p.Kill()
+	sb.Stop()
 }
 
 // runAPIs runs the various APIs and their versions using the callback methods implemented by handler. New APIs/versions
@@ -265,6 +275,18 @@ func (sb *Statusbar) runAPIs() {
 			// Now that everything looks good, we can save this engine and start it up.
 			sb.restEngine = r
 			sb.restEngine.Run(sb.restPort)
+		}
+	}
+}
+
+// stopAPIs stops the various APIs. New APIs/versions should be added here.
+func (sb *Statusbar) stopAPIs() {
+	// Begin with the REST API. Give it 5 seconds to shut down.
+	if sb.restEngine != nil {
+		if err := sb.restEngine.Stop(5); err == nil {
+			log.Printf("Stopped REST API engine")
+		} else {
+			log.Printf("Error stopping REST API engine: %s", err.Error())
 		}
 	}
 }
