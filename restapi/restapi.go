@@ -212,14 +212,14 @@ func (e *Engine) Run(port int) {
 	}
 }
 
-// Stop stops the API engine.
-func (e *Engine) Stop() error {
+// Stop stops the API engine in timeout seconds.
+func (e *Engine) Stop(timeout int) error {
 	if e == nil || e.server == nil {
 		return fmt.Errorf("invalid server")
 	}
 
 	// Give the engine 5 seconds to close out any connections.
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 
 	err := e.server.Shutdown(ctx)
