@@ -16,7 +16,7 @@ type routine struct {
 	name string
 
 	// Whether or not the routine is currently active and up.
-	isActive bool
+	active bool
 
 	// Time in seconds to wait between each run
 	intervalTime time.Duration
@@ -51,9 +51,9 @@ func (r *routine) run(index int, outputsChan chan []string, finished chan<- *rou
 
 	// Start the uptime clock.
 	r.startTime = time.Now()
-	r.isActive = true
+	r.setActive(true)
 
-	for {
+	for r.isActive() {
 		// Start the clock.
 		start := time.Now()
 
@@ -105,17 +105,13 @@ func (r *routine) run(index int, outputsChan chan []string, finished chan<- *rou
 			// Update now.
 		case <-r.stopChan:
 			// Stop the routine.
-			r.isActive = false
+			r.setActive(false)
 		case <-time.After(interval - time.Since(start)):
 			// Time elapsed. Run another update loop.
 		}
-
-		if !r.isActive {
-			break
-		}
 	}
 
-	r.isActive = false
+	r.setActive(false)
 
 	// Send on the finished channel to signify that we're stopping this routine.
 	finished <- r
@@ -143,18 +139,24 @@ func (r *routine) setInterval(interval int) {
 	}
 }
 
-// active returns whether or not the routine is currently up.
-func (r *routine) active() bool {
+// isActive returns whether or not the routine is currently up.
+func (r *routine) isActive() bool {
 	if r != nil {
-		return r.isActive
+		return r.active
 	}
 	return false
+}
+
+func (r *routine) setActive(active bool) {
+	if r != nil {
+		r.active = active
+	}
 }
 
 // uptime returns the time in seconds denoting how long the routine has been running. If the routine is not active, this
 // returns 0.
 func (r *routine) uptime() int {
-	if r != nil && r.isActive {
+	if r != nil && r.isActive() {
 		t := time.Since(r.startTime)
 		return int(t.Seconds())
 	}
@@ -196,14 +198,14 @@ func (r *routine) update() {
 // seconds. stop returns true if the send is successful, otherwise false.
 func (r *routine) stop(timeout int) bool {
 	// Stop the routine by sending an empty struct on its stop channel.
-	if r != nil && r.stopChan != nil {
+	if r != nil && r.isActive() && r.stopChan != nil {
 		select {
 		case r.stopChan <- struct{}{}:
-			return true
+			r.setActive(false)
 		case <-time.After(time.Duration(timeout) * time.Second):
 			return false
 		}
 	}
 
-	return false
+	return true
 }
