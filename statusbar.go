@@ -256,6 +256,19 @@ func (sb *Statusbar) handleSignal() {
 	<-c
 	log.Printf("Received interrupt")
 
+	// Give the statusbar 5 seconds to close down properly. If it can't close down in that time, then we'll forcibly
+	// quit the program.
+	time.AfterFunc(5 * time.Second, func() {
+		log.Printf("Forcibly exiting statusbar")
+		pid := os.Getpid()
+		p, err := os.FindProcess(pid)
+		if err == nil {
+			p.Kill()
+		} else {
+			log.Printf("Failed to exit")
+		}
+	})
+
 	sb.Stop()
 }
 
