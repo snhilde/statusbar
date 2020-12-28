@@ -139,7 +139,8 @@ func (sb *Statusbar) Run() {
 	}
 	log.Printf("All routines have stopped")
 
-	setBar("Statusbar stopped")
+	// Exit cleanly.
+	sb.Stop()
 }
 
 // Stop stops a running Statusbar.
@@ -151,8 +152,7 @@ func (sb *Statusbar) Stop() {
 	// Shut down the API engine(s) (if running).
 	sb.stopAPIs()
 
-	// Give each routine up to 5 seconds to shut down. This has to happen last in the shut down process, because Run
-	// will stop when all routines are stopped, thereby cutting off all other processes.
+	// Stop all running routines.
 	for _, r := range sb.routines {
 		// Make sure the anonymous function closes over the correct routine.
 		go func(r *routine) {
@@ -161,6 +161,22 @@ func (sb *Statusbar) Stop() {
 			}
 		}(r)
 	}
+
+	// Give each routine up to 5 seconds to shut down. If they can't close down in that time, then we'll forcibly quit
+	// the program.
+	time.AfterFunc(5 * time.Second, func() {
+		setBar("Statusbar stopped")
+		log.Printf("Forcibly exiting statusbar")
+		pid := os.Getpid()
+		p, err := os.FindProcess(pid)
+		if err == nil {
+			p.Kill()
+		} else {
+			log.Printf("Failed to exit")
+		}
+	})
+
+	setBar("Statusbar stopped")
 }
 
 // SetMarkers sets the left and right delimiters around each routine. If not set, these will default to '[' and ']'.
@@ -255,19 +271,6 @@ func (sb *Statusbar) handleSignal() {
 	// Wait until we receive an interrupt signal.
 	<-c
 	log.Printf("Received interrupt")
-
-	// Give the statusbar 5 seconds to close down properly. If it can't close down in that time, then we'll forcibly
-	// quit the program.
-	time.AfterFunc(5 * time.Second, func() {
-		log.Printf("Forcibly exiting statusbar")
-		pid := os.Getpid()
-		p, err := os.FindProcess(pid)
-		if err == nil {
-			p.Kill()
-		} else {
-			log.Printf("Failed to exit")
-		}
-	})
 
 	sb.Stop()
 }
