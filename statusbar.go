@@ -63,6 +63,9 @@ type Statusbar struct {
 
 	// REST API engine.
 	restEngine *restapi.Engine
+
+	// Whether or not the engine is currently running. This is toggled on and off by calls to Run and Stop.
+	running bool
 }
 
 var (
@@ -125,8 +128,11 @@ func (sb *Statusbar) Run() {
 		go v.run(i, outputsChan, finished)
 	}
 
+	// Flag that we're running now.
+	sb.running = true
+
 	// Launch a goroutine to build and print the master string.
-	go buildBar(outputsChan, *sb)
+	go sb.buildBar(outputsChan)
 
 	// If enabled, build and run the APIs in their own goroutine.
 	go sb.runAPIs()
@@ -139,7 +145,9 @@ func (sb *Statusbar) Run() {
 	log.Printf("All routines have stopped")
 
 	// Exit cleanly.
-	sb.Stop()
+	if sb.running {
+		sb.Stop()
+	}
 }
 
 // Stop stops a running Statusbar.
@@ -147,6 +155,8 @@ func (sb *Statusbar) Stop() {
 	if sb == nil {
 		return
 	}
+
+	sb.running = false
 
 	// Shut down the API engine(s) (if running).
 	sb.stopAPIs()
@@ -164,7 +174,6 @@ func (sb *Statusbar) Stop() {
 	// Give each routine up to 5 seconds to shut down. If they can't close down in that time, then we'll forcibly quit
 	// the program.
 	time.AfterFunc(5*time.Second, func() {
-		setBar("Statusbar stopped")
 		log.Printf("Forcibly exiting statusbar")
 		pid := os.Getpid()
 		p, err := os.FindProcess(pid)
@@ -206,8 +215,8 @@ func (sb *Statusbar) EnableRESTAPI(port int) {
 
 // buildBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any
 // changes that run every second (the minimum time).
-func buildBar(outputsChan chan []string, sb Statusbar) {
-	for {
+func (sb *Statusbar) buildBar(outputsChan chan []string) {
+	for sb.running {
 		// Start the clock.
 		start := time.Now()
 		b := new(strings.Builder)
