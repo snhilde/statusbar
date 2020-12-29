@@ -138,7 +138,7 @@ Status: 200 OK
 
 Internal error:
 ```
-Status: 500 Interal Server Error
+Status: 500 Internal Server Error
 ```
 ```
 {
@@ -233,7 +233,7 @@ Status: 204 No Content
 
 Internal error:
 ```
-Status: 500 Interal Server Error
+Status: 500 Internal Server Error
 ```
 ```
 {
@@ -271,7 +271,7 @@ Status: 400 Bad Request
 
 Internal error:
 ```
-Status: 500 Interal Server Error
+Status: 500 Internal Server Error
 ```
 ```
 {
@@ -310,7 +310,7 @@ Status: 400 Bad Request
 
 Internal error:
 ```
-Status: 500 Interal Server Error
+Status: 500 Internal Server Error
 ```
 ```
 {
@@ -334,7 +334,7 @@ Status: 204 No Content
 
 Internal error:
 ```
-Status: 500 Interal Server Error
+Status: 500 Internal Server Error
 ```
 ```
 {
@@ -372,7 +372,7 @@ Status: 400 Bad Request
 
 Internal error:
 ```
-Status: 500 Interal Server Error
+Status: 500 Internal Server Error
 ```
 ```
 {
