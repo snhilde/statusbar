@@ -79,7 +79,6 @@ func New() Statusbar {
 // Append adds a routine to the statusbar's list. Routines are displayed in the order they are added. handler is the
 // RoutineHandler module. seconds is the amount of time between each run of the routine.
 func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
-	// Convert the given number into proper seconds.
 	r := newRoutine()
 	r.setHandler(handler)
 	r.setInterval(seconds)
@@ -110,7 +109,7 @@ func (sb *Statusbar) Run() {
 	// Add a signal handler so we can clear the statusbar if the program goes down.
 	go sb.handleSignal()
 
-	// A slice of strings to hold the output from each routine
+	// Slice of strings to hold the output from each routine
 	outputs := make([]string, len(sb.routines))
 
 	// Shared channel used to pass the slice of outputs
