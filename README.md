@@ -20,8 +20,8 @@
 		1. [Get list of valid endpoints](#get-list-of-valid-endpoints)
 		1. [Get information about all routines](#get-information-about-all-routines)
 		1. [Get information about routine](#get-information-about-routine)
-		1. [Refresh all routines](#refresh-all-routines)
-		1. [Refresh routine](#refresh-routine)
+		1. [Restart all routines](#restart-all-routines)
+		1. [Restart routine](#restart-routine)
 		1. [Modify routine's settings](#modify-routines-settings)
 		1. [Stop all routines](#stop-all-routines)
 		1. [Stop routine](#stop-routine)
@@ -224,12 +224,12 @@ Status: 400 Bad Request
 ```
 
 
-#### Refresh all routines
-![PUT Badge](https://img.shields.io/badge/-PUT-blue) `/routines/refresh`
+#### Restart all routines
+![PUT Badge](https://img.shields.io/badge/-PUT-blue) `/routines`
 
 Sample request
 ```
-curl -X PUT http://localhost:1234/rest/v1/routines/refresh
+curl -X PUT http://localhost:1234/rest/v1/routines
 ```
 
 Default response
@@ -248,8 +248,8 @@ Status: 500 Internal Server Error
 ```
 
 
-#### Refresh routine
-![PUT Badge](https://img.shields.io/badge/-PUT-blue) `/routines/refresh/{routine}`
+#### Restart routine
+![PUT Badge](https://img.shields.io/badge/-PUT-blue) `/routines/{routine}`
 
 | Parameters | Location | Description |
 | ---------- | -------- | ----------- |
@@ -257,7 +257,7 @@ Status: 500 Internal Server Error
 
 Sample request
 ```
-curl -X PUT http://localhost:1234/rest/v1/routines/refresh/sbweather
+curl -X PUT http://localhost:1234/rest/v1/routines/sbweather
 ```
 
 Default response
