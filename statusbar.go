@@ -164,7 +164,7 @@ func (sb *Statusbar) Stop() {
 
 	// Give each routine up to 5 seconds to shut down. If they can't close down in that time, then we'll forcibly quit
 	// the program.
-	time.AfterFunc(5 * time.Second, func() {
+	time.AfterFunc(5*time.Second, func() {
 		setBar("Statusbar stopped")
 		log.Printf("Forcibly exiting statusbar")
 		pid := os.Getpid()
