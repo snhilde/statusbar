@@ -15,6 +15,7 @@
 1. [Modules](#modules)
 1. [REST API](#rest-api)
 	1. [Version 1](#version-1)
+		1. [Path prefix](#path-prefix)
 		1. [Ping the system](#ping-the-system)
 		1. [Get list of valid endpoints](#get-list-of-valid-endpoints)
 		1. [Get information about all routines](#get-information-about-all-routines)
