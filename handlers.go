@@ -97,7 +97,7 @@ func (a apiHandler) HandleGetRoutine(endpoint restapi.Endpoint, params restapi.P
 	return 200, encodePair(routine.moduleName(), getRoutineInfo(routine))
 }
 
-// HandlePutRoutineAll refreshes all active routines.
+// HandlePutRoutineAll restarts all active routines.
 // endpoint: PUT /routines
 func (a apiHandler) HandlePutRoutineAll(endpoint restapi.Endpoint, params restapi.Params, request *http.Request) (int, string) {
 	for _, routine := range a.routines {
@@ -113,7 +113,7 @@ func (a apiHandler) HandlePutRoutineAll(endpoint restapi.Endpoint, params restap
 	return 204, ""
 }
 
-// HandlePutRoutine refreshes the specified routine.
+// HandlePutRoutine restarts the specified routine.
 // endpoint: PUT /routines/:routine
 func (a apiHandler) HandlePutRoutine(endpoint restapi.Endpoint, params restapi.Params, request *http.Request) (int, string) {
 	routine, err := getRoutine(a.routines, params["routine"])

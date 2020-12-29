@@ -189,7 +189,7 @@ func (r *routine) setModuleName(name string) {
 	}
 }
 
-// update refreshes the routine by calling Update.
+// update restarts the routine by calling Update.
 func (r *routine) update() {
 	// Update the routine by sending an empty struct on its update channel.
 	if r != nil && r.updateChan != nil {

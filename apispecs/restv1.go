@@ -102,13 +102,13 @@ var RESTV1 = `
 				{
 					"method": "PUT",
 					"url": "/routines",
-					"description": "Refresh all routines.",
+					"description": "Restart all routines.",
 					"callback": "HandlePutRoutineAll"
 				},
 				{
 					"method": "PUT",
 					"url": "/routines/:routine",
-					"description": "Refresh the specified routine.",
+					"description": "Restart the specified routine.",
 					"callback": "HandlePutRoutine"
 				},
 
