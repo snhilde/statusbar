@@ -174,6 +174,9 @@ func (r *routine) displayName() string {
 // moduleName returns the routine's module name.
 func (r *routine) moduleName() string {
 	if r != nil {
+		if r.name == "" {
+			return "unknown_module"
+		}
 		return r.name
 	}
 	return ""
