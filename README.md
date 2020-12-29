@@ -89,7 +89,11 @@ This repository includes these modules to get up and running quickly:
 
 The REST API makes use of the wonderful [Gin](https://gin-gonic.com/) framework. For details on adding/modifying endpoints, see the documentation in the [restapi package](https://pkg.go.dev/github.com/snhilde/statusbar/restapi).
 
-### Ping the system
+### Version 1
+#### Path prefix
+`/rest/v1`
+
+#### Ping the system
 ![GET Badge](https://img.shields.io/badge/-GET-brightgreen) `/ping`
 
 Sample request:
@@ -106,7 +110,7 @@ pong
 ```
 
 
-### Get list of valid endpoints
+#### Get list of valid endpoints
 ![GET Badge](https://img.shields.io/badge/-GET-brightgreen) `/endpoints`
 
 Sample request:
@@ -147,7 +151,7 @@ Status: 500 Internal Server Error
 ```
 
 
-### Get information about all routines
+#### Get information about all routines
 ![GET Badge](https://img.shields.io/badge/-GET-brightgreen) `/routines`
 
 Sample request:
@@ -180,7 +184,7 @@ Status: 200 OK
 ```
 
 
-### Get information about routine
+#### Get information about routine
 ![GET Badge](https://img.shields.io/badge/-GET-brightgreen) `/routines/{routine}`
 
 | Parameters | Location | Description |
@@ -218,7 +222,7 @@ Status: 400 Bad Request
 ```
 
 
-### Refresh all routines
+#### Refresh all routines
 ![PUT Badge](https://img.shields.io/badge/-PUT-blue) `/routines/refresh`
 
 Sample request
@@ -242,7 +246,7 @@ Status: 500 Internal Server Error
 ```
 
 
-### Refresh routine
+#### Refresh routine
 ![PUT Badge](https://img.shields.io/badge/-PUT-blue) `/routines/refresh/{routine}`
 
 | Parameters | Location | Description |
@@ -280,7 +284,7 @@ Status: 500 Internal Server Error
 ```
 
 
-### Modify routine's settings
+#### Modify routine's settings
 ![PATCH Badge](https://img.shields.io/badge/-PATCH-blueviolet) `/routines/{routine}`
 
 | Parameters | Location | Description |
@@ -319,7 +323,7 @@ Status: 500 Internal Server Error
 ```
 
 
-### Stop all routines
+#### Stop all routines
 ![DELETE Badge](https://img.shields.io/badge/-DELETE-red) `/routines`
 
 Sample request
@@ -343,7 +347,7 @@ Status: 500 Internal Server Error
 ```
 
 
-### Stop routine
+#### Stop routine
 ![DELETE Badge](https://img.shields.io/badge/-DELETE-red) `/routines/{routine}`
 
 | Parameters | Location | Description |
