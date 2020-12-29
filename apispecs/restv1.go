@@ -2,6 +2,7 @@
 
 package apispecs
 
+// RESTV1 is version 1 of the REST API specification.
 var RESTV1 = `
 {
 	"name": "REST API",
