@@ -27,6 +27,8 @@
 		1. [Stop routine](#stop-routine)
 1. [Contributing](#contributing)
 1. [Changelog](#changelog)
+	1. [5.2.2](#522)
+	1. [5.2.1](#521)
 	1. [5.2.0](#520)
 	1. [5.1.1](#511)
 	1. [5.1.0](#510)
@@ -394,6 +396,14 @@ Contributions and new modules are always welcome.
 
 
 ## Changelog
+### 5.2.2
+* Created v4 and v5 subdirectories to follow Semantic Import Versioning rules.
+
+### 5.2.1
+* Update README for REST API.
+* Handle SIGTERM signal now.
+* Add go.mod and go.sum module files.
+
 ### 5.2.0
 * Added REST API.
 
