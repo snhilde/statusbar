@@ -7,4 +7,4 @@
 # statusbar
 `statusbar` formats and displays information on the [`dwm`](https://dwm.suckless.org/) statusbar.
 
-You can find the current release here: https://github.com/snhilde/statusbar/v5.
+You can find the current release here: https://github.com/snhilde/statusbar/tree/master/v5.
