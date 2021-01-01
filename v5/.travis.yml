@@ -1,0 +1,8 @@
+sudo: false
+language: go
+
+go_import_path: github.com/snhilde/statusbar/v5
+
+script:
+    - make fmt-check
+    - make lint-check
