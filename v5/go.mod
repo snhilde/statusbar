@@ -1,4 +1,4 @@
-module github.com/snhilde/statusbar
+module github.com/snhilde/statusbar/v5
 
 go 1.8
 
