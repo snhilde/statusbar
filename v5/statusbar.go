@@ -7,8 +7,8 @@ package statusbar
 import "C"
 
 import (
-	"github.com/snhilde/statusbar/apispecs"
-	"github.com/snhilde/statusbar/restapi"
+	"github.com/snhilde/statusbar/v5/apispecs"
+	"github.com/snhilde/statusbar/v5/restapi"
 	"log"
 	"os"
 	"os/signal"

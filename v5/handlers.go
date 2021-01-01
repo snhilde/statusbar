@@ -5,7 +5,7 @@ package statusbar
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/snhilde/statusbar/restapi"
+	"github.com/snhilde/statusbar/v5/restapi"
 	"io"
 	"io/ioutil"
 	"net/http"
