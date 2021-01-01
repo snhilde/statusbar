@@ -129,8 +129,10 @@ func (r *Routine) String() string {
 	}
 
 	// Grab some info on which day's forecast we're reporting.
-	day := "today"
-	if time.Now().Hour() >= 15 {
+	var day string
+	if onToday() {
+		day = "today"
+	} else {
 		day = "tom"
 	}
 
@@ -211,8 +213,7 @@ func (r *Routine) init() error {
 // checkTemps checks that the current temperature is not outside the bounds of the high and low for the day.
 func (r *Routine) checkTemps() {
 	// We only want to check this for the current day's forecast.
-	t := time.Now()
-	if t.Hour() >= 15 {
+	if !onToday() {
 		return
 	}
 
@@ -465,14 +466,17 @@ func getTemp(client *http.Client, url string) (string, error) {
 		return "", fmt.Errorf("missing hourly temperature periods")
 	}
 
-	// Use the most recent reading.
-	latest := periods[0]
-	if len(latest) == 0 {
-		return "", fmt.Errorf("missing current temperature")
+	// Find the current temperature. We need to sift through all the time periods to find the correct one, which will
+	// have a timestamp in this format: YYYY-MM-DDTHH:00:00-TZ:00.
+	startTime := time.Now().Format("2006-01-02T15:00:00-07:00")
+	for _, period := range t.Properties.Periods {
+		if period["startTime"] == startTime {
+			// Get just the temperature reading and convert it to a string.
+			return fmt.Sprintf("%v", period["temperature"]), nil
+		}
 	}
 
-	// Get just the temperature reading.
-	return fmt.Sprintf("%v", latest["temperature"]), nil
+	return "", fmt.Errorf("missing current temperature")
 }
 
 // getForecast gets the forecasted temperatures from the NWS database.
@@ -523,7 +527,7 @@ func getForecast(client *http.Client, url string) (string, string, error) {
 	// If it's before 3pm, we'll use the forecast of the current day.
 	// After that, we'll use tomorrow's forecast.
 	t := time.Now()
-	if t.Hour() >= 15 {
+	if !onToday() {
 		t = t.Add(time.Hour * 12)
 	}
 
@@ -558,4 +562,10 @@ func getForecast(client *http.Client, url string) (string, string, error) {
 	}
 
 	return high, low, nil
+}
+
+// onToday checks whether or not the forecast is for today or tomorrow. If the current time is before 3pm, then the
+// forecast is still for today. Otherwise, it's for tomorrow.
+func onToday() bool {
+	return time.Now().Hour() < 15
 }
