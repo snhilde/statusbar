@@ -21,3 +21,8 @@ lint-check:
 	@for file in $(GOFILES); do \
 		golint -min_confidence 0.3 -set_exit_status $$file || exit 1; \
 	done
+
+# Run the tests.
+.PHONY: test
+test:
+	@go test
