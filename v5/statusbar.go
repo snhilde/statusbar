@@ -228,12 +228,12 @@ func (sb *Statusbar) buildBar(outputsChan chan []string) {
 			if len(s) > 0 {
 				b.WriteString(sb.leftDelim)
 
-				// Shorten outputs that are longer than 50 characters.
-				if len(s) > 50 {
+				// Shorten outputs that are longer than 60 characters.
+				if len(s) > 60 {
 					// If the output ends with the color terminator, then we need to make sure to keep that so the color
 					// doesn't bleed onto the delimiter and beyond.
 					hasColor := strings.HasSuffix(s, "^d^")
-					s = s[:46] + "..."
+					s = s[:56] + "..."
 					if hasColor {
 						s += "^d^"
 					}
