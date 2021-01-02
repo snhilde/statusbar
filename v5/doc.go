@@ -26,11 +26,11 @@ dwm, we are using the dualstatus patch, which creates a top and bottom bar for e
 will display the time, and the bottom bar will display the disk usage and CPU stats.
 
 	import (
-		"github.com/snhilde/statusbar"
-		"github.com/snhilde/statusbar/sbtime"
-		"github.com/snhilde/statusbar/sbdisk"
-		"github.com/snhilde/statusbar/sbcpuusage"
-		"github.com/snhilde/statusbar/sbcputemp"
+		"github.com/snhilde/statusbar/v5"
+		"github.com/snhilde/statusbar/v5/sbtime"
+		"github.com/snhilde/statusbar/v5/sbdisk"
+		"github.com/snhilde/statusbar/v5/sbcpuusage"
+		"github.com/snhilde/statusbar/v5/sbcputemp"
 	)
 
 	func main() {
