@@ -83,7 +83,7 @@ func (r *Routine) Update() (bool, error) {
 		if r.err == nil {
 			r.err = fmt.Errorf("invalid TODO file")
 		}
-		return true, r.err
+		return false, r.err
 	}
 
 	// Handle any error from New.
