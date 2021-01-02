@@ -208,7 +208,7 @@ func (r *Routine) getBuild() (build, error) {
 	}
 
 	if len(response.Builds) < 1 {
-		return build{}, fmt.Errorf("missing latest build")
+		return build{}, fmt.Errorf("no builds available")
 	}
 
 	return response.Builds[0], nil
