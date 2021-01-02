@@ -45,4 +45,6 @@ func TestStatusbar(t *testing.T) {
 	})
 
 	bar.Run()
+
+	t.Log("Statusbar stopped successfully")
 }
