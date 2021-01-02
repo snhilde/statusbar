@@ -1,7 +1,6 @@
 package statusbar
 
 import (
-	"testing"
 	"github.com/snhilde/statusbar/v5/sbbattery"
 	"github.com/snhilde/statusbar/v5/sbcputemp"
 	"github.com/snhilde/statusbar/v5/sbcpuusage"
@@ -14,6 +13,8 @@ import (
 	"github.com/snhilde/statusbar/v5/sbtodo"
 	"github.com/snhilde/statusbar/v5/sbvolume"
 	"github.com/snhilde/statusbar/v5/sbweather"
+	"testing"
+	"time"
 )
 
 func TestStatusbar(t *testing.T) {
@@ -37,6 +38,11 @@ func TestStatusbar(t *testing.T) {
 	bar.Append(sbweather.New("90210", [3]string{"#FFFFFF", "#BB4F2E", "#A1273E"}), 30*60)
 
 	bar.EnableRESTAPI(1234)
+
+	// Run the bar for 5 seconds, and then stop it.
+	time.AfterFunc(5*time.Second, func() {
+		bar.Stop()
+	})
 
 	bar.Run()
 }
