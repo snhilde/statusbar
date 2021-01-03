@@ -35,7 +35,7 @@ func TestStatusbar(t *testing.T) {
 	bar.Append(sbtime.New("Jan 2 - 03:04", [3]string{"#FFFFFF", "#BB4F2E", "#A1273E"}), 1)
 	bar.Append(sbtodo.New("/home/user/.TODO", [3]string{"#F1EA6B", "#BB4F2E", "#A1273E"}), 5)
 	bar.Append(sbvolume.New("Master", [3]string{"#FFFFFF", "#BB4F2E", "#A1273E"}), 1)
-	bar.Append(sbweather.New("90210", [3]string{"#FFFFFF", "#BB4F2E", "#A1273E"}), 30*60)
+	bar.Append(sbweather.New(123.45, 123.45, "ABCD", true, [3]string{"#FFFFFF", "#BB4F2E", "#A1273E"}), 30*60)
 
 	bar.EnableRESTAPI(1234)
 
