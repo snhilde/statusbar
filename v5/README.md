@@ -28,20 +28,6 @@ You can find the current release here: https://github.com/snhilde/statusbar/tree
 		1. [Stop all routines](#stop-all-routines)
 		1. [Stop routine](#stop-routine)
 1. [Contributing](#contributing)
-1. [Changelog](#changelog)
-	1. [5.2.2](#522)
-	1. [5.2.1](#521)
-	1. [5.2.0](#520)
-	1. [5.1.1](#511)
-	1. [5.1.0](#510)
-	1. [5.0.0](#500)
-	1. [4.1.2](#412)
-	1. [4.1.1](#411)
-	1. [4.1](#410)
-	1. [4.0](#400)
-	1. [3.0](#300)
-	1. [2.0](#200)
-	1. [1.0](#100)
 
 
 ## Overview
@@ -395,55 +381,3 @@ Status: 500 Internal Server Error
 If you find a bug, please submit a pull request.
 If you think there could be an improvement, please open an issue or submit a pull request with the recommended change.
 Contributions and new modules are always welcome.
-
-
-## Changelog
-### 5.2.2
-* Created v4 and v5 subdirectories to follow Semantic Import Versioning rules.
-
-### 5.2.1
-* Update README for REST API.
-* Handle SIGTERM signal now.
-* Add go.mod and go.sum module files.
-
-### 5.2.0
-* Added REST API.
-
-### 5.1.1
-* Migrated documentation to GoDocs to PkgGoDev Doc
-
-### 5.1.0
-* Added sbgithubclones module to track daily and weekly clone counts for a given repository.
-* Engine will now truncate module outputs that are longer than 50 characters.
-* Various module enhancements.
-
-### 5.0.0
-* **API Break**: Changed repository from `statusbar4` to `statusbar`.
-* **API Break**: Redefined `RoutineHandler`'s method `Update()` to `Update() (bool, error)`.
-* **API Break**: Added method `Error() string` to RoutineHandler to format error messages separately from the regular output.
-* **API Break**: Added method `Name() string` to RoutineHandler to allow modules to set their own display name for logging.
-* Errors in modules are now handled more gracefully. Modules no longer need to track their own error state; the core engine handles displaying the error as well as either attempting the update procedure again after a predetermined waiting period or stopping the routine completely.
-* Implemented normal logging and error logging.
-
-### 4.1.2
-* Updated documentation.
-
-### 4.1.1
-* Changes made to formatting and style as per `gofmt` and `golint` recommendations.
-
-### 4.1.0
-* Moved routines and engine into one common repository.
-
-### 4.0.0
-* Complete rewrite in `go`.
-* Simpler formatting and customization.
-
-### 3.0.0
-* Added support for concurrency.
-* Made routines modular.
-
-### 2.0.0
-* Ported to Linux.
-
-### 1.0.0
-* Initial release (OpenBSD only).
