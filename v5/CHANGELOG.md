@@ -7,6 +7,13 @@
 	* Switched weather provider for `sbweather` to OpenWeather (https://openweathermap.org/).
 
 
+## 5.2.3
+
+### Features
+	* Added Makefile.
+	* Added Travis build file.
+
+
 ## 5.2.2
 
 ### Breaking
