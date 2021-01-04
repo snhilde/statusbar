@@ -4,7 +4,7 @@
 ## 5.3.0
 
 ### Enhancements
-	* Switched weather provider for `sbweather` to [OpenWeather](https://openweathermap.org/)
+	* Switched weather provider for `sbweather` to OpenWeather (https://openweathermap.org/).
 
 
 ## 5.2.2
