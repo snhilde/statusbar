@@ -1,4 +1,3 @@
-![Version Badge](https://img.shields.io/badge/Version-5.2.3-informational)
 ![Maintenance Badge](https://img.shields.io/badge/Maintained-yes-success)
 [![PkgGoDev Doc](https://pkg.go.dev/badge/github.com/snhilde/statusbar)](https://pkg.go.dev/github.com/snhilde/statusbar)
 [![GoReportCard example](https://goreportcard.com/badge/github.com/snhilde/statusbar)](https://goreportcard.com/report/github.com/snhilde/statusbar)
