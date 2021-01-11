@@ -3,6 +3,7 @@ package statusbar
 
 // #cgo pkg-config: x11
 // #cgo LDFLAGS: -lX11
+// #include <stdlib.h>
 // #include <X11/Xlib.h>
 import "C"
 
@@ -16,6 +17,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unsafe"
 )
 
 // RoutineHandler allows information monitors (commonly called routines) to be linked in.
@@ -268,6 +270,8 @@ func (sb *Statusbar) buildBar(outputsChan chan []string) {
 // setBar prints s to the statusbar.
 func setBar(s string) {
 	c := C.CString(s)
+	defer C.free(unsafe.Pointer(c))
+
 	C.XStoreName(dpy, root, c)
 	C.XSync(dpy, 1)
 }
