@@ -72,6 +72,7 @@ This repository includes these modules to get up and running quickly:
 | `sbram`          | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbram)          | RAM usage               |
 | `sbtime`         | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbtime)         | Current date/time       |
 | `sbtodo`         | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbtodo)         | TODO list display       |
+| `sbtravisci`     | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/travisci)       | Travis CI build status  |
 | `sbvolume`       | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbvolume)       | Volume percentage       |
 | `sbweather`      | [PkgGoDev Doc](https://pkg.go.dev/github.com/snhilde/statusbar/sbweather)      | Weather information     |
 
