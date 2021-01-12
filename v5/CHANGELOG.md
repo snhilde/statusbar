@@ -1,9 +1,16 @@
 # `statusbar` Changelog
 
 
+## 5.4.0
+
+### Bug Fixes
+	* Fixed not `free`ing Cstring when building statusbar output.
+
+
 ## 5.3.0
 
 ### Enhancements
+	* Added module for monitoring Travis CI builds.
 	* Switched weather provider for `sbweather` to OpenWeather (https://openweathermap.org/).
 
 
