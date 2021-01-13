@@ -103,7 +103,7 @@ func (r *Routine) Update() (bool, error) {
 
 	build, err := r.getBuild()
 	if err != nil {
-		r.err = err
+		r.err = fmt.Errorf("error getting build status")
 		return true, err
 	}
 

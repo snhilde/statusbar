@@ -129,7 +129,7 @@ func (r *Routine) Update() (bool, error) {
 	// Get weather data.
 	weather, err := getWeather(r.client, r.request)
 	if err != nil {
-		r.err = err
+		r.err = fmt.Errorf("error getting weather data")
 		return true, err
 	}
 

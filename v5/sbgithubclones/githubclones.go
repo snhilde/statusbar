@@ -90,14 +90,14 @@ func (r *Routine) Update() (bool, error) {
 
 	day, err := getCount(r.client, r.reqDay, true)
 	if err != nil {
-		r.err = err
+		r.err = fmt.Errorf("error getting today's count")
 		return true, err
 	}
 	r.dayCount = day
 
 	week, err := getCount(r.client, r.reqWeek, false)
 	if err != nil {
-		r.err = err
+		r.err = fmt.Errorf("error getting this week's count")
 		return true, err
 	}
 	r.weekCount = week

@@ -1,5 +1,9 @@
 # `statusbar` Changelog
 
+##5.5.0 (beta)
+
+### Enhancements
+	* Updated `sbgithubclones`, `sbtravisci`, and `sbweather` modules to report better errors.
 
 ## 5.4.0
 
