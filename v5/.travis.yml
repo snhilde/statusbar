@@ -4,6 +4,6 @@ language: go
 go_import_path: github.com/snhilde/statusbar/v5
 
 script:
-    - make fmt
-    - make lint
+    - make fmt-check
+    - make lint-check
     - make test
