@@ -51,7 +51,7 @@ func New(colors ...[3]string) *Routine {
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("Invalid color")
+				r.err = errors.New("invalid color")
 				return &r
 			}
 		}
@@ -84,7 +84,7 @@ func (r *Routine) Update() {
 	}
 
 	if total == 0 || avail == 0 {
-		r.err = errors.New("Failed to parse out memory fields")
+		r.err = errors.New("failed to parse out memory fields")
 		return
 	}
 
@@ -123,7 +123,7 @@ func parseFile(output string) (int, int, error) {
 		if strings.HasPrefix(line, "MemTotal") {
 			fields := strings.Fields(line)
 			if len(fields) != 3 {
-				return 0, 0, errors.New("Invalid MemTotal fields")
+				return 0, 0, errors.New("invalid MemTotal fields")
 			}
 			total, err = strconv.Atoi(fields[1])
 			if err != nil {
@@ -133,7 +133,7 @@ func parseFile(output string) (int, int, error) {
 		} else if strings.HasPrefix(line, "MemAvailable") {
 			fields := strings.Fields(line)
 			if len(fields) != 3 {
-				return 0, 0, errors.New("Invalid MemAvailable fields")
+				return 0, 0, errors.New("invalid MemAvailable fields")
 			}
 			avail, err = strconv.Atoi(fields[1])
 			if err != nil {

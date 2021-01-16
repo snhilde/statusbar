@@ -53,7 +53,7 @@ func New(colors ...[3]string) *Routine {
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("Invalid color")
+				r.err = errors.New("invalid color")
 				return &r
 			}
 		}

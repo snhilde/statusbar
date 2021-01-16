@@ -55,7 +55,7 @@ func New(colors ...[3]string) *Routine {
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("Invalid color")
+				r.err = errors.New("invalid color")
 				return &r
 			}
 		}
@@ -170,12 +170,12 @@ func numThreads() (int, error) {
 		if strings.HasPrefix(line, "Thread(s) per core") {
 			fields := strings.Fields(line)
 			if len(fields) != 4 {
-				return -1, errors.New("Invalid fields")
+				return -1, errors.New("invalid fields")
 			}
 			return strconv.Atoi(fields[3])
 		}
 	}
 
 	// If we made it this far, then we didn't find anything.
-	return -1, errors.New("Failed to find number of threads")
+	return -1, errors.New("failed to find number of threads")
 }

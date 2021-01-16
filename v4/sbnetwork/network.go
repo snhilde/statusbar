@@ -83,7 +83,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 	if err != nil {
 		r.err = err
 	} else if len(ilist) == 0 {
-		r.err = errors.New("No interfaces found")
+		r.err = errors.New("no interfaces found")
 	} else {
 		for _, iname := range ilist {
 			downPath := "/sys/class/net/" + iname + "/statistics/rx_bytes"
@@ -96,7 +96,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("Invalid color")
+				r.err = errors.New("invalid color")
 				return &r
 			}
 		}
