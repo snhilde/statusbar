@@ -40,7 +40,7 @@ type build struct {
 	Repo struct {
 		Name string `json:"name"`
 	} `json:"repository"`
-	State   string `json:"state"`
+	State string `json:"state"`
 }
 
 // New makes a new routine object. owner is the username of the repository's owner. repo is the name of the repository.
