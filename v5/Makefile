@@ -1,7 +1,5 @@
 GOFILES := $(shell find . -name "*.go")
 
-VERSION := "v5"
-
 # Check if any .go files need to be reformatted.
 .PHONY: fmt-check
 fmt-check:
@@ -22,10 +20,4 @@ lint-check:
 # Run the tests.
 .PHONY: test
 test:
-	@if [ ! -d $(VERSION) ]; then \
-		echo "Invalid version: $(VERSION)"; \
-		exit 1; \
-	fi; \
-	cd $(VERSION); \
-	go test; \
-	cd ..;
+	go test || exit $?;
