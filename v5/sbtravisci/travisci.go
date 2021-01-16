@@ -40,10 +40,7 @@ type build struct {
 	Repo struct {
 		Name string `json:"name"`
 	} `json:"repository"`
-	Number  string `json:"number"`
 	State   string `json:"state"`
-	BeginTS string `json:"started_at"`
-	EndTS   string `json:"finished_at"`
 }
 
 // New makes a new routine object. owner is the username of the repository's owner. repo is the name of the repository.
@@ -120,44 +117,22 @@ func (r *Routine) String() string {
 
 	// Figure out which color and timestamp we need to use for this state.
 	var color string
-	var ts string
 	switch r.build.State {
 	case "created":
-		// This state doesn't have a timestamp yet.
 		color = r.colors.normal
 	case "started":
 		color = r.colors.normal
-		ts = r.build.BeginTS
 	case "passed":
 		color = r.colors.normal
-		ts = r.build.EndTS
 	case "failed":
 		color = r.colors.warning
-		ts = r.build.EndTS
 	case "canceled":
 		color = r.colors.warning
-		ts = r.build.EndTS
 	default:
 		color = r.colors.error
-		if r.build.EndTS != "" {
-			ts = r.build.EndTS
-		} else {
-			ts = r.build.BeginTS
-		}
 	}
 
-	// Try to parse out the timestamp for this state.
-	if t, err := time.Parse("2006-01-02T15:04:05Z", ts); err == nil {
-		// The timestamp gets returned in UTC time. Convert it over to the local timezone.
-		t = t.Local()
-
-		// This gets added to the end of the build status message.
-		ts = " on " + t.Format("01/02 at 15:04")
-	} else {
-		ts = ""
-	}
-
-	return fmt.Sprintf("%s%s: %s%s%s", color, r.build.Repo.Name, strings.Title(r.build.State), ts, colorEnd)
+	return fmt.Sprintf("%s%s: %s%s", color, r.build.Repo.Name, strings.Title(r.build.State), colorEnd)
 }
 
 // Error formats and returns an error message.
@@ -211,5 +186,6 @@ func (r *Routine) getBuild() (build, error) {
 		return build{}, fmt.Errorf("no builds available")
 	}
 
+	// Return the most recent build.
 	return response.Builds[0], nil
 }
