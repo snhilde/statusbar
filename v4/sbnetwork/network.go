@@ -3,7 +3,6 @@
 package sbnetwork
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -72,7 +71,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 			_, err = net.InterfaceByName(iname)
 			if err != nil {
 				// Error will be handled in Update() and String().
-				err = errors.New(iname + ": " + err.Error())
+				err = fmt.Errorf("%s: %s", iname, err.Error())
 				break
 			}
 			ilist = append(ilist, iname)
@@ -83,7 +82,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 	if err != nil {
 		r.err = err
 	} else if len(ilist) == 0 {
-		r.err = errors.New("no interfaces found")
+		r.err = fmt.Errorf("no interfaces found")
 	} else {
 		for _, iname := range ilist {
 			downPath := "/sys/class/net/" + iname + "/statistics/rx_bytes"
@@ -96,7 +95,7 @@ func New(inames []string, colors ...[3]string) *Routine {
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("invalid color")
+				r.err = fmt.Errorf("invalid color")
 				return &r
 			}
 		}

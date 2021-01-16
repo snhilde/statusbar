@@ -2,7 +2,6 @@
 package sbfan
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -58,7 +57,7 @@ func New(colors ...[3]string) *Routine {
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("invalid color")
+				r.err = fmt.Errorf("invalid color")
 				return &r
 			}
 		}
@@ -164,7 +163,7 @@ func (r *Routine) findFiles() {
 	}
 
 	// If we made it here, then we didn't find anything.
-	r.err = errors.New("no fan file")
+	r.err = fmt.Errorf("no fan file")
 	return
 }
 

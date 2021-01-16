@@ -3,7 +3,6 @@
 package sbcputemp
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -50,7 +49,7 @@ func New(colors ...[3]string) *Routine {
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("invalid color")
+				r.err = fmt.Errorf("invalid color")
 				return &r
 			}
 		}
@@ -151,7 +150,7 @@ func findDir() (string, error) {
 	}
 
 	// If we made it here, then we didn't find anything.
-	return "", errors.New("no fan file")
+	return "", fmt.Errorf("no fan file")
 }
 
 // findFiles goes through the given path and builds a list of files that contain a temperature reading. These files will
@@ -173,7 +172,7 @@ func findFiles(path string) ([]os.FileInfo, error) {
 
 	// Make sure we found something.
 	if len(b) == 0 {
-		return nil, errors.New("no temperature files")
+		return nil, fmt.Errorf("no temperature files")
 	}
 
 	return b, nil

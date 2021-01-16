@@ -2,7 +2,6 @@
 package sbload
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"syscall"
@@ -44,7 +43,7 @@ func New(colors ...[3]string) *Routine {
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("invalid color")
+				r.err = fmt.Errorf("invalid color")
 				return &r
 			}
 		}

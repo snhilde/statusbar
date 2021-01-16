@@ -2,7 +2,7 @@
 package sbnordvpn
 
 import (
-	"errors"
+	"fmt"
 	"os/exec"
 	"strings"
 )
@@ -43,7 +43,7 @@ func New(colors ...[3]string) *Routine {
 	if len(colors) == 1 {
 		for _, color := range colors[0] {
 			if !strings.HasPrefix(color, "#") || len(color) != 7 {
-				r.err = errors.New("invalid color")
+				r.err = fmt.Errorf("invalid color")
 				return &r
 			}
 		}
@@ -113,7 +113,7 @@ func (r *Routine) parseOutput(output string) (string, error) {
 		}
 	}
 	if field == -1 {
-		return "", errors.New(lines[0])
+		return "", fmt.Errorf(lines[0])
 	}
 
 	switch fields[field+1] {
@@ -122,7 +122,7 @@ func (r *Routine) parseOutput(output string) (string, error) {
 			if strings.HasPrefix(line, "City") {
 				city := strings.Split(line, ":")
 				if len(city) != 2 {
-					return "", errors.New("error parsing city")
+					return "", fmt.Errorf("error parsing city")
 				}
 
 				parsed := "Connected"
@@ -145,10 +145,10 @@ func (r *Routine) parseOutput(output string) (string, error) {
 		r.color = r.colors.warning
 		return "Disconnected", nil
 	case "Please check your internet connection and try again.":
-		return "", errors.New("internet down")
+		return "", fmt.Errorf("internet down")
 	}
 
 	// If we're here, then we have an unknown error.
 	r.color = r.colors.error
-	return "", errors.New(lines[0])
+	return "", fmt.Errorf(lines[0])
 }
