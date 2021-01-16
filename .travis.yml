@@ -7,6 +7,9 @@ dist: bionic
 env:
     - GO111MODULE=on
 
+before_install:
+    - cd github.com/snhilde/statusbar/v5
+
 install:
     - go get golang.org/x/lint/golint
     - go install golang.org/x/lint/golint
