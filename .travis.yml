@@ -11,7 +11,7 @@ before_install:
     - cd v5
 
 install:
-    - go get github.com/golangci/golangci-lint
+    - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
 
 script:
     - make fmt-check
