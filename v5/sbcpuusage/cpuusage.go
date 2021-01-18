@@ -97,7 +97,7 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	used := (newStats.user - r.oldStats.user) + (newStats.nice - r.oldStats.nice) + (newStats.sys - r.oldStats.sys)
-	total := (newStats.user - r.oldStats.user) + (newStats.nice - r.oldStats.nice) + (newStats.sys - r.oldStats.sys) + (newStats.idle - r.oldStats.idle)
+	total := used + (newStats.idle - r.oldStats.idle)
 	total *= r.threads
 
 	// Prevent divide-by-zero error
