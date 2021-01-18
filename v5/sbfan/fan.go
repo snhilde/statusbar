@@ -4,7 +4,6 @@ package sbfan
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -136,9 +135,6 @@ func (r *Routine) Name() string {
 // findFiles finds the files that we'll monitor for the fan speed. It will be in one of the hardware
 // device directories in /sys/class/hwmon.
 func findFiles() (string, string, error) {
-	var maxFile os.FileInfo // File that contains the maximum speed of the fan, in RPM.
-	var outFile os.FileInfo
-
 	// Get all the device directories in the main directory.
 	dirs, err := ioutil.ReadDir(baseDir)
 	if err != nil {
@@ -156,23 +152,22 @@ func findFiles() (string, string, error) {
 		// Find the first file that has a name match. The files we want will start with "fan" and
 		// end with "max" or "output".
 		prefix := "fan"
+		maxFilename := "" // File that contains the maximum speed of the fan, in RPM.
+		outFilename := "" // File that contains the current speed of the fan, in RPM.
 		for _, file := range files {
 			filename := file.Name()
 			if strings.HasPrefix(filename, prefix) {
-				if strings.HasSuffix(filename, "max") || strings.HasSuffix(filename, "output") {
-					// We found one of the two.
-					if strings.HasSuffix(filename, "max") {
-						maxFile = file
-						prefix = strings.TrimSuffix(filename, "max")
-					} else {
-						outFile = file
-						prefix = strings.TrimSuffix(prefix, "output")
-					}
+				if strings.HasSuffix(filename, "max") {
+					maxFilename = filepath.Join(path, filename)
+					prefix = strings.TrimSuffix(filename, "max")
+				} else if strings.HasSuffix(filename, "output") {
+					outFilename = filepath.Join(path, filename)
+					prefix = strings.TrimSuffix(prefix, "output")
 				}
 
 				// If we've found both files, we can stop looking.
-				if maxFile != nil && outFile != nil {
-					return filepath.Join(path, maxFile.Name()), filepath.Join(path, outFile.Name()), nil
+				if maxFilename != "" && outFilename != "" {
+					return maxFilename, outFilename, nil
 				}
 			}
 		}
