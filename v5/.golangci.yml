@@ -1,0 +1,103 @@
+# Linters and configuration options: https://golangci-lint.run/usage/configuration
+
+linters:
+  enable:
+    - asciicheck       # Finds non-ASCII identifiers.
+    - bodyclose        # Checks whether HTTP response body is closed successfully.
+    - deadcode         # Finds unused code.
+    - depguard         # Checks if package imports are in a list of acceptable packages.
+    - dogsled          # Finds assignments with too many blank identifiers (e.g. x, , , _, := f()).
+    - dupl             # Finds code clones.
+    - errorlint        # Finds code that will cause problems with the error wrapping scheme introduced in Go 1.13.
+    - exportloopref    # Checks for pointers to enclosing loop variables.
+    - forbidigo        # Forbids identifiers.
+    - funlen           # Finds long functions.
+    - gci              # Controls package import order and makes it always deterministic.
+    - gocognit         # Computes and checks the cognitive complexity of functions.
+    - goconst          # Finds repeated strings that could be replaced by a constant.
+    - gocyclo          # Computes and checks the cyclomatic complexity of functions.
+    - godot            # Checks if comments end in a period.
+    - godox            # Finds FIXME, TODO, and other comment keywords.
+    - gofmt            # Checks whether code was gofmt'ed.
+    - gofumpt          # Checks whether code was gofumpt'ed.
+    - goheader         # Checks is file header matches pattern.
+    - goimports        # Does everything that gofmt does and checks unused imports.
+    - golint           # Finds style mistakes.
+    - gomodguard       # Allows and blocks list linter for direct module dependencies.
+    - goprintffuncname # Checks that printf-like functions are named with f at the end.
+    - gosec            # Inspects source code for security problems.
+    - gosimple         # Simplifies code.
+    - govet            # Reports suspicious constructs.
+    - ineffassign      # Detects when assignments to existing variables are not used.
+    - interfacer       # Suggests narrower interface types.
+    - lll              # Reports long lines.
+    - makezero         # Finds slice declarations with non-zero initial length.
+    - maligned         # Finds structs that would take less memory if their fields were sorted.
+    - misspell         # Finds commonly misspelled English words in comments.
+    - nakedret         # Finds naked returns in functions greater than a specified function length.
+    - nestif           # Reports deeply nested if statements.
+    - nolintlint       # Reports ill-formed or insufficient nolint directives.
+    - paralleltest     # Detects missing usage of t.Parallel() method in tests.
+    - prealloc         # Finds slice declarations that could potentially be preallocated.
+    - predeclared      # Finds code that shadows predeclared identifiers.
+    - rowserrcheck     # Checks whether Err of rows is checked successfully.
+    - scopelint        # Finds unpinned variables.
+    - sqlclosecheck    # Checks that sql.Rows and sql.Stmt are closed.
+    - staticcheck      # Applies lots of static analysis checks.
+    - structcheck      # Finds unused struct fields.
+    - stylecheck       # Replacement for golint.
+    - testpackage      # Makes you use a separate _test package.
+    - thelper          # Detects golang test helpers without t.Helper() call and checks the consistency of test helpers.
+    - tparallel        # Detects inappropriate usage of t.Parallel() method in your Go test codes.
+    - typecheck        # Parses and type-checks code.
+    - unconvert        # Finds unnecessary type conversions.
+    - unparam          # Reports unused function parameters.
+    - unused           # Finds unused constants, variables, functions, and types
+    - varcheck         # Finds unused global variables and constants.
+    - whitespace       # Finds leading and trailing whitespace.
+
+  disable:
+    - errcheck         # Finds unchecked errors.
+    - exhaustive       # Checks exhaustiveness of enum switch statements.
+    - exhaustivestruct # Checks if all struct's fields are initialized.
+    - gochecknoglobals # Checks that no global variables exist.
+    - gochecknoinits   # Checks that no init functions are present.
+    - gocritic         # The most opinionated Go source code linter.
+    - goerr113         # Checks the errors handling expressions.
+    - gomnd            # Detects magic numbers.
+    - nlreturn         # Checks for a new line before return and branch statements.
+    - noctx            # Finds http requests without context.Context.
+    - wrapcheck        # Checks that errors returned from external packages are wrapped.
+    - wsl              # Forces you to use empty lines.
+
+output:
+  sort-results: true # Sorts results by file, line, and column.
+
+linters-settings:
+  funlen:
+    lines: 80 # Increase the maximum allowed lines in a function from 60 to 80.
+
+issues:
+  exclude-rules:
+    # godox: Line contains TODO/BUG/FIXME
+    # (The TODO routine's module contains a bunch of false positives for TODO checks. We'll just turn
+    # off the linter for this file.)
+    - path: sbtodo/todo.go
+      linters: godox
+
+    # lll: line is NNN characters
+    # (Allow handler function lines to have longer line lengths.)
+    - path: handlers.go
+      linters: lll
+      source: func \(a apiHandler\) Handle
+
+    # lll: line is NNN characters
+    # (The definition for findMethod is understandably long.)
+    - path: restapi/restapi.go
+      linters: lll
+      source: func findMethod
+
+    # gosec: Subprocess launched with function call as argument or cmd arguments
+    - path: sbvolume/volume.go
+      linters: gosec
+      source: exec.Command\(\"amixer\", \"get\",
