@@ -33,11 +33,11 @@ type fs struct {
 	// Used bytes for this filesystem.
 	used uint64
 
-	// Unit for the used bytes.
-	usedUnit rune
-
 	// Total bytes for this filesystem.
 	total uint64
+
+	// Unit for the used bytes.
+	usedUnit rune
 
 	// Unit for the total bytes.
 	totalUnit rune
