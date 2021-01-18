@@ -86,14 +86,6 @@ func (r *Routine) Update() (bool, error) {
 		return false, r.err
 	}
 
-	// Handle any error from New.
-	if r.info.Name() == "" {
-		if r.err == nil {
-			r.err = fmt.Errorf("invalid file")
-		}
-		return false, r.err
-	}
-
 	newInfo, err := os.Stat(r.path)
 	if err != nil {
 		r.err = fmt.Errorf("error getting file stats")
@@ -126,35 +118,25 @@ func (r *Routine) String() string {
 		return "bad routine"
 	}
 
-	var b strings.Builder
-
-	r.line1 = strings.TrimSpace(r.line1)
-	b.WriteString(r.colors.normal)
-	if r.line1 != "" {
-		// We have content in the first line. Start by adding that.
-		b.WriteString(r.line1)
-		if r.line2 != "" {
-			// We have content in the second line as well. First, let's find out which joiner to use.
-			if (strings.HasPrefix(r.line2, "\t")) || (strings.HasPrefix(r.line2, " ")) {
-				b.WriteString(" -> ")
-			} else {
-				b.WriteString(" | ")
-			}
-			// Next, we'll add the second line.
-			b.WriteString(strings.TrimSpace(r.line2))
-		}
-	} else {
-		if len(r.line2) > 0 {
-			// We only have a second line. Print just that.
-			b.WriteString(strings.TrimSpace(r.line2))
+	// First, let's figure out what joiner (if any) we need.
+	joiner := ""
+	if r.line1 != "" && r.line2 != "" {
+		if (strings.HasPrefix(r.line2, "\t")) || (strings.HasPrefix(r.line2, " ")) {
+			joiner = " -> "
 		} else {
-			// We don't have content in either line.
-			b.WriteString("Finished")
+			joiner = " | "
 		}
 	}
-	b.WriteString(colorEnd)
 
-	return b.String()
+	line1 := strings.TrimSpace(r.line1)
+	line2 := strings.TrimSpace(r.line2)
+
+	output := line1 + joiner + line2
+	if output == "" {
+		output = "Finished"
+	}
+
+	return r.colors.normal + output + colorEnd
 }
 
 // Error formats and returns an error message.
