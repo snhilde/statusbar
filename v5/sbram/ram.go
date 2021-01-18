@@ -134,32 +134,40 @@ func (r *Routine) Name() string {
 func parseFile(output string) (int, int, error) {
 	var total int
 	var avail int
-	var err error
 
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if strings.HasPrefix(line, "MemTotal") {
-			fields := strings.Fields(line)
-			if len(fields) != 3 {
-				return 0, 0, fmt.Errorf("invalid MemTotal fields")
-			}
-			total, err = strconv.Atoi(fields[1])
+			num, err := parseMemFields(line)
 			if err != nil {
-				return 0, 0, fmt.Errorf("error parsing MemTotal fields")
+				return 0, 0, err
 			}
+			total = num
 		} else if strings.HasPrefix(line, "MemAvailable") {
-			fields := strings.Fields(line)
-			if len(fields) != 3 {
-				return 0, 0, fmt.Errorf("invalid MemAvailable fields")
-			}
-			avail, err = strconv.Atoi(fields[1])
+			num, err := parseMemFields(line)
 			if err != nil {
-				return 0, 0, fmt.Errorf("error parsing MemAvailable fields")
+				return 0, 0, err
 			}
+			avail = num
 		}
 	}
 
 	return total, avail, nil
+}
+
+// parseMemFields parses the line and extracts the field representing the memory value.
+func parseMemFields(line string) (int, error) {
+	fields := strings.Fields(line)
+	if len(fields) != 3 {
+		return -1, fmt.Errorf("invalid line")
+	}
+
+	num, err := strconv.Atoi(fields[1])
+	if err != nil {
+		return -1, fmt.Errorf("error parsing fields: %w", err)
+	}
+
+	return num, nil
 }
 
 // shrink iteratively decreases the amount of bytes by a step of 1024 until human-readable.
