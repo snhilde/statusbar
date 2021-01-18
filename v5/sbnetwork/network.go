@@ -201,12 +201,13 @@ func findInterfaces() ([]string, error) {
 		return nil, err
 	}
 
-	var inames []string
+	inames := make([]string, 0)
 	for _, iface := range ifaces {
 		if iface.Name == "lo" {
 			// Skip loopback.
 			continue
-		} else if !strings.Contains(iface.Flags.String(), "up") {
+		}
+		if !strings.Contains(iface.Flags.String(), "up") {
 			// If the network is not up, then we don't need to monitor it.
 			continue
 		}
