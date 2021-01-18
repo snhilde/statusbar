@@ -42,8 +42,8 @@ type stats struct {
 	idle int
 }
 
-// New gets current CPU stats and makes a new routine object. colors is an optional triplet of hex color codes for
-// colorizing the output based on these rules:
+// New gets current CPU stats and makes a new routine object. colors is an optional triplet of hex
+// color codes for colorizing the output based on these rules:
 //   1. Normal color, CPU is running at less than 75% of its capacity.
 //   2. Warning color, CPU is running at between 75% and 90% of its capacity.
 //   3. Error color, CPU is running at more than 90% of its capacity.
@@ -77,8 +77,8 @@ func New(colors ...[3]string) *Routine {
 	return &r
 }
 
-// Update gets the current CPU stats, compares them to the last-read stats, and calculates the percentage of CPU
-// currently being used.
+// Update gets the current CPU stats, compares them to the last-read stats, and calculates the
+// percentage of CPU currently being used.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
 		return false, fmt.Errorf("bad routine")
@@ -157,10 +157,10 @@ func (r *Routine) Name() string {
 	return "CPU Usage"
 }
 
-// The shell command 'lscpu' will return a variety of CPU information, including the number of threads
+// The shell command 'lscpu' returns a variety of CPU information, including the number of threads
 // per CPU core. We don't care about the number of cores, because we're already reading in the
-// averaged total. We only want to know if we need to be changing its range. To get this number, we're
-// going to loop through each line of the output until we find "Thread(s) per socket".
+// averaged total. We only want to know if we need to be changing its range. To get this number,
+// we're going to loop through each line of the output until we find "Thread(s) per socket".
 func numThreads() (int, error) {
 	proc := exec.Command("lscpu")
 	out, err := proc.Output()

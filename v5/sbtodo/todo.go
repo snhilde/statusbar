@@ -10,8 +10,8 @@ import (
 
 var colorEnd = "^d^"
 
-// Routine is the main object for this package. It contains the data obtained from the specified TODO file, including
-// file info and a copy of the first 2 lines.
+// Routine is the main object for this package. It contains the data obtained from the specified
+// TODO file, including file info and a copy of the first 2 lines.
 type Routine struct {
 	// Error encountered along the way, if any.
 	err error
@@ -36,8 +36,8 @@ type Routine struct {
 	}
 }
 
-// New makes a new routine object. path is the absolute path to the TODO file. colors is an optional triplet of hex
-// color codes for colorizing the output based on these rules:
+// New makes a new routine object. path is the absolute path to the TODO file. colors is an optional
+// triplet of hex color codes for colorizing the output based on these rules:
 //   1. Normal color, used for normal printing.
 //   2. Warning color, currently unused.
 //   3. Error color, used for printing error messages.
@@ -118,7 +118,8 @@ func (r *Routine) Update() (bool, error) {
 // String formats the first two lines of the file according to these rules:
 //   1. If the file is empty, print "Finished".
 //   2. If only one line in the file has content, print only that line.
-//   3. If one line has content and the next line with content is indented (tabs or spaces), print "line1 -> line2".
+//   3. If one line has content and the next line with content is indented (tabs or spaces), print
+//      "line1 -> line2".
 //   4. If two lines have content and both are flush, print "line1 | line2".
 func (r *Routine) String() string {
 	if r == nil {

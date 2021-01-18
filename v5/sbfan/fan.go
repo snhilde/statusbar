@@ -37,8 +37,9 @@ type Routine struct {
 	}
 }
 
-// New searches around in the base directory for a pair of max and current files and makes a new routine object. colors
-// is an optional triplet of hex color codes for colorizing the output based on these rules:
+// New searches around in the base directory for a pair of max and current files and makes a new
+// routine object. colors is an optional triplet of hex color codes for colorizing the output based
+// on these rules:
 //   1. Normal color, fan is running at less than 75% of the maximum RPM.
 //   2. Warning color, fan is running at between 75% and 90% of the maximum RPM.
 //   3. Error color, fan is running at more than 90% of the maximum RPM.
@@ -132,8 +133,8 @@ func (r *Routine) Name() string {
 	return "Fan"
 }
 
-// findFiles finds the files that we'll monitor for the fan speed. It will be in one of the hardware device directories
-// in /sys/class/hwmon.
+// findFiles finds the files that we'll monitor for the fan speed. It will be in one of the hardware
+// device directories in /sys/class/hwmon.
 func findFiles() (string, string, error) {
 	var maxFile os.FileInfo // File that contains the maximum speed of the fan, in RPM.
 	var outFile os.FileInfo
@@ -152,8 +153,8 @@ func findFiles() (string, string, error) {
 			return "", "", err
 		}
 
-		// Find the first file that has a name match. The files we want will start with "fan" and end
-		// with "max" or "output".
+		// Find the first file that has a name match. The files we want will start with "fan" and
+		// end with "max" or "output".
 		prefix := "fan"
 		for _, file := range files {
 			filename := file.Name()

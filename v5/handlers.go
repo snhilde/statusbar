@@ -13,10 +13,11 @@ import (
 	"github.com/snhilde/statusbar/v5/restapi"
 )
 
-// apiHandler is a wrapper object for convenience reasons: in order for the restapi package to be able to use the
-// handlers belonging to the object passed to it, all handler methods must be exported. However, we don't want them
-// showing up in the auto-docs, so we'll wrap up the main statusbar object with an apiHandler to retain all
-// functionality but not flood the docs with a bunch of handler methods.
+// apiHandler is a wrapper object for convenience reasons: in order for the restapi package to be
+// able to use the handlers belonging to the object passed to it, all handler methods must be
+// exported. However, we don't want them showing up in the auto-docs, so we'll wrap up the main
+// statusbar object with an apiHandler to retain all functionality but not flood the docs with a
+// bunch of handler methods.
 type apiHandler struct {
 	*Statusbar
 }
@@ -133,7 +134,8 @@ func (a apiHandler) HandlePutRoutine(endpoint restapi.Endpoint, params restapi.P
 	return 204, ""
 }
 
-// HandlePatchRoutine updates the specified routine's data. Currently, this only updates the interval time.
+// HandlePatchRoutine updates the specified routine's data. Currently, this only updates the
+// interval time.
 // endpoint: PATCH /routines/:routine
 func (a apiHandler) HandlePatchRoutine(endpoint restapi.Endpoint, params restapi.Params, request *http.Request) (int, string) {
 	routine, err := getRoutine(a.routines, params["routine"])

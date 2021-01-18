@@ -34,8 +34,9 @@ type Routine struct {
 	}
 }
 
-// New finds the device directory, builds a list of all the temperature sensors in it, and makes a new object. colors is
-// an optional triplet of hex color codes for colorizing the output based on these rules:
+// New finds the device directory, builds a list of all the temperature sensors in it, and makes a
+// new object. colors is an optional triplet of hex color codes for colorizing the output based on
+// these rules:
 //   1. Normal color, CPU temperature is cooler than 75 °C.
 //   2. Warning color, CPU temperature is between 75 °C and 100 °C.
 //   3. Error color, CPU temperature is hotter than 100 °C.
@@ -68,8 +69,9 @@ func New(colors ...[3]string) *Routine {
 	return &r
 }
 
-// Update reads out the value of each sensor, gets an average of all temperatures, and converts it from milliCelsius to
-// Celsius. If we have trouble reading a particular sensor, then we'll skip it on this pass.
+// Update reads out the value of each sensor, gets an average of all temperatures, and converts it
+// from milliCelsius to Celsius. If we have trouble reading a particular sensor, then we'll skip it
+// on this pass.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
 		return false, fmt.Errorf("bad routine")
@@ -143,8 +145,8 @@ func (r *Routine) Name() string {
 	return "CPU Temp"
 }
 
-// findDir finds the directory that has the temperature readings. It will be the one with the fan speeds,
-// somewhere in /sys/class/hwmon.
+// findDir finds the directory that has the temperature readings. It will be the one with the fan
+// speeds, somewhere in /sys/class/hwmon.
 func findDir() (string, error) {
 	// Get all the device directories in the main directory.
 	dirs, err := ioutil.ReadDir(baseDir)
@@ -173,8 +175,8 @@ func findDir() (string, error) {
 	return "", fmt.Errorf("no fan file")
 }
 
-// findFiles goes through the given path and builds a list of files that contain a temperature reading. These files will
-// begin with "temp" and end with "input".
+// findFiles goes through the given path and builds a list of files that contain a temperature
+// reading. These files will begin with "temp" and end with "input".
 func findFiles(path string) ([]string, error) {
 	var b []string
 

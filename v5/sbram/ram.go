@@ -38,8 +38,8 @@ type Routine struct {
 	}
 }
 
-// New makes a new routine object. colors is an optional triplet of hex color codes for colorizing the output based on
-// these rules:
+// New makes a new routine object. colors is an optional triplet of hex color codes for colorizing
+// the output based on these rules:
 //   1. Normal color, less than 75% of available RAM is being used.
 //   2. Warning color, between 75% and 90% of available RAM is being used.
 //   3. Error color, more than 90% of available RAM is being used.
@@ -59,10 +59,11 @@ func New(colors ...[3]string) *Routine {
 	return &r
 }
 
-// Update gets the memory resources. Unfortunately, we can't use syscall.Sysinfo() or another syscall function, because
-// it doesn't return the necessary information to calculate the actual amount of RAM in use at the moment (namely, it is
-// missing the amount of cached RAM). Instead, we're going to read out /proc/meminfo and grab the values we need from
-// there. All lines of that file have three fields: field name, value, and unit.
+// Update gets the memory resources. Unfortunately, we can't use syscall.Sysinfo() or another
+// syscall function, because it doesn't return the necessary information to calculate the actual
+// amount of RAM in use at the moment (namely, it is missing the amount of cached RAM). Instead,
+// we're going to read out /proc/meminfo and grab the values we need from there. All lines of that
+// file have three fields: field name, value, and unit.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
 		return false, fmt.Errorf("bad routine")

@@ -13,7 +13,8 @@ import (
 
 var colorEnd = "^d^"
 
-// Routine is the main object for this package. It contains the information needed to query the build status.
+// Routine is the main object for this package. It contains the information needed to query the
+// build status.
 type Routine struct {
 	// Error encountered along the way, if any.
 	err error
@@ -43,8 +44,9 @@ type build struct {
 	State string `json:"state"`
 }
 
-// New makes a new routine object. owner is the username of the repository's owner. repo is the name of the repository.
-// colors is an optional triplet of hex color codes for colorizing the output based on these rules:
+// New makes a new routine object. owner is the username of the repository's owner. repo is the name
+// of the repository. colors is an optional triplet of hex color codes for colorizing the output
+// based on these rules:
 //   1. Normal color, used for enqueued/passing builds.
 //   2. Warning color, used for canceled/failed builds.
 //   3. Error color, used for error messages.
@@ -56,9 +58,10 @@ func New(owner, repo string, colors ...[3]string) *Routine {
 		Timeout: 30 * time.Second,
 	}
 
-	// The API requires that the owner and repo are joined with "%2F" instead of a literal slash. url.URL escapes the
-	// percent sign in the path, so we have to unescape it. Additionally, we have to show both the literal path and the
-	// escaped path when creating the URL object so that url.String() knows to use the literal version.
+	// The API requires that the owner and repo are joined with "%2F" instead of a literal slash.
+	// url.URL escapes the percent sign in the path, so we have to unescape it. Additionally, we
+	// have to show both the literal path and the escaped path when creating the URL object so that
+	// url.String() knows to use the literal version.
 	rawPath := fmt.Sprintf("repo/%s%%2F%s/builds", owner, repo)
 	escPath, _ := url.PathUnescape(rawPath)
 
@@ -66,7 +69,8 @@ func New(owner, repo string, colors ...[3]string) *Routine {
 	query := url.Values{}
 	query.Set("limit", "1")
 
-	// Set up the URL. We don't need to validate any parameters, because Travis will do the error checking for us.
+	// Set up the URL. We don't need to validate any parameters, because Travis will do the error
+	// checking for us.
 	u := url.URL{
 		Scheme:   "https",
 		Host:     "api.travis-ci.com",

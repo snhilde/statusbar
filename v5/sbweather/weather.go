@@ -65,9 +65,10 @@ type forecast struct {
 	} `json:"temp"`
 }
 
-// New makes a new routine object with the specified latitude/longitude and formatting. key is the API key provided by
-// OpenWeather. You can get a free key here: https://home.openweathermap.org/users/sign_up. The metric boolean denotes
-// whether or not you want the temperature displayed in celsius. colors is an optional triplet of hex color codes for
+// New makes a new routine object with the specified latitude/longitude and formatting. key is the
+// API key provided by OpenWeather. You can get a free key here:
+// https://home.openweathermap.org/users/sign_up. The metric boolean denotes whether or not you want
+// the temperature displayed in celsius. colors is an optional triplet of hex color codes for
 // colorizing the output based on these rules:
 //   1. Normal color, used for printing the current temperature and forecast.
 //   2. Warning color, currently unused.
@@ -80,10 +81,11 @@ func New(lat, lon float32, key string, metric bool, colors ...[3]string) *Routin
 		Timeout: 30 * time.Second,
 	}
 
-	// Set the location and key query parameters. To get the forecast with a free API key, we have to use
-	// latitude/longitude. There doesn't appear to be a maximum precision. There are 5 optional parts in the response
-	// data: current weather, minutely forecast, hourly forecast, daily forecast, and weather alerts. We want to exclude
-	// everything except the current weather and the daily forecasts.
+	// Set the location and key query parameters. To get the forecast with a free API key, we have
+	// to use latitude/longitude. There doesn't appear to be a maximum precision. There are 5
+	// optional parts in the response data: current weather, minutely forecast, hourly forecast,
+	// daily forecast, and weather alerts. We want to exclude everything except the current weather
+	// and the daily forecasts.
 	query := url.Values{}
 	query.Set("lat", fmt.Sprintf("%f", lat))
 	query.Set("lon", fmt.Sprintf("%f", lon))
@@ -140,9 +142,9 @@ func (r *Routine) Update() (bool, error) {
 	r.highTemp = noData
 	r.lowTemp = noData
 
-	// Set the high and low temperatures. The forecast for each day starts at noon local time and is displayed in UTC
-	// time. We'll start by getting a time.Time object for noon today, and then we'll skip ahead a day if we want the
-	// high/low for tomorrow instead.
+	// Set the high and low temperatures. The forecast for each day starts at noon local time and is
+	// displayed in UTC time. We'll start by getting a time.Time object for noon today, and then
+	// we'll skip ahead a day if we want the high/low for tomorrow instead.
 	now := time.Now()
 	noon := time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, now.Location())
 	if !onToday() {
@@ -180,7 +182,8 @@ func (r *Routine) String() string {
 		unit = "°F"
 	}
 
-	// Let's work through the different scenarios where we might or might not have certain temperatures.
+	// Let's work through the different scenarios where we might or might not have certain
+	// temperatures.
 	haveHigh := r.highTemp != noData
 	haveLow := r.lowTemp != noData
 
@@ -242,8 +245,8 @@ func getWeather(client *http.Client, request *http.Request) (weather, error) {
 		return weather{}, err
 	}
 
-	// Check for an error in the response data. For bad latitude/longitude, the status code is returned as a string. For
-	// bad API key, it's returned as a number.
+	// Check for an error in the response data. For bad latitude/longitude, the status code is
+	// returned as a string. For bad API key, it's returned as a number.
 	if status, ok := w.Status.(float64); ok {
 		if status == 401 {
 			return weather{}, fmt.Errorf("invalid API key")
@@ -256,8 +259,8 @@ func getWeather(client *http.Client, request *http.Request) (weather, error) {
 	return w, nil
 }
 
-// onToday checks whether or not the forecast is for today or tomorrow. If the current time is before 3pm, then the
-// forecast is still for today. Otherwise, it's for tomorrow.
+// onToday checks whether or not the forecast is for today or tomorrow. If the current time is
+// before 3pm, then the forecast is still for today. Otherwise, it's for tomorrow.
 func onToday() bool {
 	return time.Now().Hour() < 15
 }

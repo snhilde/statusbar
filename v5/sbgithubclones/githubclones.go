@@ -12,8 +12,8 @@ import (
 
 var colorEnd = "^d^"
 
-// Routine is the main object for this package. It contains the objects needed to query the current clone count for the
-// day and week.
+// Routine is the main object for this package. It contains the objects needed to query the current
+// clone count for the day and week.
 type Routine struct {
 	// Error encountered along the way, if any.
 	err error
@@ -40,9 +40,10 @@ type Routine struct {
 	}
 }
 
-// New makes a new routine object. owner is the username of the repository's owner. repo is the name of the repository.
-// authUser is the username for authentication (must have push permissions to repo). authToken is the token for
-// authentication. colors is an optional triplet of hex color codes for colorizing the output based on these rules:
+// New makes a new routine object. owner is the username of the repository's owner. repo is the name
+// of the repository. authUser is the username for authentication (must have push permissions to
+// repo). authToken is the token for authentication. colors is an optional triplet of hex color
+// codes for colorizing the output based on these rules:
 //   1. Normal color, used for normal printing.
 //   2. Warning color, currently unused.
 //   3. Error color, used for printing error messages.
@@ -105,8 +106,8 @@ func (r *Routine) Update() (bool, error) {
 	return true, nil
 }
 
-// String prints the current clone count for the day and week. If no count is returned, this displays "-" for that time
-// period.
+// String prints the current clone count for the day and week. If no count is returned, this
+// displays "-" for that time period.
 func (r *Routine) String() string {
 	if r == nil {
 		return "bad routine"
@@ -150,7 +151,8 @@ func buildRequest(owner, repo, authUser, authToken string, daily bool) (*http.Re
 		q.Set("per", "week")
 	}
 
-	// Set up the URL. We don't need to validate any parameters, because Github will do the error checking for us.
+	// Set up the URL. We don't need to validate any parameters, because Github will do the error
+	// checking for us.
 	u := url.URL{
 		Scheme:   "https",
 		Host:     "api.github.com",
@@ -219,16 +221,19 @@ func getCount(client *http.Client, req *http.Request, daily bool) (string, error
 		}
 	}
 
-	// If we didn't find a matching timestamp, then that means there haven't been any clones for this time period.
+	// If we didn't find a matching timestamp, then that means there haven't been any clones for
+	// this time period.
 	return "-", nil
 }
 
-// getDay determines which day we need to use when looking for the current clone count. For the daily count, we use the
-// current day. For the weekly count, we go back to the nearest Monday and use that.
+// getDay determines which day we need to use when looking for the current clone count. For the
+// daily count, we use the current day. For the weekly count, we go back to the nearest Monday and
+// use that.
 func getDay(daily bool) int {
 	now := time.Now()
 	if !daily {
-		// Set the current day to the most recent Monday. Note: The first weekday is Sunday, which is indexed at 0.
+		// Set the current day to the most recent Monday. Note: The first weekday is Sunday, which
+		// is indexed at 0.
 		dayOfWeek := int(now.Weekday())
 		if dayOfWeek == 0 {
 			// For Sunday, go back six days.
@@ -239,7 +244,7 @@ func getDay(daily bool) int {
 		}
 	}
 
-	// We are now on the day that Github will use to report the current count for this reporting period. Let's grab the
-	// string of this time to match later.
+	// We are now on the day that Github will use to report the current count for this reporting
+	// period. Let's grab the string of this time to match later.
 	return now.Day()
 }

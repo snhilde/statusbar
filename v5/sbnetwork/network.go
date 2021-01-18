@@ -1,5 +1,5 @@
-// Package sbnetwork displays the number of bytes sent and received per given time period for either the provided
-// network interfaces or the ones currently marked as active.
+// Package sbnetwork displays the number of bytes sent and received per given time period for either
+// the provided network interfaces or the ones currently marked as active.
 package sbnetwork
 
 import (
@@ -17,7 +17,8 @@ type Routine struct {
 	// Error encountered along the way, if any.
 	err error
 
-	// List of user-supplied interfaces to monitor. If nothing was supplied, we'll grab the interfaces currently up.
+	// List of user-supplied interfaces to monitor. If nothing was supplied, we'll grab the
+	// interfaces currently up.
 	givenNames []string
 
 	// List of interfaces names that we want to display on the statusbar.
@@ -52,8 +53,9 @@ type sbiface struct {
 	newUp int
 }
 
-// New returns a new routine object populated with either the given interfaces or the active ones if no interfaces are
-// specified. colors is an optional triplet of hex color codes for colorizing the output based on these rules:
+// New returns a new routine object populated with either the given interfaces or the active ones if
+// no interfaces are specified. colors is an optional triplet of hex color codes for colorizing the
+// output based on these rules:
 //   1. Normal color, all interfaces are running at Kpbs speeds or less.
 //   2. Warning color, one of more interface is running at Mbps speeds.
 //   3. Error color, one of more interface is running at greater than Mbps speeds.
@@ -85,8 +87,8 @@ func (r *Routine) Update() (bool, error) {
 	// Get the interfaces that we want to monitor on this loop.
 	r.printNames = r.givenNames
 	if len(r.printNames) == 0 {
-		// If no interfaces were specified, then we'll grab all the ones currently up. We want to run this process each
-		// loop to catch any changes in interface statuses as they happen.
+		// If no interfaces were specified, then we'll grab all the ones currently up. We want to
+		// run this process each loop to catch any changes in interface statuses as they happen.
 		is, err := findInterfaces()
 		if err != nil {
 			r.err = fmt.Errorf("error finding interfaces")

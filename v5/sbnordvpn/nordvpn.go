@@ -1,4 +1,5 @@
-// Package sbnordvpn displays the current status of the NordVPN connection, including the city and any connection errors.
+// Package sbnordvpn displays the current status of the NordVPN connection, including the city and
+// any connection errors.
 package sbnordvpn
 
 import (
@@ -31,8 +32,8 @@ type Routine struct {
 	}
 }
 
-// New makes a new routine object. colors is an optional triplet of hex color codes for colorizing the output based on
-// these rules:
+// New makes a new routine object. colors is an optional triplet of hex color codes for colorizing
+// the output based on these rules:
 //   1. Normal color, VPN is connected.
 //   2. Warning color, VPN is disconnected or is in the process of connecting.
 //   3. Error color, error determining status, or network is down.
@@ -58,8 +59,9 @@ func (r *Routine) Update() (bool, error) {
 		return false, fmt.Errorf("bad routine")
 	}
 
-	// If the command is successful but there's an error with nordvpn (like if the internet is down), this will return
-	// an error code. We still want to capture and parse the error message, so we're going to ignore any returned error.
+	// If the command is successful but there's an error with nordvpn (like if the internet is
+	// down), this will return an error code. We still want to capture and parse the error message,
+	// so we're going to ignore any returned error.
 	cmd := exec.Command("nordvpn", "status")
 	output, _ := cmd.Output()
 
@@ -120,9 +122,9 @@ func (r *Routine) parseOutput(output string) error {
 	// Split up all the lines of the output for parsing.
 	lines := strings.Split(output, "\n")
 
-	// Break out each word in the first line. It's possible that there is some garbage (mostly unprintable characters)
-	// before the message, so we're going to scan the line until we find the word "Status" and then try to determine the
-	// status by the word following that.
+	// Break out each word in the first line. It's possible that there is some garbage (mostly
+	// unprintable characters) before the message, so we're going to scan the line until we find the
+	// word "Status" and then try to determine the status by the word following that.
 	fields := strings.Fields(lines[0])
 	field := -1
 	for i, v := range fields {

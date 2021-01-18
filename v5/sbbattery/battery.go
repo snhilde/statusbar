@@ -1,4 +1,5 @@
-// Package sbbattery displays the percentage of battery capacity left with a charging status indicator.
+// Package sbbattery displays the percentage of battery capacity left with a charging status
+// indicator.
 package sbbattery
 
 import (
@@ -40,8 +41,8 @@ type Routine struct {
 	}
 }
 
-// New reads the maximum capacity of the battery and returns a Routine object. colors is an optional triplet of hex
-// color codes for colorizing the output based on these rules:
+// New reads the maximum capacity of the battery and returns a Routine object. colors is an optional
+// triplet of hex color codes for colorizing the output based on these rules:
 //   1. Normal color, battery has more than 25% left.
 //   2. Warning color, battery has between 10% and 25% left.
 //   3. Error color, battery has less than 10% left.

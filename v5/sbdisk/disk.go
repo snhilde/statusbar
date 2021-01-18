@@ -43,12 +43,13 @@ type fs struct {
 	totalUnit rune
 
 	// Percentage of total disk space used.
-	// Note: Bavail is the amount of blocks that can actually be used, while Bfree is the total amount of unused blocks.
+	// Note: Bavail is the amount of blocks that can actually be used, while Bfree is the total
+	//       amount of unused blocks.
 	perc uint64
 }
 
-// New copies over the provided filesystem paths and makes a new routine object. colors is an optional triplet of hex
-// color codes for colorizing the output based on these rules:
+// New copies over the provided filesystem paths and makes a new routine object. colors is an
+// optional triplet of hex color codes for colorizing the output based on these rules:
 //   1. Normal color, disk is less than 75% full.
 //   2. Warning color, disk is between 75% and 90% full.
 //   3. Error color, disk is over 90% full.
@@ -70,7 +71,8 @@ func New(paths []string, colors ...[3]string) *Routine {
 		colorEnd = ""
 	}
 
-	// We want to do this after checking the colors so we can know in Update if New was successful or not.
+	// We want to do this after checking the colors so we can know in Update if New was successful
+	// or not.
 	for _, path := range paths {
 		r.disks = append(r.disks, fs{path: path})
 	}
@@ -78,8 +80,8 @@ func New(paths []string, colors ...[3]string) *Routine {
 	return &r
 }
 
-// Update gets the amount of used and total disk space and converts them into a human-readable size for each provided
-// filesystem.
+// Update gets the amount of used and total disk space and converts them into a human-readable size
+// for each provided filesystem.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
 		return false, fmt.Errorf("bad routine")
