@@ -8,8 +8,6 @@ package statusbar
 import "C"
 
 import (
-	"github.com/snhilde/statusbar/v5/apispecs"
-	"github.com/snhilde/statusbar/v5/restapi"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +16,9 @@ import (
 	"syscall"
 	"time"
 	"unsafe"
+
+	"github.com/snhilde/statusbar/v5/apispecs"
+	"github.com/snhilde/statusbar/v5/restapi"
 )
 
 // RoutineHandler allows information monitors (commonly called routines) to be linked in.

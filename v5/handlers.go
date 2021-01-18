@@ -5,11 +5,12 @@ package statusbar
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/snhilde/statusbar/v5/restapi"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/snhilde/statusbar/v5/restapi"
 )
 
 // apiHandler is a wrapper object for convenience reasons: in order for the restapi package to be able to use the

@@ -1,6 +1,9 @@
 package statusbar
 
 import (
+	"testing"
+	"time"
+
 	"github.com/snhilde/statusbar/v5/sbbattery"
 	"github.com/snhilde/statusbar/v5/sbcputemp"
 	"github.com/snhilde/statusbar/v5/sbcpuusage"
@@ -13,8 +16,6 @@ import (
 	"github.com/snhilde/statusbar/v5/sbtodo"
 	"github.com/snhilde/statusbar/v5/sbvolume"
 	"github.com/snhilde/statusbar/v5/sbweather"
-	"testing"
-	"time"
 )
 
 func TestStatusbar(t *testing.T) {
