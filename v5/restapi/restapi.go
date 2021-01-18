@@ -130,51 +130,13 @@ func (e *Engine) AddSpec(spec RestSpec, handler interface{}) error {
 	// Set up this API's group.
 	group := engine.Group(spec.Prefix)
 
-	// Get the underlying type of the handler. We use this to find the appropriate methods later.
-	handlerType := reflect.ValueOf(handler)
-
 	// Map the endpoints into the engine.
 	for _, table := range spec.Tables {
 		for _, endpoint := range table.Endpoints {
-			// Make sure we always have the correct scope for our function literal.
-			endpoint := endpoint
-
-			if endpoint.Callback == "" {
-				return fmt.Errorf("missing callback for %s", endpoint.URL)
+			// Register this endpoint with this group.
+			if err := registerEndpoint(handler, group, endpoint); err != nil {
+				return err
 			}
-
-			// Figure out which of the handler's methods we need to set as this endpoint's handler.
-			handler := handlerType.MethodByName(endpoint.Callback)
-			if handler == (reflect.Value{}) {
-				return fmt.Errorf("handler does not implement %s", endpoint.Callback)
-			}
-
-			// Type assert the callback method back to the correct definition.
-			iface := handler.Interface()
-			f, ok := iface.(func(Endpoint, Params, *http.Request) (int, string))
-			if !ok {
-				return fmt.Errorf("%s does not satisfy HandlerFunc", endpoint.Callback)
-			}
-
-			group.Handle(endpoint.Method, endpoint.URL, func(c *gin.Context) {
-				params := make(Params)
-				for _, p := range c.Params {
-					params[p.Key] = p.Value
-				}
-
-				code, output := f(endpoint, params, c.Request)
-				if code >= 400 && code < 600 {
-					c.Error(fmt.Errorf(output))
-				}
-				if output == "" {
-					c.Status(code)
-				} else {
-					if json.Valid([]byte(output)) {
-						c.Header("Content-Type", "application/json")
-					}
-					c.String(code, output)
-				}
-			})
 		}
 	}
 
@@ -237,4 +199,60 @@ func (e *Engine) Stop(timeout int) error {
 	err := e.server.Shutdown(ctx)
 	e.server = nil
 	return err
+}
+
+func registerEndpoint(handler interface{}, group *gin.RouterGroup, endpoint Endpoint) error {
+	// Get the underlying type of the handler.
+	handlerType := reflect.ValueOf(handler)
+
+	// Figure out which of the handler's methods we need to set as this endpoint's handler.
+	method, err := findMethod(handlerType, endpoint)
+	if err != nil {
+		return err
+	}
+
+	// Register the endpoint.
+	group.Handle(endpoint.Method, endpoint.URL, func(c *gin.Context) {
+		params := make(Params)
+		for _, p := range c.Params {
+			params[p.Key] = p.Value
+		}
+
+		code, output := method(endpoint, params, c.Request)
+		if code >= 400 && code < 600 {
+			c.Error(fmt.Errorf(output))
+		}
+
+		if output == "" {
+			c.Status(code)
+		} else {
+			if json.Valid([]byte(output)) {
+				c.Header("Content-Type", "application/json")
+			}
+			c.String(code, output)
+		}
+	})
+
+	return nil
+}
+
+// findMethod parses the endpoint and finds and validates the handler method specified.
+func findMethod(handlerType reflect.Value, endpoint Endpoint) (func(Endpoint, Params, *http.Request) (int, string), error) {
+	if endpoint.Callback == "" {
+		return nil, fmt.Errorf("missing callback for %s", endpoint.URL)
+	}
+
+	method := handlerType.MethodByName(endpoint.Callback)
+	if method == (reflect.Value{}) {
+		return nil, fmt.Errorf("handler does not implement %s", endpoint.Callback)
+	}
+
+	// Type assert the callback method back to the correct definition.
+	iface := method.Interface()
+	f, ok := iface.(func(Endpoint, Params, *http.Request) (int, string))
+	if !ok {
+		return nil, fmt.Errorf("%s does not satisfy HandlerFunc", endpoint.Callback)
+	}
+
+	return f, nil
 }
