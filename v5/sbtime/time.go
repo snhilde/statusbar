@@ -53,7 +53,7 @@ func New(format string, colors ...[3]string) *Routine {
 
 	// Replace all colons in the format string with spaces, to get the blinking effect later.
 	r.formatA = format
-	r.formatB = strings.Replace(format, ":", " ", -1)
+	r.formatB = strings.ReplaceAll(format, ":", " ")
 	r.time = time.Now()
 
 	return &r
