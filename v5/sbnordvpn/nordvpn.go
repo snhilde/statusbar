@@ -152,13 +152,7 @@ func (r *Routine) parseOutput(output string) error {
 				}
 
 				r.parsed = "Connected"
-				if r.blink {
-					r.blink = false
-					r.parsed += ": "
-				} else {
-					r.blink = true
-					r.parsed += "  "
-				}
+				r.parsed += r.getBlink()
 				r.parsed += strings.TrimSpace(city[1])
 				r.color = r.colors.normal
 			}
@@ -169,4 +163,13 @@ func (r *Routine) parseOutput(output string) error {
 	}
 
 	return nil
+}
+
+func (r *Routine) getBlink() string {
+	r.blink = !r.blink
+
+	if r.blink {
+		return ": "
+	}
+	return "  "
 }
