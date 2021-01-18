@@ -12,7 +12,6 @@ before_install:
 
 install:
     - go get github.com/golangci/golangci-lint
-    - go install github.com/golangci/golangci-lint
 
 script:
     - make fmt-check
