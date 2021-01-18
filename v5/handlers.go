@@ -4,6 +4,7 @@ package statusbar
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -55,7 +56,7 @@ func (a apiHandler) HandleGetEndpoints(endpoint restapi.Endpoint, params restapi
 	// Unmarshal JSON in file.
 	spec := restapi.RestSpec{}
 	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&spec); err != nil && err != io.EOF {
+	if err := decoder.Decode(&spec); err != nil && !errors.Is(err, io.EOF) {
 		return 500, encodePair("error", err.Error())
 	}
 

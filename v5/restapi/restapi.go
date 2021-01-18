@@ -20,6 +20,7 @@ package restapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -200,7 +201,7 @@ func (e *Engine) AddSpecReader(r io.Reader, handler interface{}) error {
 	// Unmarshal JSON in reader.
 	spec := RestSpec{}
 	decoder := json.NewDecoder(r)
-	if err := decoder.Decode(&spec); err != nil && err != io.EOF {
+	if err := decoder.Decode(&spec); err != nil && !errors.Is(err, io.EOF) {
 		return err
 	}
 
