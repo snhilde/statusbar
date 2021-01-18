@@ -162,9 +162,9 @@ func parseFile(output string) (int, int, error) {
 	return total, avail, nil
 }
 
-// shrink iteratively decreases the amount of bytes by a step of 2^10 until human-readable.
+// shrink iteratively decreases the amount of bytes by a step of 1024 until human-readable.
 func shrink(memory int) (float32, rune) {
-	units := [...]rune{'K', 'M', 'G', 'T', 'P', 'E'}
+	units := []rune{'K', 'M', 'G', 'T', 'P', 'E'}
 
 	f := float32(memory)
 	i := 0

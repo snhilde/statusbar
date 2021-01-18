@@ -159,12 +159,16 @@ func (r *Routine) Name() string {
 
 // Shrink iteratively decreases the amount of bytes by a step of 2^10 until human-readable.
 func shrink(blocks uint64) (uint64, rune) {
-	var units = [...]rune{'B', 'K', 'M', 'G', 'T', 'P', 'E'}
-	var i int
+	units := []rune{'B', 'K', 'M', 'G', 'T', 'P', 'E'}
 
+	i := 0
 	for blocks > 1024 {
 		blocks >>= 10
 		i++
+	}
+
+	if i > len(units) {
+		return blocks, '?'
 	}
 
 	return blocks, units[i]

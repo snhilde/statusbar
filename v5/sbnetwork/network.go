@@ -228,12 +228,16 @@ func readFile(path string) (int, error) {
 
 // shrink iteratively decreases the amount of bytes by a step of 2^10 until human-readable.
 func shrink(bytes int) (int, rune) {
-	var units = [...]rune{'B', 'K', 'M', 'G', 'T', 'P', 'E'}
-	var i int
+	units := []rune{'B', 'K', 'M', 'G', 'T', 'P', 'E'}
 
+	i := 0
 	for bytes > 1024 {
 		bytes >>= 10
 		i++
+	}
+
+	if i > len(units) {
+		return bytes, '?'
 	}
 
 	return bytes, units[i]
