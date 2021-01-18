@@ -9,6 +9,15 @@ fmt-check:
 		exit 1; \
 	fi;
 
+# Same as fmt-check, but use gofumpt instead.
+.PHONY: fumpt-check
+fumpt-check:
+	@diff=$$(gofumpt -s -d $(GOFILES)); \
+	if [ -n "$$diff" ]; then \
+		echo "$${diff}"; \
+		exit 1; \
+	fi;
+
 # Run a large number of linters of various types and purposes across all go source files.
 .PHONY: lint-check-source
 lint-check-source:
