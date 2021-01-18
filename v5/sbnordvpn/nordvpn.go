@@ -2,6 +2,7 @@
 package sbnordvpn
 
 import (
+	"fmt"
 	"os/exec"
 	"strings"
 )
