@@ -229,16 +229,6 @@ Default response
 Status: 204 No Content
 ```
 
-Internal error:
-```
-Status: 500 Internal Server Error
-```
-```
-{
-	"error": "failure"
-}
-```
-
 
 #### Restart routine
 ![PUT Badge](https://img.shields.io/badge/-PUT-blue) `/routines/{routine}`
@@ -264,16 +254,6 @@ Status: 400 Bad Request
 ```
 {
 	"error": "invalid routine"
-}
-```
-
-Internal error:
-```
-Status: 500 Internal Server Error
-```
-```
-{
-	"error": "failure"
 }
 ```
 
@@ -303,16 +283,6 @@ Status: 400 Bad Request
 ```
 {
 	"error": "error message"
-}
-```
-
-Internal error:
-```
-Status: 500 Internal Server Error
-```
-```
-{
-	"error": "failure"
 }
 ```
 

@@ -79,7 +79,7 @@ func (a apiHandler) HandleGetEndpoints(endpoint restapi.Endpoint, params restapi
 // HandleGetRoutineAll responds with information about all the routines (active and inactive).
 // endpoint: GET /routines
 func (a apiHandler) HandleGetRoutineAll(endpoint restapi.Endpoint, params restapi.Params, request *http.Request) (int, string) {
-	infos := make(map[string]routineInfo, 0)
+	infos := make(map[string]routineInfo)
 	for _, routine := range a.routines {
 		name := routine.moduleName()
 		info := getRoutineInfo(routine)
@@ -105,11 +105,7 @@ func (a apiHandler) HandleGetRoutine(endpoint restapi.Endpoint, params restapi.P
 func (a apiHandler) HandlePutRoutineAll(endpoint restapi.Endpoint, params restapi.Params, request *http.Request) (int, string) {
 	for _, routine := range a.routines {
 		if routine.isActive() {
-			select {
-			case routine.updateChan <- struct{}{}:
-			default:
-				return 500, encodePair("error", "failure")
-			}
+			routine.update()
 		}
 	}
 
@@ -125,11 +121,7 @@ func (a apiHandler) HandlePutRoutine(endpoint restapi.Endpoint, params restapi.P
 	}
 
 	if routine.isActive() {
-		select {
-		case routine.updateChan <- struct{}{}:
-		default:
-			return 500, encodePair("error", "failure")
-		}
+		routine.update()
 	}
 
 	return 204, ""
@@ -165,11 +157,7 @@ func (a apiHandler) HandlePatchRoutine(endpoint restapi.Endpoint, params restapi
 
 	// Let's also trigger an update in case the interval time is now up.
 	if routine.isActive() {
-		select {
-		case routine.updateChan <- struct{}{}:
-		default:
-			return 500, encodePair("error", "failure")
-		}
+		routine.update()
 	}
 
 	return 202, ""
