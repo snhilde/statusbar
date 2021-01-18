@@ -100,10 +100,10 @@ type Endpoint struct {
 	Desc string `json:"description"`
 
 	// Map of key/value pairs for request data.
-	Request map[string]interface{} `json:"request":`
+	Request map[string]interface{} `json:"request"`
 
 	// Map of key/value pairs in response data.
-	Response map[string]interface{} `json:"response":`
+	Response map[string]interface{} `json:"response"`
 
 	// Handler callback that is called to handle this endpoint's implementation. See the HandlerFunc
 	// type for more information on this.
@@ -136,6 +136,9 @@ func (e *Engine) AddSpec(spec RestSpec, handler interface{}) error {
 	// Map the endpoints into the engine.
 	for _, table := range spec.Tables {
 		for _, endpoint := range table.Endpoints {
+			// Make sure we always have the correct scope for our function literal.
+			endpoint := endpoint
+
 			if endpoint.Callback == "" {
 				return fmt.Errorf("missing callback for %s", endpoint.URL)
 			}
@@ -169,7 +172,7 @@ func (e *Engine) AddSpec(spec RestSpec, handler interface{}) error {
 					if json.Valid([]byte(output)) {
 						c.Header("Content-Type", "application/json")
 					}
-					c.String(int(code), output)
+					c.String(code, output)
 				}
 			})
 		}
