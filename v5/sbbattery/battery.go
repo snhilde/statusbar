@@ -84,9 +84,10 @@ func (r *Routine) Update() (bool, error) {
 	}
 
 	r.perc = (now * 100) / r.max
-	if r.perc < 0 {
+	switch {
+	case r.perc < 0:
 		r.perc = 0
-	} else if r.perc > 100 {
+	case r.perc > 100:
 		r.perc = 100
 	}
 
