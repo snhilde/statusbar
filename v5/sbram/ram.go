@@ -62,7 +62,7 @@ func New(colors ...[3]string) *Routine {
 // Update gets the memory resources. Unfortunately, we can't use syscall.Sysinfo() or another syscall function, because
 // it doesn't return the necessary information to calculate the actual amount of RAM in use at the moment (namely, it is
 // missing the amount of cached RAM). Instead, we're going to read out /proc/meminfo and grab the values we need from
-// there. All lines of that file have three fields: field name, value, and unit
+// there. All lines of that file have three fields: field name, value, and unit.
 func (r *Routine) Update() (bool, error) {
 	if r == nil {
 		return false, fmt.Errorf("bad routine")
@@ -135,7 +135,7 @@ func parseFile(output string) (int, int, error) {
 	var avail int
 	var err error
 
-	lines := strings.Split(string(output), "\n")
+	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if strings.HasPrefix(line, "MemTotal") {
 			fields := strings.Fields(line)
@@ -146,7 +146,6 @@ func parseFile(output string) (int, int, error) {
 			if err != nil {
 				return 0, 0, fmt.Errorf("error parsing MemTotal fields")
 			}
-
 		} else if strings.HasPrefix(line, "MemAvailable") {
 			fields := strings.Fields(line)
 			if len(fields) != 3 {
@@ -164,13 +163,17 @@ func parseFile(output string) (int, int, error) {
 
 // shrink iteratively decreases the amount of bytes by a step of 2^10 until human-readable.
 func shrink(memory int) (float32, rune) {
-	var units = [...]rune{'K', 'M', 'G', 'T', 'P', 'E'}
-	var i int
+	units := [...]rune{'K', 'M', 'G', 'T', 'P', 'E'}
 
 	f := float32(memory)
+	i := 0
 	for f > 1024 {
 		f /= 1024
 		i++
+	}
+
+	if i > len(units) {
+		return f, '?'
 	}
 
 	return f, units[i]
