@@ -142,19 +142,20 @@ func (r *Routine) Update() (bool, error) {
 	r.highTemp = noData
 	r.lowTemp = noData
 
-	// Set the high and low temperatures. The forecast for each day starts at noon local time and is
-	// displayed in UTC time. We'll start by getting a time.Time object for noon today, and then
-	// we'll skip ahead a day if we want the high/low for tomorrow instead.
-	now := time.Now()
-	noon := time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, now.Location())
+	// Go through the daily forecasts and get the high and low temperature of the day we want
+	// (either the current today or tomorrow, depending on the time).
+	date := time.Now()
 	if !onToday() {
-		noon = noon.AddDate(0, 0, 1)
+		date = date.AddDate(0, 0, 1)
 	}
-	ts := noon.Unix()
+	day := date.Day()
 	for _, f := range weather.Forecasts {
-		if f.Timestamp == ts {
+		forecastDate := time.Unix(f.Timestamp, 0)
+		forecastDay := forecastDate.Day()
+		if day == forecastDay {
 			r.highTemp = f.Range.High
 			r.lowTemp = f.Range.Low
+			break
 		}
 	}
 
