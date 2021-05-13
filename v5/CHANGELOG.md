@@ -1,6 +1,9 @@
 # `statusbar` Changelog
 
-##5.5.0 (beta)
+##5.5.0
+
+### Bug Fixes
+	* Fixed `sbweather` where it wasn't matching the forecast correctly.
 
 ### Enhancements
 	* Updated `sbgithubclones`, `sbtravisci`, and `sbweather` modules to report better errors.
