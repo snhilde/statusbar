@@ -1,5 +1,5 @@
 ![Maintenance Badge](https://img.shields.io/badge/Maintained-yes-success)
-[![PkgGoDev Doc](https://pkg.go.dev/badge/github.com/snhilde/statusbar)](https://pkg.go.dev/github.com/snhilde/statusbar)
+[![PkgGoDev Doc](https://pkg.go.dev/badge/github.com/snhilde/statusbar/v5)](https://pkg.go.dev/github.com/snhilde/statusbar)
 [![GoReportCard](https://goreportcard.com/badge/github.com/snhilde/statusbar)](https://goreportcard.com/report/github.com/snhilde/statusbar)
 [![Build Status](https://travis-ci.com/snhilde/statusbar.svg?branch=master)](https://travis-ci.com/snhilde/statusbar)
 
