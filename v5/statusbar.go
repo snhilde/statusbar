@@ -23,22 +23,24 @@ import (
 
 // RoutineHandler allows information monitors (commonly called routines) to be linked in.
 type RoutineHandler interface {
-	// Update updates the routine's information. This is run on a periodic interval according to the time provided when
-	// adding the routine to the statusbar engine. It returns two arguments: a bool and an error. The bool indicates
-	// whether or not the engine should continue to run the routine. You can think of it as representing the "ok"
-	// status. The error is any error encountered during the process. For example, on a normal run with no error, Update
-	// would return (true, nil). On a run with a non-critical error, Update would return (true, error). On a run with a
-	// critical error where the routine should be stopped, Update would return (false, error). The returned error will
-	// be logged to stderr. Generally, the error returned from Update should be detailed and specific for debugging the
-	// routine, while the error returned from Error should be shorter, more concise, and more general.
+	// Update updates the routine's information. This is run on a periodic interval according to the
+	// time provided when adding the routine to the statusbar engine. It returns two arguments: a
+	// bool and an error. The bool indicates whether or not the engine should continue to run the
+	// routine. You can think of it as representing the "ok" status. The error is any error
+	// encountered during the process. For example, on a normal run with no error, Update would
+	// return (true, nil). On a run with a non-critical error, Update would return (true, error). On
+	// a run with a critical error where the routine should be stopped, Update would return (false,
+	// error). The returned error will be logged to stderr. Generally, the error returned from
+	// Update should be detailed and specific for debugging the routine, while the error returned
+	// from Error should be shorter, more concise, and more general.
 	Update() (bool, error)
 
 	// String formats and returns the routine's output.
 	String() string
 
-	// Error formats and returns an error message. Generally, the error returned from Error should be shorter, more
-	// concise, and more general, while the error returned from Update should be detailed and specific for debugging the
-	// routine.
+	// Error formats and returns an error message. Generally, the error returned from Error should
+	// be shorter, more concise, and more general, while the error returned from Update should be
+	// detailed and specific for debugging the routine.
 	Error() string
 
 	// Name returns the display name of the module.
@@ -78,21 +80,23 @@ var (
 	root = C.XDefaultRootWindow(dpy)
 )
 
-// New creates a new statusbar. The default delimiters around each routine are square brackets ('[' and ']').
+// New creates a new statusbar. The default delimiters around each routine are square brackets ('['
+// and ']'), which can be changed with SetMarkers.
 func New() Statusbar {
 	return Statusbar{leftDelim: "[", rightDelim: "]", split: -1}
 }
 
-// Append adds a routine to the statusbar's list. Routines are displayed in the order they are added. handler is the
-// RoutineHandler module. seconds is the amount of time between each run of the routine.
+// Append adds a routine to the statusbar's list. Routines are displayed in the order they are
+// added. handler is the RoutineHandler module. seconds is the amount of time between each run of
+// the routine.
 func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 	r := newRoutine()
 	r.setHandler(handler)
 	r.setInterval(seconds)
 
-	// Get the package name of the module that is implementing this RoutineHandler. We are going to use this to match
-	// the routine's name for the API. TypeOf returns "*{package}.Routine", like "*sbbattery.Routine". We want to
-	// capture only the package name.
+	// Get the package name of the module that is implementing this RoutineHandler. We are going to
+	// use this to match the routine's name for the API. TypeOf returns "*{package}.Routine", like
+	// "*sbbattery.Routine". We want to capture only the package name.
 	refType := reflect.TypeOf(handler).String()
 	if fields := strings.Split(refType, "."); len(fields) == 2 {
 		module := strings.TrimPrefix(fields[0], "*")
@@ -107,8 +111,8 @@ func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 	sb.routines = append(sb.routines, r)
 }
 
-// Run spins up all the routines and displays them on the statusbar. If the APIs are enabled, this also runs the API
-// engines.
+// Run spins up all the routines and displays them on the statusbar. If the APIs are enabled, this
+// also runs the API engines.
 func (sb *Statusbar) Run() {
 	// Start the uptime clock.
 	sb.startTime = time.Now()
@@ -123,8 +127,8 @@ func (sb *Statusbar) Run() {
 	outputsChan := make(chan []string, 1)
 	outputsChan <- outputs
 
-	// Set up a channel used to indicate everything is done. This must have a buffer large enough for every channel to
-	// send on without blocking.
+	// Set up a channel used to indicate everything is done. This must have a buffer large enough
+	// for every channel to send on without blocking.
 	finished := make(chan *routine, len(sb.routines))
 
 	// Run each routine.
@@ -154,7 +158,7 @@ func (sb *Statusbar) Run() {
 	}
 }
 
-// Stop stops a running Statusbar.
+// Stop stops a running statusbar.
 func (sb *Statusbar) Stop() {
 	if sb == nil {
 		return
@@ -175,8 +179,8 @@ func (sb *Statusbar) Stop() {
 		}(r)
 	}
 
-	// Give each routine up to 5 seconds to shut down. If they can't close down in that time, then we'll forcibly quit
-	// the program.
+	// Give each routine up to 5 seconds to shut down. If they can't close down in that time, then
+	// we'll forcibly quit the program.
 	time.AfterFunc(5*time.Second, func() {
 		log.Printf("Forcibly exiting statusbar")
 		pid := os.Getpid()
@@ -191,16 +195,18 @@ func (sb *Statusbar) Stop() {
 	setBar("Statusbar stopped")
 }
 
-// SetMarkers sets the left and right delimiters around each routine. If not set, these will default to '[' and ']'.
+// SetMarkers sets the left and right delimiters around each routine. If not set, they default to
+// '[' and ']'.
 func (sb *Statusbar) SetMarkers(left string, right string) {
 	sb.leftDelim = left
 	sb.rightDelim = right
 }
 
-// Split splits the statusbar at this point, when using dualstatus patch for dwm. A semicolon (';') is inserted at this
-// point in the routine list, which signals to dualstatus to split the statusbar at this point. Before this is called,
-// the routines already added are displayed on the top bar. After this is called, all subsequently added routines are
-// displayed on the bottom bar.
+// Split splits the statusbar at this point, when using the dualstatus patch for dwm. Internally, a
+// semicolon (';') is inserted at this point in the routine list, which signals to dualstatus to
+// split the statusbar at this point. Before this is called, the routines already added are
+// displayed on the main bar. After this is called, all subsequently added routines are displayed on
+// the secondary bar.
 func (sb *Statusbar) Split() {
 	sb.split = len(sb.routines) - 1
 }
@@ -211,14 +217,14 @@ func (sb *Statusbar) Uptime() int {
 	return int(t.Seconds())
 }
 
-// EnableRESTAPI enables the engine to run the REST API on port port. These can be used to interact with the statusbar
-// and its routines while they are running.
+// EnableRESTAPI enables the engine to run the REST API on the specified port. This can be used to
+// interact with the statusbar and its routines while they are running.
 func (sb *Statusbar) EnableRESTAPI(port int) {
 	sb.restPort = port
 }
 
-// buildBar builds the master output and prints it to the statusbar. This runs a loop twice a second to catch any
-// changes that run every second (the minimum time).
+// buildBar builds the master output and prints it to the statusbar. This runs a loop twice a second
+// to catch any changes that run every second (the minimum time).
 func (sb *Statusbar) buildBar(outputsChan chan []string) {
 	for sb.running {
 		// Start the clock.
@@ -233,8 +239,8 @@ func (sb *Statusbar) buildBar(outputsChan chan []string) {
 
 				// Shorten outputs that are longer than 60 characters.
 				if len(s) > 60 {
-					// If the output ends with the color terminator, then we need to make sure to keep that so the color
-					// doesn't bleed onto the delimiter and beyond.
+					// If the output ends with the color terminator, then we need to make sure to
+					// keep that so the color doesn't bleed onto the delimiter and beyond.
 					hasColor := strings.HasSuffix(s, "^d^")
 					s = s[:56] + "..."
 					if hasColor {
@@ -289,14 +295,15 @@ func (sb *Statusbar) handleSignal() {
 	sb.Stop()
 }
 
-// runAPIs runs the various APIs and their versions using the callback methods implemented by handler. New APIs/versions
-// should be added here.
+// runAPIs runs the various APIs and their versions using the callback methods implemented by
+// handler. New APIs/versions should be added here.
 func (sb *Statusbar) runAPIs() {
 	if sb.restPort > 0 {
 		// Begin with the REST API.
 		r := restapi.NewEngine()
 
-		// Spin up REST API v1. Use an apiHandler to wrap the statusbar object for convenience (see type definition).
+		// Spin up REST API v1. Use an apiHandler to wrap the statusbar object for convenience (see
+		// type definition).
 		s := strings.NewReader(apispecs.RESTV1)
 		if err := r.AddSpecReader(s, apiHandler{sb}); err != nil {
 			log.Printf("Error building REST API v1: %s", err.Error())
