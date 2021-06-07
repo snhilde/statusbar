@@ -86,9 +86,9 @@ func New() Statusbar {
 	return Statusbar{leftDelim: "[", rightDelim: "]", split: -1}
 }
 
-// Append adds a routine to the statusbar's list. Routines are displayed in the order they are
-// added. handler is the RoutineHandler module. seconds is the amount of time between each run of
-// the routine.
+// Append adds a routine to the statusbar's internal list of routines. Routines are displayed in
+// the order they are added. handler is the RoutineHandler module. seconds is the amount of time
+// between each run of the routine.
 func (sb *Statusbar) Append(handler RoutineHandler, seconds int) {
 	r := newRoutine()
 	r.setHandler(handler)
