@@ -1,6 +1,6 @@
 # `statusbar` Changelog
 
-##5.5.0
+## 5.5.0
 
 ### Bug Fixes
 	* Fixed `sbweather` where it wasn't matching the forecast correctly.
